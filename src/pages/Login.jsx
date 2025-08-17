@@ -1,17 +1,85 @@
-﻿export default function Login() {
+﻿import { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { api } from '../components/client';        
+import { useAuth } from '../components/auth';  
+
+export default function Login() {
+  const { setToken } = useAuth();
+  const nav = useNavigate();
+
+  const [studentNo, setStudentNo] = useState(''); // 이메일 대신 학번 (studentNumber) 사용
+  const [password, setPassword] = useState('');
+  const [err, setErr] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  const canSubmit = !!studentNo && !!password && !busy; // 학번으로 변경
+
+  const submit = async (e) => {
+    e.preventDefault();
+    if (!canSubmit) return;
+    setBusy(true);
+    setErr('');
+    try {
+      // 백엔드 명세에 맞게 studentNumber와 password 전송
+      const data = await api('POST', '/auth/login', { studentNumber: parseInt(studentNo), password });
+      const token = data?.accessToken; // 백엔드 응답이 accessToken을 사용하므로 변경
+      if (!token) throw new Error('토큰을 받지 못했습니다.');
+      setToken(token);
+      
+      // 역할에 따라 리다이렉션
+      if (data?.role === 'admin') {
+        nav('/admin', { replace: true });
+      } else {
+        nav('/', { replace: true }); // 일반 사용자라면 홈페이지로 리다이렉션
+      }
+    } catch (e) {
+      setErr(e?.message || '로그인 중 오류가 발생했습니다.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
   return (
     <section className="form-container">
-      <form action="" method="post" encType="multipart/form-data">
+      <form onSubmit={submit} noValidate>
         <div className="logo-header">
           <img src="/logo.png" alt="로고" className="logo-image" />
           <h3>MJSEC LMS</h3>
         </div>
-        <input type="text" name="student-no" placeholder="ID(학번)" required maxLength={50} className="box" />
-        <input type="password" name="pass" placeholder="비밀번호" required maxLength={20} className="box" />
-        <input type="submit" value="로그인" name="submit" className="btn" />
-        <p><a href="/register">회원가입</a></p>
-        <p><a href="/forgot-password">비밀번호 찾기</a></p>
+
+        {err && <p className="error-message">{err}</p>}
+
+        <input
+          type="text"
+          name="studentNumber" // name 속성을 studentNumber로 변경
+          placeholder="ID(학번)"
+          required
+          maxLength={50}
+          className="box"
+          value={studentNo} // email 대신 studentNo 사용
+          onChange={(e) => setStudentNo(e.target.value)}  // email 대신 setStudentNo 사용
+          autoComplete="username"
+        />
+
+        <input
+          type="password"
+          name="password"
+          placeholder="비밀번호"
+          required
+          maxLength={20}
+          className="box"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          autoComplete="current-password"
+        />
+
+        <button type="submit" className="btn" disabled={!canSubmit}>
+          {busy ? '로그인 중…' : '로그인'}
+        </button>
+
+        <p><Link to="/register">회원가입</Link></p>
+        <p><Link to="/forgot-password">비밀번호 찾기</Link></p>
       </form>
     </section>
-  )
+  );
 }
