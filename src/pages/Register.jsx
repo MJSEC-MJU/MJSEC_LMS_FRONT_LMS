@@ -2,7 +2,7 @@
   return (
     <section className="form-container">
       <form action="" method="post" encType="multipart/form-data">
-        <h3>register now</h3>
+        <h3>회원가입</h3>
         <p>your name <span>*</span></p>
         <input type="text" name="name" placeholder="enter your name" required maxLength={50} className="box" />
         <p>student number</p>
