@@ -1,0 +1,814 @@
+/* 공지사항 페이지 스타일 */
+
+/* 공지사항 섹션 기본 스타일 */
+.reviews {
+  width: 100%;
+  padding: 2rem;
+  background: var(--light-bg);
+  min-height: 100vh;
+}
+
+.heading {
+  text-align: center;
+  font-size: 2.5rem;
+  color: var(--black);
+  margin-bottom: 2rem;
+  font-weight: 600;
+}
+
+/* 어드민 컨트롤 */
+.admin-controls {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 2rem;
+}
+
+.admin-btn {
+  width: auto;
+  background: var(--main-color);
+  color: var(--white);
+  padding: 0.8rem 1.5rem;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-size: 1.2rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  position: absolute;
+  right: 0;
+}
+
+.admin-btn:hover {
+  background: var(--black);
+  transform: translateY(-2px);
+}
+
+/* 검색 섹션 */
+.search-section {
+  padding: 2rem 0;
+  margin-bottom: 2rem;
+}
+
+.search-box {
+  display: flex;
+  max-width: 50rem;
+  margin: 0 auto;
+}
+
+.search-input {
+  flex: 1;
+  padding: 1.2rem 1.8rem;
+  border: 2px solid var(--border);
+  border-radius: 2.5rem 0 0 2.5rem;
+  font-size: 1.4rem;
+  background: var(--white);
+  color: var(--black);
+}
+
+.search-input:focus {
+  border-color: var(--main-color);
+  outline: none;
+}
+
+.search-input::placeholder {
+  color: var(--light-color);
+}
+
+.search-submit {
+  background: var(--main-color);
+  color: var(--white);
+  padding: 1.2rem 2rem;
+  border: 2px solid var(--main-color);
+  border-radius: 0 2.5rem 2.5rem 0;
+  cursor: pointer;
+  font-size: 1.4rem;
+}
+
+.search-submit:hover {
+  background: var(--black);
+  border-color: var(--black);
+}
+
+/* 카테고리 필터 */
+.category-filter {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 3rem;
+  flex-wrap: wrap;
+}
+
+.category-btn {
+  padding: 1rem 2rem;
+  border: 2px solid var(--border);
+  background: var(--white);
+  color: var(--light-color);
+  border-radius: 2.5rem;
+  cursor: pointer;
+  font-size: 1.4rem;
+  font-weight: 500;
+}
+
+.category-btn:hover {
+  border-color: var(--main-color);
+  color: var(--main-color);
+}
+
+.category-btn.active {
+  background: var(--main-color);
+  border-color: var(--main-color);
+  color: var(--white);
+}
+
+/* 공지사항 목록 */
+.notifications-section {
+  margin-bottom: 3rem;
+}
+
+.notifications-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.notification-item {
+  background: var(--white);
+  border: 2px solid var(--border);
+  border-radius: 1rem;
+  padding: 2rem;
+  padding-right: 6rem;
+  margin-bottom: 2rem;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.notification-item:hover {
+  border-color: var(--main-color);
+  transform: translateY(-0.5rem);
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+}
+
+.notification-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 0.4rem;
+  background: var(--light-color);
+}
+
+.notification-item.competition::before {
+  background: var(--red);
+}
+
+.notification-item.event::before {
+  background: var(--orange);
+}
+
+.notification-item.notice::before {
+  background: var(--main-color);
+}
+
+.notification-item.general::before {
+  background: var(--light-color);
+}
+
+.notification-header {
+  margin-bottom: 1.2rem;
+}
+
+.notification-meta {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+}
+
+.notification-badge {
+  padding: 0.4rem 1rem;
+  border-radius: 1.2rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.notification-badge.competition {
+  background: var(--light-bg);
+  color: var(--red);
+}
+
+.notification-badge.event {
+  background: var(--light-bg);
+  color: var(--orange);
+}
+
+.notification-badge.notice {
+  background: var(--light-bg);
+  color: var(--main-color);
+}
+
+.notification-badge.general {
+  background: var(--light-bg);
+  color: var(--light-color);
+}
+
+.notification-date {
+  color: var(--light-color);
+  font-size: 1.3rem;
+}
+
+.notification-title {
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: var(--black);
+  margin-bottom: 1rem;
+  line-height: 1.4;
+}
+
+.notification-excerpt {
+  color: var(--light-color);
+  font-size: 1.4rem;
+  line-height: 1.6;
+}
+
+/* 어드민 액션 버튼 */
+.admin-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 100%;
+  width: 4rem;
+}
+
+.edit-btn, .delete-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1.4rem;
+  flex: 1 0 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0;
+}
+
+.edit-btn {
+  color: var(--main-color);
+  background: rgba(0, 123, 255, 0.1);
+  border-top-right-radius: 1rem;
+}
+
+.edit-btn:hover {
+  background: rgba(0, 123, 255, 0.2);
+  color: var(--main-color);
+}
+
+.delete-btn {
+  color: #dc3545;
+  background: rgba(220, 53, 69, 0.1);
+  border-bottom-right-radius: 1rem;
+  margin-top: 0;
+}
+
+.delete-btn:hover {
+  background: rgba(220, 53, 69, 0.2);
+  color: #dc3545;
+}
+
+/* 모달 스타일 */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  transition: all 0.3s ease;
+}
+
+
+/* 데스크톱에서 사이드바가 항상 열려있는 경우 */
+@media (min-width: 1200px) {
+/* 슬라이드바가 열려있을 때 (body.active) - 패딩 0 */
+body.active .modal-overlay {
+  left: 0 !important;
+  margin-right: 0 !important;
+  width: 100% !important;
+}
+
+/* 슬라이드바가 닫혀있을 때 (body:not(.active)) - 패딩 30rem */
+body:not(.active) .modal-overlay {
+  left: 0 !important;
+  margin-right: 30rem !important;
+  width: calc(100% - 30rem) !important;
+}
+
+}
+
+.modal-content {
+  background: var(--white);
+  border-radius: 1rem;
+  width: 50%;
+  height: auto;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+}
+
+/* 삭제 모달은 작게 표시 */
+.modal-content.delete-modal {
+  width: 40%;
+  height: auto;
+  max-height: 30vh;
+}
+@media (max-width: 480px) {
+  .modal-content.delete-modal {
+    width: 90%;
+    height: auto;
+    max-height: 30vh;
+  }
+}
+
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2rem;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  padding-bottom:0;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 1.8rem;
+  color: var(--black);
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 2rem;
+  cursor: pointer;
+  color: var(--light-color);
+  padding: 0.5rem;
+  border-radius: 0.3rem;
+  transition: all 0.3s ease;
+}
+
+.modal-close:hover {
+  background: var(--light-bg);
+  color: var(--black);
+}
+
+.modal-body {
+  padding: 2rem;
+  flex: 1;
+  overflow-y: auto;
+  padding-top:0;
+}
+
+.modal-body p {
+  margin-bottom: 1rem;
+  color: var(--black);
+  font-size: 1.4rem;
+  line-height: 1.6;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: var(--black);
+  font-size: 1.4rem;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+  width: 100%;
+  padding: 1rem;
+  border: 2px solid var(--border);
+  border-radius: 0.5rem;
+  font-size: 1.4rem;
+  background: var(--white);
+  color: var(--black);
+  transition: all 0.3s ease;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: var(--main-color);
+  box-shadow: 0 0 0 3px rgba(66, 68, 146, 0.1);
+}
+
+.form-group textarea {
+  resize: none;
+  min-height: 35rem;
+  height: auto;
+  font-size: 1.8rem;
+  line-height: 1.7;
+  padding: 2rem;
+}
+
+
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  padding: 2rem;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.btn {
+  padding: 1rem 2rem;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-size: 1.4rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.btn-primary {
+  background: var(--main-color);
+  color: var(--white);
+}
+
+.btn-primary:hover {
+  background: var(--black);
+}
+
+.btn-secondary {
+  background: var(--light-color);
+  color: var(--white);
+}
+
+.btn-secondary:hover {
+  background: var(--black);
+}
+
+.btn-danger {
+  background: #dc3545;
+  color: var(--white);
+}
+
+.btn-danger:hover {
+  background: #c82333;
+}
+
+/* 페이지네이션 */
+.pagination-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 3rem;
+  padding: 2rem 0;
+  position: relative;
+}
+
+.pagination {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.page-btn {
+  padding: 1rem 1.5rem;
+  border: 2px solid var(--border);
+  background: var(--white);
+  color: var(--light-color);
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-size: 1.4rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  min-width: 4rem;
+}
+
+.page-btn:hover {
+  border-color: var(--main-color);
+  color: var(--main-color);
+}
+
+.page-btn.active {
+  background: var(--main-color);
+  border-color: var(--main-color);
+  color: var(--white);
+}
+
+.page-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.page-btn.prev,
+.page-btn.next {
+  font-size: 1.2rem;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+  .modal-content {
+    width: 95%;
+    margin: 1rem;
+  }
+  
+  .modal-header,
+  .modal-body,
+  .modal-footer {
+    padding: 1.5rem;
+  }
+  
+  .admin-controls {
+    justify-content: center;
+  }
+  
+  /* Keep admin actions pinned on mobile too */
+  .admin-actions {
+    position: absolute;
+    top: 0;
+    right: 0;
+    height: 100%;
+    width: 3.5rem;
+    margin-top: 0;
+    margin-left: 0;
+    gap: 0;
+    z-index: 1;
+  }
+  
+  .edit-btn, .delete-btn {
+    font-size: 1.2rem;
+  }
+  
+  /* Reserve space for the right-side buttons */
+  .notification-item {
+    padding: 1.5rem;
+    padding-right: 5rem;
+  }
+  
+  .pagination-section {
+    flex-direction: column;
+    gap: 2rem;
+    align-items: center;
+  }
+  
+  .pagination {
+    position: static;
+    left: auto;
+    transform: none;
+    justify-content: center;
+  }
+  
+  .admin-btn {
+    width: auto;
+    max-width: none;
+    justify-content: center;
+    padding: 0.6rem 1.2rem;
+    font-size: 1.1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .search-input {
+    padding: 1rem 1.5rem;
+    font-size: 1.3rem;
+  }
+  
+  .search-submit {
+    padding: 1rem 1.5rem;
+    font-size: 1.3rem;
+  }
+  
+  .category-filter {
+    gap: 0.5rem;
+  }
+  
+  .category-btn {
+    padding: 0.6rem 1.2rem;
+    font-size: 1.2rem;
+  }
+  
+  .notification-item {
+    padding: 1.2rem;
+  }
+  
+  .notification-title {
+    font-size: 1.5rem;
+  }
+  
+  .notification-excerpt {
+    font-size: 1.2rem;
+    width: 90%;
+  }
+  
+  .notification-badge {
+    padding: 0.3rem 0.8rem;
+    font-size: 1rem;
+  }
+}
+
+/* base.css의 전역 border:none 완전 오버라이드 */
+.modal-content .form-group input[type="text"],
+.modal-content .form-group input[type="password"],
+.modal-content .form-group input[type="email"],
+.modal-content .form-group input[type="number"],
+.modal-content .form-group textarea,
+.modal-content .form-group select {
+  border: 2px solid var(--border) !important;
+  border-style: solid !important;
+  border-width: 2px !important;
+  border-color: var(--border) !important;
+}
+
+/* 모달 폼 요소들의 border 강제 표시 - base.css의 border:none 오버라이드 */
+.modal-content .form-group input,
+.modal-content .form-group textarea,
+.modal-content .form-group select {
+  width: 100% !important;
+  padding: 1rem !important;
+  border: 2px solid var(--border) !important;
+  border-radius: 0.5rem !important;
+  font-size: 1.4rem !important;
+  background: var(--white) !important;
+  color: var(--black) !important;
+  transition: all 0.3s ease !important;
+  box-sizing: border-box !important;
+}
+
+/* 추가적인 강제 오버라이드 */
+.modal-content .form-group textarea {
+  border: 2px solid var(--border) !important;
+  border-style: solid !important;
+  border-width: 2px !important;
+  border-color: var(--border) !important;
+  resize: none !important;
+  min-height: 80rem !important;
+  height: auto !important;
+  font-size: 2rem !important;
+  line-height: 1.7 !important;
+  padding: 2rem !important;
+}
+.modal-content .form-group input {
+  font-size: 2rem !important;
+}
+@media (max-width: 480px) {
+  .modal-content .form-group input {
+    font-size: 1.8rem !important;
+  }
+  .modal-content .form-group textarea {
+    font-size: 1.5rem !important;
+  }
+  .form-group textarea {
+    min-height: 1rem;
+    height: auto;
+  }
+}
+
+.modal-content .form-group select {
+  border: 2px solid var(--border) !important;
+  border-style: solid !important;
+  border-width: 2px !important;
+  border-color: var(--border) !important;
+  cursor: pointer !important;
+}
+
+/* 포커스, 호버, 플레이스홀더 스타일 */
+.modal-content .form-group input:focus,
+.modal-content .form-group textarea:focus,
+.modal-content .form-group select:focus {
+  outline: none !important;
+  border-color: var(--main-color) !important;
+  box-shadow: 0 0 0 3px rgba(66, 68, 146, 0.1) !important;
+}
+
+.modal-content .form-group input:hover,
+.modal-content .form-group textarea:hover,
+.modal-content .form-group select:hover {
+  border-color: var(--main-color) !important;
+}
+
+.modal-content .form-group input::placeholder,
+.modal-content .form-group textarea::placeholder {
+  color: var(--light-color) !important;
+}
+
+/* TinyMCE 에디터 스타일 */
+.tinymce-editor-container {
+  width: 100%;
+  border: 2px solid var(--border);
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.tinymce-editor-container .tox-tinymce {
+  border: none !important;
+}
+
+/* 다크모드에서 TinyMCE 테마 조정 */
+body.dark .tinymce-editor-container .tox-tinymce {
+  background-color: #000000 !important;
+}
+
+/* 상세보기 모달 스타일 */
+.notification-detail {
+  padding: 1rem 0;
+}
+
+.detail-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.detail-badge {
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 1.2rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.detail-badge.competition {
+  background-color: var(--competition-bg);
+  color: var(--red);
+}
+
+.detail-badge.event {
+  background-color: var(--event-bg);
+  color: var(--orange);
+}
+
+.detail-badge.notice {
+  background-color: var(--notice-bg);
+  color: var(--main-color);
+}
+
+.detail-badge.general {
+  background-color: var(--general-bg);
+  color: var(--light-color);
+}
+
+.detail-date {
+  color: var(--light-color);
+  font-size: 1.2rem;
+}
+
+.detail-title {
+  font-size: 2.4rem;
+  color: var(--black);
+  margin-bottom: 2rem;
+  line-height: 1.3;
+}
+
+.detail-content {
+  font-size: 1.4rem;
+  line-height: 1.7;
+  color: var(--black);
+  background-color: var(--white);
+  padding: 2rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--border);
+  min-height: 20rem;
+}
+
+/* 다크모드에서 상세보기 스타일 */
+body.dark .detail-title {
+  color: var(--white);
+}
+
+body.dark .detail-content {
+  background-color: var(--light-bg);
+  color: var(--white);
+  border-color: var(--border);
+}
+
