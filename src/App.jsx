@@ -9,7 +9,7 @@ import Update from "./pages/Update.jsx"
 import Group from "./pages/Group.jsx"
 import Notifications from "./pages/Notifications.jsx"
 import Admin from "./pages/Admin.jsx" // Admin 컴포넌트 임포트
-// Removed Vite template styles to avoid layout constraints
+import Unauthorized from "./pages/Unauthorized.jsx";
 
 export default function App() {
   return (
@@ -27,7 +27,8 @@ export default function App() {
         <Route path="/groups/:groupId" element={<Group />} />
         <Route path="/notifications" element={<Notifications />} />
         <Route path="/notifications/:notificationId" element={<Notifications />} />
-        <Route path="/admin" element={<Admin />} /> {/* Admin 경로 추가 */}
+        <Route path="/admin" element={<Admin />} />
+        <Route path="/unauthorized" element={<Unauthorized />} />
       </Routes>
     </>
   )

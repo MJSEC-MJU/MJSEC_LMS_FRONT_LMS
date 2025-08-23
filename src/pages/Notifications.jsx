@@ -2,13 +2,10 @@
 import { useState, useEffect } from "react"
 import { useAuth } from "../components/auth"
 import { Editor } from '@tinymce/tinymce-react'
-
-// API 기본 설정
-const API_BASE_URL = 'http://localhost:8080'
-const API_VERSION = '/api/v1'
+import { api } from "../components/client"
 
 export default function Notifications() {
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   
   // (테스트용)
   const isAdmin = true;
@@ -57,118 +54,79 @@ export default function Notifications() {
   }, [])
 
   // API 호출 함수들
-  const getAuthHeaders = () => {
-    const token = localStorage.getItem('jwt_token')
-    return {
-      'Content-Type': 'application/json',
-      'Authorization': token ? `Bearer ${token}` : ''
-    }
+  const getAuthToken = () => {
+    return token
   }
 
   // 공지사항 생성 API
   const createAnnouncement = async (announcementData) => {
     try {
-      const response = await fetch(`${API_BASE_URL}${API_VERSION}/users/announcements/`, {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify(announcementData)
-      })
-
-      if (response.status === 201) {
-        const result = await response.json()
-        return { success: true, data: result.data }
-      } else if (response.status === 400) {
-        const errorData = await response.json()
-        return { success: false, error: errorData }
-      } else {
-        return { success: false, error: { message: '서버 오류가 발생했습니다.' } }
+      const token = getAuthToken()
+      // API 명세서에 맞는 JSON 형식으로 요청 구성
+      const requestData = {
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: {
+          title: announcementData.title,
+          content: announcementData.content,
+          type: announcementData.type
+        }
       }
+      const result = await api('POST', '/users/announcements/', requestData, token)
+      return { success: true, data: result.data }
     } catch (error) {
       console.error('공지사항 생성 오류:', error)
-      return { success: false, error: { message: '네트워크 오류가 발생했습니다.' } }
+      return { success: false, error: { message: error.message || '네트워크 오류가 발생했습니다.' } }
     }
   }
 
   // 공지사항 목록 조회 API (GET)
   const fetchAnnouncements = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}${API_VERSION}/users/announcements/`, {
-        method: 'GET',
-        headers: getAuthHeaders()
-      })
-
-      if (response.ok) {
-        const result = await response.json()
-        return { success: true, data: result.data }
-      } else {
-        return { success: false, error: { message: '공지사항 목록을 불러오는데 실패했습니다.' } }
-      }
+      const token = getAuthToken()
+      const result = await api('GET', '/users/announcements', null, token)
+      return { success: true, data: result.data }
     } catch (error) {
       console.error('공지사항 목록 조회 오류:', error)
-      return { success: false, error: { message: '네트워크 오류가 발생했습니다.' } }
+      return { success: false, error: { message: error.message || '공지사항 목록을 불러오는데 실패했습니다.' } }
     }
   }
 
   // 공지사항 상세 조회 API (GET)
   const fetchAnnouncementDetail = async (announcementId) => {
     try {
-      const response = await fetch(`${API_BASE_URL}${API_VERSION}/users/announcements/${announcementId}`, {
-        method: 'GET',
-        headers: getAuthHeaders()
-      })
-
-      if (response.ok) {
-        const result = await response.json()
-        return { success: true, data: result.data }
-      } else {
-        return { success: false, error: { message: '공지사항 상세 정보를 불러오는데 실패했습니다.' } }
-      }
+      const token = getAuthToken()
+      const result = await api('GET', `/users/announcements/${announcementId}`, null, token)
+      return { success: true, data: result.data }
     } catch (error) {
       console.error('공지사항 상세 조회 오류:', error)
-      return { success: false, error: { message: '네트워크 오류가 발생했습니다.' } }
+      return { success: false, error: { message: error.message || '공지사항 상세 정보를 불러오는데 실패했습니다.' } }
     }
   }
 
   // 공지사항 수정 API (PUT)
   const updateAnnouncement = async (announcementId, announcementData) => {
     try {
-      const response = await fetch(`${API_BASE_URL}${API_VERSION}/users/announcements/${announcementId}`, {
-        method: 'PUT',
-        headers: getAuthHeaders(),
-        body: JSON.stringify(announcementData)
-      })
-
-      if (response.ok) {
-        const result = await response.json()
-        return { success: true, data: result.data }
-      } else if (response.status === 400) {
-        const errorData = await response.json()
-        return { success: false, error: errorData }
-      } else {
-        return { success: false, error: { message: '서버 오류가 발생했습니다.' } }
-      }
+      const token = getAuthToken()
+      const result = await api('PUT', `/users/announcements/${announcementId}`, announcementData, token)
+      return { success: true, data: result.data }
     } catch (error) {
       console.error('공지사항 수정 오류:', error)
-      return { success: false, error: { message: '네트워크 오류가 발생했습니다.' } }
+      return { success: false, error: { message: error.message || '네트워크 오류가 발생했습니다.' } }
     }
   }
 
   // 공지사항 삭제 API (DELETE)
   const deleteAnnouncement = async (announcementId) => {
     try {
-      const response = await fetch(`${API_BASE_URL}${API_VERSION}/users/announcements/${announcementId}`, {
-        method: 'DELETE',
-        headers: getAuthHeaders()
-      })
-
-      if (response.ok) {
-        return { success: true }
-      } else {
-        return { success: false, error: { message: '공지사항 삭제에 실패했습니다.' } }
-      }
+      const token = getAuthToken()
+      await api('DELETE', `/users/announcements/${announcementId}`, null, token)
+      return { success: true }
     } catch (error) {
       console.error('공지사항 삭제 오류:', error)
-      return { success: false, error: { message: '네트워크 오류가 발생했습니다.' } }
+      return { success: false, error: { message: error.message || '공지사항 삭제에 실패했습니다.' } }
     }
   }
   
@@ -308,11 +266,11 @@ export default function Notifications() {
     try {
       let result
       
-      if (modalType === "create") {
-        result = await createAnnouncement(formData)
-      } else if (modalType === "edit") {
-        result = await updateAnnouncement(selectedNotification.announcement_id, formData)
-      }
+             if (modalType === "create") {
+         result = await createAnnouncement(formData)
+       } else if (modalType === "edit") {
+         result = await updateAnnouncement(selectedNotification.announcementId, formData)
+       }
       
       if (result.success) {
         handleModalClose()
@@ -332,8 +290,8 @@ export default function Notifications() {
   }
 
   const handleConfirmDelete = async () => {
-    try {
-      const result = await deleteAnnouncement(selectedNotification.announcement_id)
+         try {
+       const result = await deleteAnnouncement(selectedNotification.announcementId)
       
       if (result.success) {
         handleModalClose()
@@ -454,19 +412,19 @@ export default function Notifications() {
             </div>
           ) : (
             <div className="notifications-list">
-              {currentNotifications.map((notification) => (
-              <article 
-                key={notification.announcement_id} 
-                className={`notification-item ${getTypeClass(notification.type)}`}
-                onClick={() => handleNotificationClick(notification)}
-                style={{ cursor: 'pointer' }}
-              >
+                             {currentNotifications.map((notification) => (
+               <article 
+                 key={notification.announcementId} 
+                 className={`notification-item ${getTypeClass(notification.type)}`}
+                 onClick={() => handleNotificationClick(notification)}
+                 style={{ cursor: 'pointer' }}
+               >
                 <div className="notification-header">
                   <div className="notification-meta">
                     <span className={`notification-badge ${getTypeClass(notification.type)}`}>
                       {getTypeLabel(notification.type)}
                     </span>
-                    <span className="notification-date">{formatDate(notification.created_at)}</span>
+                                         <span className="notification-date">{formatDate(notification.createdAt)}</span>
                   </div>
                   
                   {/* 어드민 전용 수정/삭제 버튼 */}
@@ -581,9 +539,9 @@ export default function Notifications() {
                     <span className={`detail-badge ${getTypeClass(selectedNotification?.type)}`}>
                       {getTypeLabel(selectedNotification?.type)}
                     </span>
-                    <span className="detail-date">
-                      {formatDate(selectedNotification?.created_at)}
-                    </span>
+                                         <span className="detail-date">
+                       {formatDate(selectedNotification?.createdAt)}
+                     </span>
                   </div>
                   
                   <h2 className="detail-title">{selectedNotification?.title}</h2>

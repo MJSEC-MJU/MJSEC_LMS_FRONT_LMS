@@ -1,6 +1,7 @@
 ﻿import { useState, useEffect } from "react"
 import { Link, useParams } from "react-router-dom"
 import { useAuth } from "../components/auth"
+import { api } from "../components/client"
 
 export default function Group() {
   const { groupId } = useParams();
@@ -86,12 +87,181 @@ export default function Group() {
     week3: false
   });
 
+  // 과제 데이터 상태 관리
+  const [assignments, setAssignments] = useState([
+    {
+      id: 1,
+      title: "1주차 과제",
+      description: "리버싱 기초 학습 및 실습",
+      startDate: "2025-07-29T09:00:00",
+      endDate: "2025-08-05T23:59:59",
+      week: "week1"
+    },
+    {
+      id: 2,
+      title: "2주차 과제",
+      description: "웹 해킹 기초 실습",
+      startDate: "2025-08-06T09:00:00",
+      endDate: "2025-08-12T23:59:59",
+      week: "week2"
+    },
+    {
+      id: 3,
+      title: "3주차 과제",
+      description: "고급 리버싱 기법 실습",
+      startDate: "2025-08-13T09:00:00",
+      endDate: "2025-08-19T23:59:59",
+      week: "week3"
+    }
+  ]);
+
+  // 과제 생성/수정 모달 상태 관리
+  const [assignmentModal, setAssignmentModal] = useState({
+    isOpen: false,
+    mode: 'create', // 'create' 또는 'edit'
+    assignment: null
+  });
+
+  // 과제 폼 데이터 상태 관리
+  const [assignmentFormData, setAssignmentFormData] = useState({
+    title: "",
+    description: "",
+    startDate: "",
+    endDate: ""
+  });
+
   // 주차별 과제 확장/축소 토글 함수
   const toggleWeekExpansion = (week) => {
     setExpandedWeeks(prev => ({
       ...prev,
       [week]: !prev[week]
     }));
+  };
+
+  // 과제 생성 모달 열기 함수
+  const openAssignmentModal = (mode = 'create', assignment = null) => {
+    if (mode === 'edit' && assignment) {
+      setAssignmentFormData({
+        title: assignment.title,
+        description: assignment.description,
+        startDate: assignment.startDate.slice(0, 16), // datetime-local 형식에 맞게 변환
+        endDate: assignment.endDate.slice(0, 16)
+      });
+    } else {
+      setAssignmentFormData({
+        title: "",
+        description: "",
+        startDate: "",
+        endDate: ""
+      });
+    }
+    
+    setAssignmentModal({
+      isOpen: true,
+      mode,
+      assignment
+    });
+  };
+
+  // 과제 모달 닫기 함수
+  const closeAssignmentModal = () => {
+    setAssignmentModal({
+      isOpen: false,
+      mode: 'create',
+      assignment: null
+    });
+    setAssignmentFormData({
+      title: "",
+      description: "",
+      startDate: "",
+      endDate: ""
+    });
+  };
+
+  // 과제 생성 API 함수
+  const createAssignment = async (assignmentData) => {
+    try {
+      const token = localStorage.getItem('token');
+      const requestData = {
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: {
+          title: assignmentData.title,
+          description: assignmentData.description,
+          startDate: assignmentData.startDate,
+          endDate: assignmentData.endDate
+        }
+      };
+      const result = await api('POST', `/groups/${groupId}/assignments`, requestData, token);
+      return { success: true, data: result.data };
+    } catch (error) {
+      console.error('과제 생성 오류:', error);
+      return { success: false, error: { message: error.message || '과제 생성에 실패했습니다.' } };
+    }
+  };
+
+  // 과제 삭제 API 함수
+  const deleteAssignment = async (assignmentId) => {
+    try {
+      const token = localStorage.getItem('token');
+      await api('DELETE', `/groups/${groupId}/assignments/${assignmentId}`, null, token);
+      return { success: true };
+    } catch (error) {
+      console.error('과제 삭제 오류:', error);
+      return { success: false, error: { message: error.message || '과제 삭제에 실패했습니다.' } };
+    }
+  };
+
+  // 과제 폼 제출 처리 함수
+  const handleAssignmentSubmit = async (e) => {
+    e.preventDefault();
+    
+    try {
+      let result;
+      
+      if (assignmentModal.mode === 'create') {
+        result = await createAssignment(assignmentFormData);
+        if (result.success) {
+          // 새로운 과제를 로컬 상태에 추가
+          const newAssignment = {
+            id: Date.now(), // 임시 ID
+            ...assignmentFormData,
+            week: `week${assignments.length + 1}`
+          };
+          setAssignments(prev => [...prev, newAssignment]);
+        }
+      }
+      
+      if (result.success) {
+        closeAssignmentModal();
+        alert(assignmentModal.mode === 'create' ? '과제가 생성되었습니다.' : '과제가 수정되었습니다.');
+      } else {
+        alert(result.error.message || '오류가 발생했습니다.');
+      }
+    } catch (error) {
+      console.error('과제 제출 오류:', error);
+      alert('네트워크 오류가 발생했습니다.');
+    }
+  };
+
+  // 과제 삭제 확인 함수
+  const handleAssignmentDelete = async (assignmentId) => {
+    if (!confirm('정말로 이 과제를 삭제하시겠습니까?')) return;
+    
+    try {
+      const result = await deleteAssignment(assignmentId);
+      if (result.success) {
+        setAssignments(prev => prev.filter(assignment => assignment.id !== assignmentId));
+        alert('과제가 삭제되었습니다.');
+      } else {
+        alert(result.error.message || '과제 삭제에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('과제 삭제 오류:', error);
+      alert('네트워크 오류가 발생했습니다.');
+    }
   };
 
   // 경고 모달 상태 관리
@@ -341,7 +511,7 @@ export default function Group() {
                      onClick={openMentorModal}
                    >
                      <i className="fas fa-users-cog"></i>
-                     멘토 관리
+                     멤버 관리
                    </button>
                  )}
                </div>
@@ -401,7 +571,17 @@ export default function Group() {
 
              {/* 주차별 과제 제출 테이블 */}
              <div className="group-assignments">
-               <h2 className="group-assignments-title">과제 제출 현황</h2>
+               <div className="group-assignments-header">
+                 <h2 className="group-assignments-title">과제</h2>
+                 {isMentor && (
+                   <button 
+                     className="btn assignment-create-btn"
+                     onClick={() => openAssignmentModal('create')}
+                   >
+                     <i className="fas fa-plus"></i> 과제 생성
+                   </button>
+                 )}
+               </div>
                
                {/* 1주차 과제 */}
                <div className="week-assignment">
@@ -422,7 +602,46 @@ export default function Group() {
                  </button>
                  
                  <div className={`week-content ${expandedWeeks.week1 ? 'expanded' : ''}`}>
-                   <div className="group-members-table-container">
+                   {/* 과제 설명 섹션 */}
+                   <div className="assignment-description">
+                     <h4 className="assignment-description-title">과제 설명</h4>
+                     <p className="assignment-description-text">
+                       {assignments.find(a => a.week === 'week1')?.description || '과제 설명이 없습니다.'}
+                     </p>
+                     <div className="assignment-dates">
+                       <span className="assignment-date">
+                         <i className="fas fa-calendar-alt"></i>
+                         시작: {assignments.find(a => a.week === 'week1')?.startDate ? 
+                           new Date(assignments.find(a => a.week === 'week1').startDate).toLocaleString('ko-KR') : '미정'}
+                       </span>
+                       <span className="assignment-date">
+                         <i className="fas fa-calendar-check"></i>
+                         마감: {assignments.find(a => a.week === 'week1')?.endDate ? 
+                           new Date(assignments.find(a => a.week === 'week1').endDate).toLocaleString('ko-KR') : '미정'}
+                       </span>
+                     </div>
+                     {isMentor && (
+                       <div className="assignment-actions">
+                         <button 
+                           className="btn btn-small btn-secondary"
+                           onClick={() => openAssignmentModal('edit', assignments.find(a => a.week === 'week1'))}
+                         >
+                           <i className="fas fa-edit"></i> 수정
+                         </button>
+                         <button 
+                           className="btn btn-small btn-danger"
+                           onClick={() => handleAssignmentDelete(assignments.find(a => a.week === 'week1')?.id)}
+                         >
+                           <i className="fas fa-trash"></i> 삭제
+                         </button>
+                       </div>
+                     )}
+                   </div>
+                   
+                                      {/* 멤버 제출 현황 섹션 */}
+                   <div className="assignment-submissions">
+                     <h4 className="assignment-submissions-title">멤버 제출 현황</h4>
+                     <div className="group-members-table-container">
                      <table className="group-members-table">
                        <thead>
                          <tr>
@@ -483,6 +702,7 @@ export default function Group() {
                        </tbody>
                      </table>
                    </div>
+                   </div>
                  </div>
                </div>
 
@@ -505,7 +725,46 @@ export default function Group() {
                  </button>
                  
                  <div className={`week-content ${expandedWeeks.week2 ? 'expanded' : ''}`}>
-                   <div className="group-members-table-container">
+                   {/* 과제 설명 섹션 */}
+                   <div className="assignment-description">
+                     <h4 className="assignment-description-title">과제 설명</h4>
+                     <p className="assignment-description-text">
+                       {assignments.find(a => a.week === 'week2')?.description || '과제 설명이 없습니다.'}
+                     </p>
+                     <div className="assignment-dates">
+                       <span className="assignment-date">
+                         <i className="fas fa-calendar-alt"></i>
+                         시작: {assignments.find(a => a.week === 'week2')?.startDate ? 
+                           new Date(assignments.find(a => a.week === 'week2').startDate).toLocaleString('ko-KR') : '미정'}
+                       </span>
+                       <span className="assignment-date">
+                         <i className="fas fa-calendar-check"></i>
+                         마감: {assignments.find(a => a.week === 'week2')?.endDate ? 
+                           new Date(assignments.find(a => a.week === 'week2').endDate).toLocaleString('ko-KR') : '미정'}
+                       </span>
+                     </div>
+                     {isMentor && (
+                       <div className="assignment-actions">
+                         <button 
+                           className="btn btn-small btn-secondary"
+                           onClick={() => openAssignmentModal('edit', assignments.find(a => a.week === 'week2'))}
+                         >
+                           <i className="fas fa-edit"></i> 수정
+                         </button>
+                         <button 
+                           className="btn btn-small btn-danger"
+                           onClick={() => handleAssignmentDelete(assignments.find(a => a.week === 'week2')?.id)}
+                         >
+                           <i className="fas fa-trash"></i> 삭제
+                         </button>
+                       </div>
+                     )}
+                   </div>
+                   
+                   {/* 멤버 제출 현황 섹션 */}
+                   <div className="assignment-submissions">
+                     <h4 className="assignment-submissions-title">멤버 제출 현황</h4>
+                     <div className="group-members-table-container">
                      <table className="group-members-table">
                        <thead>
                          <tr>
@@ -566,6 +825,7 @@ export default function Group() {
                        </tbody>
                      </table>
                    </div>
+                   </div>
                  </div>
                </div>
 
@@ -588,7 +848,46 @@ export default function Group() {
                  </button>
                  
                  <div className={`week-content ${expandedWeeks.week3 ? 'expanded' : ''}`}>
-                   <div className="group-members-table-container">
+                   {/* 과제 설명 섹션 */}
+                   <div className="assignment-description">
+                     <h4 className="assignment-description-title">과제 설명</h4>
+                     <p className="assignment-description-text">
+                       {assignments.find(a => a.week === 'week3')?.description || '과제 설명이 없습니다.'}
+                     </p>
+                     <div className="assignment-dates">
+                       <span className="assignment-date">
+                         <i className="fas fa-calendar-alt"></i>
+                         시작: {assignments.find(a => a.week === 'week3')?.startDate ? 
+                           new Date(assignments.find(a => a.week === 'week3').startDate).toLocaleString('ko-KR') : '미정'}
+                       </span>
+                       <span className="assignment-date">
+                         <i className="fas fa-calendar-check"></i>
+                         마감: {assignments.find(a => a.week === 'week3')?.endDate ? 
+                           new Date(assignments.find(a => a.week === 'week3').endDate).toLocaleString('ko-KR') : '미정'}
+                       </span>
+                     </div>
+                     {isMentor && (
+                       <div className="assignment-actions">
+                         <button 
+                           className="btn btn-small btn-secondary"
+                           onClick={() => openAssignmentModal('edit', assignments.find(a => a.week === 'week3'))}
+                         >
+                           <i className="fas fa-edit"></i> 수정
+                         </button>
+                         <button 
+                           className="btn btn-small btn-danger"
+                           onClick={() => handleAssignmentDelete(assignments.find(a => a.week === 'week3')?.id)}
+                         >
+                           <i className="fas fa-trash"></i> 삭제
+                         </button>
+                       </div>
+                     )}
+                   </div>
+                   
+                   {/* 멤버 제출 현황 섹션 */}
+                   <div className="assignment-submissions">
+                     <h4 className="assignment-submissions-title">멤버 제출 현황</h4>
+                     <div className="group-members-table-container">
                      <table className="group-members-table">
                        <thead>
                          <tr>
@@ -649,6 +948,7 @@ export default function Group() {
                        </tbody>
                      </table>
                    </div>
+                   </div>
                  </div>
                </div>
                           </div>
@@ -696,7 +996,7 @@ export default function Group() {
            <div className="group-mentor-modal-overlay" onClick={closeMentorModal}>
              <div className="group-mentor-modal-content" onClick={(e) => e.stopPropagation()}>
                <div className="group-mentor-modal-header">
-                 <h3 className="group-mentor-modal-title">멘토 관리</h3>
+                 <h3 className="group-mentor-modal-title">멤버 관리</h3>
                  <button className="group-mentor-modal-close" onClick={closeMentorModal}>
                    <i className="fas fa-times"></i>
                  </button>
@@ -766,6 +1066,78 @@ export default function Group() {
                      </div>
                    </div>
                  )}
+               </div>
+             </div>
+           </div>
+         )}
+
+         {/* 과제 생성/수정 모달 */}
+         {assignmentModal.isOpen && (
+           <div className="assignment-modal-overlay" onClick={closeAssignmentModal}>
+             <div className="assignment-modal-content" onClick={(e) => e.stopPropagation()}>
+               <div className="assignment-modal-header">
+                 <h3 className="assignment-modal-title">
+                   {assignmentModal.mode === 'create' ? '과제 생성' : '과제 수정'}
+                 </h3>
+                 <button className="assignment-modal-close" onClick={closeAssignmentModal}>
+                   <i className="fas fa-times"></i>
+                 </button>
+               </div>
+               
+               <form onSubmit={handleAssignmentSubmit} className="assignment-modal-body">
+                 <div className="form-group">
+                   <label>과제 제목</label>
+                   <input
+                     type="text"
+                     value={assignmentFormData.title}
+                     onChange={(e) => setAssignmentFormData({...assignmentFormData, title: e.target.value})}
+                     required
+                     maxLength={200}
+                     placeholder="과제 제목을 입력하세요"
+                   />
+                 </div>
+                 
+                 <div className="form-group">
+                   <label>과제 설명</label>
+                   <textarea
+                     value={assignmentFormData.description}
+                     onChange={(e) => setAssignmentFormData({...assignmentFormData, description: e.target.value})}
+                     required
+                     rows={4}
+                     placeholder="과제 설명을 입력하세요"
+                   />
+                 </div>
+                 
+                 <div className="form-row">
+                   <div className="form-group">
+                     <label>시작 날짜</label>
+                     <input
+                       type="datetime-local"
+                       value={assignmentFormData.startDate}
+                       onChange={(e) => setAssignmentFormData({...assignmentFormData, startDate: e.target.value})}
+                       required
+                     />
+                   </div>
+                   
+                   <div className="form-group">
+                     <label>마감 날짜</label>
+                     <input
+                       type="datetime-local"
+                       value={assignmentFormData.endDate}
+                       onChange={(e) => setAssignmentFormData({...assignmentFormData, endDate: e.target.value})}
+                       required
+                     />
+                   </div>
+                 </div>
+               </form>
+               
+               <div className="assignment-modal-footer">
+                 <button className="btn btn-secondary" onClick={closeAssignmentModal}>
+                   취소
+                 </button>
+                 <button className="btn btn-primary" onClick={handleAssignmentSubmit}>
+                   {assignmentModal.mode === 'create' ? '생성' : '수정'}
+                 </button>
                </div>
              </div>
            </div>

@@ -24,12 +24,30 @@ export default function Login() {
       const data = await api('POST', '/auth/login', { studentNumber: parseInt(studentNo), password });
       console.log("Login API response data:", data); // Added log
 
-      const token = data?.accessToken;
-      // const refreshToken = data?.refreshToken; // refreshToken 제거
+      // 다양한 응답 구조에서 토큰 추출 시도
+      let token = null;
+      if (data?.data?.accessToken) {
+        token = data.data.accessToken;
+      } else if (data?.accessToken) {
+        token = data.accessToken;
+      } else if (data?.data?.token) {
+        token = data.data.token;
+      } else if (data?.token) {
+        token = data.token;
+      } else if (data?.jwt) {
+        token = data.jwt;
+      } else if (data?.data?.jwt) {
+        token = data.data.jwt;
+      }
+      
       console.log("Extracted Access Token:", token); // Added log
-      // console.log("Extracted Refresh Token:", refreshToken); // Extracted Refresh Token 로그 제거
+      console.log("Type of Extracted Access Token:", typeof token); // Added log for type
+      console.log("Full response structure:", JSON.stringify(data, null, 2)); // 전체 응답 구조 로그
 
-      if (!token) throw new Error('토큰을 받지 못했습니다.'); // refreshToken 확인 제거
+      if (!token) {
+        console.error("Token extraction failed. Available data:", data);
+        throw new Error('토큰을 받지 못했습니다. 백엔드 응답 구조를 확인해주세요.');
+      }
       setToken(token); // login 함수 대신 setToken 함수 호출
       
       // 역할에 따라 리다이렉션

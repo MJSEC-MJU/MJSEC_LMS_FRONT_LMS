@@ -483,7 +483,7 @@ body:not(.active) .notification-modal-overlay {
 /* 페이지네이션 */
 .pagination-section {
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
   margin-top: 3rem;
   padding: 2rem 0;
@@ -587,18 +587,6 @@ body:not(.active) .notification-modal-overlay {
     width: 100%;
   }
   
-  /* 페이지네이션이 없을 때 등록 버튼을 정확히 중앙에 배치 */
-  .pagination-section:has(.pagination:only-child) .pagination {
-    justify-content: center;
-    display: flex;
-    align-items: center;
-  }
-  
-  /* 등록 버튼만 있을 때 정확한 중앙 정렬 */
-  .pagination:has(.admin-btn:only-child) {
-    justify-content: center;
-    width: 100%;
-  }
   
   .admin-btn {
     width: auto;
