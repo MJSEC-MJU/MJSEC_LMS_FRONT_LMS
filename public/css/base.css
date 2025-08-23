@@ -9,14 +9,25 @@
    --black:#2c3e50;
    --white:#fff;
    --border:.1rem solid rgba(0,0,0,.2);
+   
+   /* 공지사항 배지 배경색 변수 */
+   --competition-bg: rgba(231, 76, 60, 0.1);
+   --event-bg: rgba(243, 156, 18, 0.1);
+   --notice-bg: rgba(66, 68, 146, 0.1);
+   --general-bg: rgba(136, 136, 136, 0.1);
+   --border-color: #888;
+   
+   /* CSS 변수 전환 설정 */
+   --transition-duration: 0.3s;
+   --transition-timing: ease;
 }
 
 *{
    font-family: 'Nunito', sans-serif;
    margin:0; padding:0;
    box-sizing: border-box;
-   outline: none; border:none;
    text-decoration: none;
+   transition: all 0.3s ease;
 }
 
 *::selection{
@@ -27,6 +38,7 @@
 html{
    font-size: 62.5%;
    overflow-x: hidden;
+   transition: all 0.3s ease;
 }
 
 html::-webkit-scrollbar{
@@ -44,7 +56,8 @@ html::-webkit-scrollbar-thumb{
 
 body{
    background-color: var(--light-bg);
-   padding-right: 30rem;
+   padding-right: 30rem !important;
+   transition: all 0.3s ease;
 }
 
 body.dark{
@@ -53,16 +66,18 @@ body.dark{
    --black:#fff;
    --white:#222;
    --border:.1rem solid rgba(255,255,255,.2);
+   
 }
 
 body.active{
-   padding-right: 0;
+   padding-right: 0 !important;
 }
 
 section{
    padding:2rem;
    margin: 0 auto;
    max-width: 1200px;
+   transition: all 0.3s ease;
 }
 
 .heading{
@@ -72,6 +87,7 @@ section{
    border-bottom: var(--border);
    padding-bottom: 1.5rem;
    text-transform: capitalize;
+   transition: all 0.3s ease;
 }
 
 /* 공통 버튼 스타일 */
@@ -89,6 +105,7 @@ section{
    padding:1rem 3rem;
    text-align: center;
    margin-top: 1rem;
+   transition: all 0.3s ease;
 }
 
 .btn,
@@ -127,15 +144,22 @@ section{
 .option-btn:hover{
    background-color: var(--black);
    color: var(--white);
+   transition: all 0.3s ease;
 }
 
 .flex-btn{
    display: flex;
    gap: 1rem;
+   transition: all 0.3s ease;
 }
 
 /* 반응형 디자인 */
 @media (max-width:1200px){
+   body{
+      padding-right: 0 !important;
+   }
+}
+@media (min-width:1200px){
    body{
       padding-right: 0;
    }
@@ -150,10 +174,5 @@ section{
 @media (max-width:450px){
    html{
       font-size: 50%;
-   }
-   
-   .flex-btn{
-      gap: 0;
-      flex-flow: column;
    }
 } 

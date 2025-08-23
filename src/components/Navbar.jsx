@@ -46,7 +46,6 @@ export default function Navbar() {
 
           <div className="icons">
             <div id="menu-btn" className="fas fa-bars" onClick={() => setIsSidebarOpen(v => !v)} />
-            <div id="search-btn" className="fas fa-search" onClick={() => { setIsSearchOpen(v => !v); setIsProfileOpen(false) }} />
             <div id="user-btn" className="fas fa-user" onClick={() => { setIsProfileOpen(v => !v); setIsSearchOpen(false) }} />
             <div id="toggle-btn" className={isDarkModeEnabled ? "fas fa-moon" : "fas fa-sun"} onClick={() => setIsDarkModeEnabled(v => !v)} />
           </div>

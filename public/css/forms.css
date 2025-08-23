@@ -13,24 +13,11 @@
    width: 50rem;
 }
 
-.form-container .logo-header {
-   display: flex;
-   align-items: center;
-   justify-content: center;
-   margin-bottom: 20px; /* 로고와 텍스트 아래 여백 */
-}
-
-.form-container .logo-image {
-   width: 60px; /* 로고 이미지 너비 조절 */
-   height: auto; /* 비율 유지 */
-   margin-right: 10px; /* 로고와 텍스트 사이 간격 */
-}
-
 .form-container form h3{
    font-size: 2.5rem;
    text-transform: capitalize;
    color: var(--black);
-   /* text-align: center; */ /* 부모 요소에서 중앙 정렬을 하므로 필요 없음 */
+   text-align: center;
 }
 
 .form-container form p{

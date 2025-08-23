@@ -17,10 +17,10 @@ export default function Home() {
           <div className="box">
             <h3 className="title">공지사항</h3>
             <div className="notice-box">
-              <a href="#"><span>•공지사항1</span></a>
-              <a href="#"><span>•공지사항2</span></a>
-              <a href="#"><span>•공지사항3</span></a>
-              <a href="#"><span>•공지사항4</span></a>
+              <a href="/notifications"><span>•MSG CTF 대회 안내</span></a>
+              <a href="/notifications"><span>•학기말 프로젝트 발표회</span></a>
+              <a href="/notifications"><span>•앱 버전 2.1.0 출시</span></a>
+              <a href="/notifications"><span>•동아리 운영 방침</span></a>
             </div>
           </div>
 

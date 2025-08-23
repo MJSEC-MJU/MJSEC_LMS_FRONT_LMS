@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { api } from '../components/client'; // api 함수 임포트
 
 export default function Register() {
