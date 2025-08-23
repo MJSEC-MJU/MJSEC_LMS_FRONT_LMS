@@ -1,15 +1,48 @@
-import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useContext, useEffect, useMemo, useState, useCallback } from 'react';
+
+// cookie helpers ... (동일)
+function setCookie(name, value, days) { /* ... */ }
+function getCookie(name) { /* ... */ }
+function eraseCookie(name) { /* ... */ }
+
+function decodeJwt(token) {
+  try {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(
+      atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('')
+    );
+    return JSON.parse(jsonPayload);
+  } catch { return null; }
+}
 
 const AuthCtx = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [token, setToken] = useState(() => localStorage.getItem('token') || '');
-  const [user, setUser] = useState(null);
+  const [token, setToken_] = useState(() => getCookie('token') || '');
 
-  useEffect(() => { token ? localStorage.setItem('token', token) : localStorage.removeItem('token'); }, [token]);
+  // 토큰만 책임지는 안정화된 setter
+  const setToken = useCallback((newToken) => {
+    setToken_(newToken);
+    if (newToken) setCookie('token', newToken, 7);
+    else eraseCookie('token');
+  }, []);
 
-  const logout = () => { setToken(''); setUser(null); };
-  const value = useMemo(() => ({ token, setToken, user, setUser, logout }), [token, user]);
+  // token → user 파생값
+  const user = useMemo(() => {
+    if (!token) return null;
+    return decodeJwt(token) || null;
+  }, [token]);
+
+  // 토큰이 손상/만료되어 decode 실패하면 자동 로그아웃
+  useEffect(() => {
+    if (token && !user) setToken('');
+  }, [token, user, setToken]);
+
+  const logout = useCallback(() => { setToken(''); }, [setToken]);
+
+  const value = useMemo(() => ({ token, setToken, user, logout }), [token, user, logout]);
+
   return <AuthCtx.Provider value={value}>{children}</AuthCtx.Provider>;
 }
 

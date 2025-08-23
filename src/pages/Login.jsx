@@ -22,12 +22,18 @@ export default function Login() {
     try {
       // 백엔드 명세에 맞게 studentNumber와 password 전송
       const data = await api('POST', '/auth/login', { studentNumber: parseInt(studentNo), password });
-      const token = data?.accessToken; // 백엔드 응답이 accessToken을 사용하므로 변경
-      if (!token) throw new Error('토큰을 받지 못했습니다.');
-      setToken(token);
+      console.log("Login API response data:", data); // Added log
+
+      const token = data?.accessToken;
+      // const refreshToken = data?.refreshToken; // refreshToken 제거
+      console.log("Extracted Access Token:", token); // Added log
+      // console.log("Extracted Refresh Token:", refreshToken); // Extracted Refresh Token 로그 제거
+
+      if (!token) throw new Error('토큰을 받지 못했습니다.'); // refreshToken 확인 제거
+      setToken(token); // login 함수 대신 setToken 함수 호출
       
       // 역할에 따라 리다이렉션
-      if (data?.role === 'admin') {
+      if (data?.role === 'ROLE_ADMIN') {
         nav('/admin', { replace: true });
       } else {
         nav('/', { replace: true }); // 일반 사용자라면 홈페이지로 리다이렉션
@@ -78,7 +84,7 @@ export default function Login() {
         </button>
 
         <p><Link to="/register">회원가입</Link></p>
-        <p><Link to="/forgot-password">비밀번호 찾기</Link></p>
+        <p><Link to="/forgot-password">비밀번호 변경</Link></p>
       </form>
     </section>
   );
