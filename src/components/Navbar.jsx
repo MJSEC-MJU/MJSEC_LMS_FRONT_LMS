@@ -78,8 +78,7 @@ export default function Navbar() {
         <nav className="navbar">
           <Link to="/" onClick={() => setIsSidebarOpen(false)}><i className="fas fa-home"></i><span>home</span></Link>
           <Link to="/notifications" onClick={() => setIsSidebarOpen(false)}><i className="fa-solid fa-bell"></i><span>notification</span></Link>
-          <Link to="/courses" onClick={() => setIsSidebarOpen(false)}><i className="fas fa-graduation-cap"></i><span>my study</span></Link>
-          <Link to="/contact" onClick={() => setIsSidebarOpen(false)}><i className="fas fa-envelope"></i><span>뭐넣지</span></Link>
+          <Link to="/groups" onClick={() => setIsSidebarOpen(false)}><i className="fas fa-graduation-cap"></i><span>groups</span></Link>
         </nav>
       </div>
     </>

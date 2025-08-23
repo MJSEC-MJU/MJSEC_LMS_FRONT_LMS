@@ -230,6 +230,25 @@
   line-height: 1.4;
 }
 
+.notification-link {
+  color: var(--black);
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.notification-link:hover {
+  color: var(--main-color);
+}
+
+/* 다크모드 스타일 */
+.dark .notification-link {
+  color: var(--white);
+}
+
+.dark .notification-link:hover {
+  color: var(--main-color);
+}
+
 .notification-excerpt {
   color: var(--light-color);
   font-size: 1.4rem;

@@ -1,13 +1,15 @@
-﻿import { Link } from "react-router-dom"
+﻿import { Link, useParams, useNavigate } from "react-router-dom"
 import { useState, useEffect } from "react"
 import { useAuth } from "../components/auth"
 import { Editor } from '@tinymce/tinymce-react'
 
 export default function Notifications() {
   const { user } = useAuth();
+  const { notificationId } = useParams();
+  const navigate = useNavigate();
   
   // 임시로 어드민 권한 부여 (테스트용)
-  const isAdmin = false; // 또는 user?.role === 'admin' || true
+  const isAdmin = true; // 또는 user?.role === 'admin' || true
   
   const [searchTerm, setSearchTerm] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
@@ -32,6 +34,37 @@ export default function Notifications() {
   // 네브바 상태 감지
   const [isNavbarOpen, setIsNavbarOpen] = useState(false)
   
+  // URL 파라미터에 따른 모달 자동 열기
+  useEffect(() => {
+    if (notificationId) {
+      const notification = notifications.find(n => n.announcement_id === parseInt(notificationId));
+      if (notification) {
+        // URL 쿼리 파라미터 확인
+        const urlParams = new URLSearchParams(window.location.search);
+        const mode = urlParams.get('mode');
+        
+        if (mode === 'edit') {
+          setModalType("edit");
+          setFormData({
+            title: notification.title,
+            content: notification.content,
+            type: notification.type
+          });
+        } else if (mode === 'delete') {
+          setModalType("delete");
+        } else {
+          setModalType("view");
+        }
+        
+        setSelectedNotification(notification);
+        setShowModal(true);
+      } else {
+        // 해당 ID의 공지사항이 없으면 메인 페이지로 리다이렉트
+        navigate('/notifications');
+      }
+    }
+  }, [notificationId, navigate]);
+
   // 네브바 상태 변화 감지
   useEffect(() => {
     const checkNavbarState = () => {
@@ -138,13 +171,61 @@ export default function Notifications() {
       content: "사용자 경험 향상을 위해 웹사이트 디자인이 개선되었습니다. 더욱 직관적이고 편리한 인터페이스를 제공합니다.",
       created_at: "2024-01-10T00:00:00.000Z",
       updated_at: "2024-01-10T00:00:00.000Z"
+    },
+    {
+      announcement_id: 7,
+      type: "EVENT",
+      title: "웹사이트 디자인 개선1",
+      content: "사용자 경험 향상을 위해 웹사이트 디자인이 개선되었습니다. 더욱 직관적이고 편리한 인터페이스를 제공합니다.",
+      created_at: "2024-01-10T00:00:00.000Z",
+      updated_at: "2024-01-10T00:00:00.000Z"
+    },
+    {
+      announcement_id: 8,
+      type: "EVENT",
+      title: "웹사이트 디자인 개선2",
+      content: "사용자 경험 향상을 위해 웹사이트 디자인이 개선되었습니다. 더욱 직관적이고 편리한 인터페이스를 제공합니다.",
+      created_at: "2024-01-10T00:00:00.000Z",
+      updated_at: "2024-01-10T00:00:00.000Z"
+    },
+    {
+      announcement_id: 9,
+      type: "EVENT",
+      title: "웹사이트 디자인 개선3",
+      content: "사용자 경험 향상을 위해 웹사이트 디자인이 개선되었습니다. 더욱 직관적이고 편리한 인터페이스를 제공합니다.",
+      created_at: "2024-01-10T00:00:00.000Z",
+      updated_at: "2024-01-10T00:00:00.000Z"
+    },
+    {
+      announcement_id: 10,
+      type: "EVENT",
+      title: "웹사이트 디자인 개선4",
+      content: "사용자 경험 향상을 위해 웹사이트 디자인이 개선되었습니다. 더욱 직관적이고 편리한 인터페이스를 제공합니다.",
+      created_at: "2024-01-10T00:00:00.000Z",
+      updated_at: "2024-01-10T00:00:00.000Z"
+    },
+    {
+      announcement_id: 11,
+      type: "EVENT",
+      title: "웹사이트 디자인 개선5",
+      content: "사용자 경험 향상을 위해 웹사이트 디자인이 개선되었습니다. 더욱 직관적이고 편리한 인터페이스를 제공합니다.",
+      created_at: "2024-01-10T00:00:00.000Z",
+      updated_at: "2024-01-10T00:00:00.000Z"
+    },
+    {
+      announcement_id: 12,
+      type: "EVENT",
+      title: "웹사이트 디자인 개선6",
+      content: "사용자 경험 향상을 위해 웹사이트 디자인이 개선되었습니다. 더욱 직관적이고 편리한 인터페이스를 제공합니다.",
+      created_at: "2024-01-10T00:00:00.000Z",
+      updated_at: "2024-01-10T00:00:00.000Z"
     }
   ]
 
   // 카테고리별 필터링
   const filteredNotifications = notifications.filter(notification => {
     const matchesSearch = notification.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         notification.content.toLowerCase().includes(searchTerm.toLowerCase())
+                        notification.content.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesCategory = selectedCategory === "all" || notification.type === selectedCategory
     return matchesSearch && matchesCategory
   })
@@ -155,6 +236,13 @@ export default function Notifications() {
   const startIndex = (currentPage - 1) * itemsPerPage
   const endIndex = startIndex + itemsPerPage
   const currentNotifications = filteredNotifications.slice(startIndex, endIndex)
+
+  // 현재 페이지가 총 페이지 수를 초과하는 경우 1페이지로 리셋
+  useEffect(() => {
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(1)
+    }
+  }, [totalPages, currentPage])
 
   const handlePageChange = (page) => {
     setCurrentPage(page)
@@ -171,6 +259,9 @@ export default function Notifications() {
     setModalType("view")
     setSelectedNotification(notification)
     setShowModal(true)
+    
+    // URL 업데이트
+    navigate(`/notifications/${notification.announcement_id}`);
   }
 
   // 모달 관련 핸들러들
@@ -189,12 +280,18 @@ export default function Notifications() {
       type: notification.type
     })
     setShowModal(true)
+    
+    // URL 업데이트 (수정 모드)
+    navigate(`/notifications/${notification.announcement_id}?mode=edit`);
   }
 
   const handleDelete = (notification) => {
     setModalType("delete")
     setSelectedNotification(notification)
     setShowModal(true)
+    
+    // URL 업데이트 (삭제 모드)
+    navigate(`/notifications/${notification.announcement_id}?mode=delete`);
   }
 
   // 모달 닫기 핸들러 (드래그 중에는 닫히지 않음)
@@ -205,6 +302,11 @@ export default function Notifications() {
     setModalType("")
     setSelectedNotification(null)
     setFormData({ title: "", content: "", type: "NOTICE" })
+    
+    // URL이 /notifications/{id} 형태라면 메인 페이지로 이동
+    if (notificationId) {
+      navigate('/notifications');
+    }
   }
 
   const handleFormSubmit = async (e) => {
@@ -324,13 +426,13 @@ export default function Notifications() {
         {/* 공지사항 목록 */}
         <div className="notifications-section">
           <div className="notifications-list">
-            {currentNotifications.map((notification) => (
-              <article 
-                key={notification.announcement_id} 
-                className={`notification-item ${getTypeClass(notification.type)}`}
-                onClick={() => handleNotificationClick(notification)}
-                style={{ cursor: 'pointer' }}
-              >
+                         {currentNotifications.map((notification) => (
+               <article 
+                 key={notification.announcement_id} 
+                 className={`notification-item ${getTypeClass(notification.type)}`}
+                 style={{ cursor: 'pointer' }}
+                 onClick={() => handleNotificationClick(notification)}
+               >
                 <div className="notification-header">
                   <div className="notification-meta">
                     <span className={`notification-badge ${getTypeClass(notification.type)}`}>
@@ -365,7 +467,18 @@ export default function Notifications() {
                     </div>
                   )}
                 </div>
-                <h3 className="notification-title">{notification.title}</h3>
+                                 <h3 className="notification-title">
+                   <Link 
+                     to={`/notifications/${notification.announcement_id}`}
+                     className="notification-link"
+                     onClick={(e) => {
+                       e.stopPropagation();
+                       handleNotificationClick(notification);
+                     }}
+                   >
+                     {notification.title}
+                   </Link>
+                 </h3>
               </article>
             ))}
           </div>
@@ -385,9 +498,10 @@ export default function Notifications() {
               
               {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
                 <button
-                  key={page}
+                  key={`page-${page}`}
                   className={`page-btn ${currentPage === page ? 'active' : ''}`}
                   onClick={() => handlePageChange(page)}
+                  disabled={currentPage === page}
                 >
                   {page}
                 </button>
