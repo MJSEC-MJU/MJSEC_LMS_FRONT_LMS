@@ -102,6 +102,22 @@ export default function Group() {
     action: '' // 'add' 또는 'remove'
   });
 
+  // 멘토 관리 모달 상태 관리
+  const [mentorModal, setMentorModal] = useState({
+    isOpen: false,
+    activeTab: 'add' // 'add' 또는 'remove'
+  });
+
+  // 동아리 전체 부원 목록 (임시 데이터)
+  const [clubMembers, setClubMembers] = useState([
+    { id: 1, name: "나건하", email: "na@example.com", role: "member" },
+    { id: 2, name: "최윤호", email: "choi@example.com", role: "member" },
+    { id: 3, name: "김철수", email: "kim@example.com", role: "member" },
+    { id: 4, name: "이영희", email: "lee@example.com", role: "member" },
+    { id: 5, name: "박민수", email: "park@example.com", role: "member" },
+    { id: 6, name: "정수진", email: "jung@example.com", role: "member" }
+  ]);
+
   // 경고 모달 열기 함수
   const openWarningModal = (memberId, memberName, action) => {
     setWarningModal({
@@ -120,6 +136,80 @@ export default function Group() {
       memberName: '',
       action: ''
     });
+  };
+
+  // 멘토 관리 모달 열기 함수
+  const openMentorModal = () => {
+    setMentorModal({
+      isOpen: true,
+      activeTab: 'add'
+    });
+  };
+
+  // 멘토 관리 모달 닫기 함수
+  const closeMentorModal = () => {
+    setMentorModal({
+      isOpen: false,
+      activeTab: 'add'
+    });
+  };
+
+  // 멘토 관리 탭 변경 함수
+  const changeMentorTab = (tab) => {
+    setMentorModal(prev => ({
+      ...prev,
+      activeTab: tab
+    }));
+  };
+
+  // 멤버 추가 함수
+  const addMemberToStudy = (memberId) => {
+    const memberToAdd = clubMembers.find(member => member.id === memberId);
+    if (!memberToAdd) return;
+
+    const newMember = {
+      id: memberToAdd.id,
+      name: memberToAdd.name,
+      attendance: "출석",
+      warning: 0,
+      assignments: {
+        week1: { status: "미제출", url: "" },
+        week2: { status: "미제출", url: "" },
+        week3: { status: "미제출", url: "" }
+      }
+    };
+
+    setMyStudies(prevStudies => 
+      prevStudies.map(study => 
+        study.groupId === parseInt(groupId)
+          ? {
+              ...study,
+              members: [...study.members, newMember]
+            }
+          : study
+      )
+    );
+  };
+
+  // 멤버 삭제 함수
+  const removeMemberFromStudy = (memberId) => {
+    setMyStudies(prevStudies => 
+      prevStudies.map(study => 
+        study.groupId === parseInt(groupId)
+          ? {
+              ...study,
+              members: study.members.filter(member => member.id !== memberId)
+            }
+          : study
+      )
+    );
+  };
+
+  // 현재 스터디에 없는 멤버들만 필터링
+  const getAvailableMembers = () => {
+    const currentStudy = myStudies.find(study => study.groupId === parseInt(groupId));
+    const currentMemberIds = currentStudy ? currentStudy.members.map(member => member.id) : [];
+    return clubMembers.filter(member => !currentMemberIds.includes(member.id));
   };
 
   // 경고 부여/삭감 함수
@@ -225,27 +315,38 @@ export default function Group() {
 
     return (
       <section className="contact">
-        <div className="studies-container">
-          <div className="study-detail">
+        <div className="groups-container">
+          <div className="group-detail">
                          {/* 뒤로가기 버튼 */}
-             <div className="study-detail-back">
-                             <Link to="/groups" className="back-btn">
+             <div className="group-detail-back">
+                             <Link to="/groups" className="group-back-btn">
                 <i className="fas fa-arrow-left"></i> Back to Groups
               </Link>
              </div>
              
              {/* 스터디 제목 */}
-             <div className="study-detail-title">
+             <div className="group-detail-title">
                <h1 className="heading">{selectedStudy.name}</h1>
              </div>
             
             
             
                          {/* 멤버 관리 테이블 */}
-             <div className="study-members">
-               <h2 className="members-title">멤버 관리</h2>
-               <div className="members-table-container">
-                 <table className="members-table">
+             <div className="group-members">
+               <div className="group-members-header">
+                 <h2 className="group-members-title">멤버 관리</h2>
+                 {isMentor && (
+                   <button 
+                     className="group-mentor-manage-btn"
+                     onClick={openMentorModal}
+                   >
+                     <i className="fas fa-users-cog"></i>
+                     멘토 관리
+                   </button>
+                 )}
+               </div>
+               <div className="group-members-table-container">
+                 <table className="group-members-table">
                    <thead>
                      <tr>
                        <th>이름</th>
@@ -256,8 +357,8 @@ export default function Group() {
                    </thead>
                    <tbody>
                      {selectedStudy.members.map((member) => (
-                       <tr key={member.id} className="member-row">
-                         <td className="member-name">{member.name}</td>
+                       <tr key={member.id} className="group-member-row">
+                         <td className="group-member-name">{member.name}</td>
                          <td className="member-attendance">
                            <span className={`status-badge ${member.attendance === '출석' ? 'present' : 'absent'}`}>
                              {member.attendance}
@@ -299,8 +400,8 @@ export default function Group() {
              </div>
 
              {/* 주차별 과제 제출 테이블 */}
-             <div className="study-assignments">
-               <h2 className="assignments-title">과제 제출 현황</h2>
+             <div className="group-assignments">
+               <h2 className="group-assignments-title">과제 제출 현황</h2>
                
                {/* 1주차 과제 */}
                <div className="week-assignment">
@@ -321,8 +422,8 @@ export default function Group() {
                  </button>
                  
                  <div className={`week-content ${expandedWeeks.week1 ? 'expanded' : ''}`}>
-                   <div className="members-table-container">
-                     <table className="members-table">
+                   <div className="group-members-table-container">
+                     <table className="group-members-table">
                        <thead>
                          <tr>
                            <th>이름</th>
@@ -332,8 +433,8 @@ export default function Group() {
                        </thead>
                        <tbody>
                          {selectedStudy.members.map((member) => (
-                           <tr key={member.id} className="member-row">
-                             <td className="member-name">{member.name}</td>
+                           <tr key={member.id} className="group-member-row">
+                             <td className="group-member-name">{member.name}</td>
                              <td className="member-assignment">
                                {isMentor ? (
                                  <select 
@@ -404,8 +505,8 @@ export default function Group() {
                  </button>
                  
                  <div className={`week-content ${expandedWeeks.week2 ? 'expanded' : ''}`}>
-                   <div className="members-table-container">
-                     <table className="members-table">
+                   <div className="group-members-table-container">
+                     <table className="group-members-table">
                        <thead>
                          <tr>
                            <th>이름</th>
@@ -415,8 +516,8 @@ export default function Group() {
                        </thead>
                        <tbody>
                          {selectedStudy.members.map((member) => (
-                           <tr key={member.id} className="member-row">
-                             <td className="member-name">{member.name}</td>
+                           <tr key={member.id} className="group-member-row">
+                             <td className="group-member-name">{member.name}</td>
                              <td className="member-assignment">
                                {isMentor ? (
                                  <select 
@@ -487,8 +588,8 @@ export default function Group() {
                  </button>
                  
                  <div className={`week-content ${expandedWeeks.week3 ? 'expanded' : ''}`}>
-                   <div className="members-table-container">
-                     <table className="members-table">
+                   <div className="group-members-table-container">
+                     <table className="group-members-table">
                        <thead>
                          <tr>
                            <th>이름</th>
@@ -498,8 +599,8 @@ export default function Group() {
                        </thead>
                        <tbody>
                          {selectedStudy.members.map((member) => (
-                           <tr key={member.id} className="member-row">
-                             <td className="member-name">{member.name}</td>
+                           <tr key={member.id} className="group-member-row">
+                             <td className="group-member-name">{member.name}</td>
                              <td className="member-assignment">
                                {isMentor ? (
                                  <select 
@@ -556,35 +657,115 @@ export default function Group() {
 
          {/* 경고 모달 */}
          {warningModal.isOpen && (
-           <div className="modal-overlay" onClick={closeWarningModal}>
-             <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-               <div className="modal-header">
-                 <h3 className="modal-title">
+           <div className="group-modal-overlay" onClick={closeWarningModal}>
+             <div className="group-modal-content" onClick={(e) => e.stopPropagation()}>
+               <div className="group-modal-header">
+                 <h3 className="group-modal-title">
                    {warningModal.action === 'add' ? '경고 부여' : '경고 삭감'}
                  </h3>
-                 <button className="modal-close" onClick={closeWarningModal}>
+                 <button className="group-modal-close" onClick={closeWarningModal}>
                    <i className="fas fa-times"></i>
                  </button>
                </div>
-               <div className="modal-body">
-                 <p className="modal-message">
+               <div className="group-modal-body">
+                 <p className="group-modal-message">
                    <strong>{warningModal.memberName}</strong>님에게{' '}
                    {warningModal.action === 'add' ? '경고를 부여' : '경고를 삭감'}하시겠습니까?
                  </p>
-                 <div className="modal-actions">
+                 <div className="group-modal-actions">
                    <button 
-                     className="modal-btn modal-btn-cancel" 
+                     className="group-modal-btn group-modal-btn-cancel" 
                      onClick={closeWarningModal}
                    >
                      취소
                    </button>
                    <button 
-                     className={`modal-btn ${warningModal.action === 'add' ? 'modal-btn-warning' : 'modal-btn-success'}`}
+                     className={`group-modal-btn ${warningModal.action === 'add' ? 'group-modal-btn-warning' : 'group-modal-btn-success'}`}
                      onClick={handleWarningAction}
                    >
                      {warningModal.action === 'add' ? '경고 부여' : '경고 삭감'}
                    </button>
                  </div>
+               </div>
+             </div>
+           </div>
+         )}
+
+         {/* 멘토 관리 모달 */}
+         {mentorModal.isOpen && (
+           <div className="group-mentor-modal-overlay" onClick={closeMentorModal}>
+             <div className="group-mentor-modal-content" onClick={(e) => e.stopPropagation()}>
+               <div className="group-mentor-modal-header">
+                 <h3 className="group-mentor-modal-title">멘토 관리</h3>
+                 <button className="group-mentor-modal-close" onClick={closeMentorModal}>
+                   <i className="fas fa-times"></i>
+                 </button>
+               </div>
+               
+               <div className="group-mentor-modal-tabs">
+                 <button 
+                   className={`group-mentor-tab ${mentorModal.activeTab === 'add' ? 'active' : ''}`}
+                   onClick={() => changeMentorTab('add')}
+                 >
+                   <i className="fas fa-plus"></i>
+                   멤버 추가
+                 </button>
+                 <button 
+                   className={`group-mentor-tab ${mentorModal.activeTab === 'remove' ? 'active' : ''}`}
+                   onClick={() => changeMentorTab('remove')}
+                 >
+                   <i className="fas fa-minus"></i>
+                   멤버 삭제
+                 </button>
+               </div>
+
+               <div className="group-mentor-modal-body">
+                 {mentorModal.activeTab === 'add' ? (
+                   <div className="group-mentor-add-section">
+                     <h4 className="group-mentor-section-title">동아리 부원 목록</h4>
+                     <div className="group-mentor-member-list">
+                       {getAvailableMembers().map((member) => (
+                         <div key={member.id} className="group-mentor-member-item">
+                           <div className="group-mentor-member-info">
+                             <span className="group-mentor-member-name">{member.name}</span>
+                             <span className="group-mentor-member-email">{member.email}</span>
+                           </div>
+                           <button 
+                             className="group-mentor-add-btn"
+                             onClick={() => addMemberToStudy(member.id)}
+                           >
+                             <i className="fas fa-plus"></i>
+                           </button>
+                         </div>
+                       ))}
+                       {getAvailableMembers().length === 0 && (
+                         <p className="group-mentor-no-members">추가할 수 있는 부원이 없습니다.</p>
+                       )}
+                     </div>
+                   </div>
+                 ) : (
+                   <div className="group-mentor-remove-section">
+                     <h4 className="group-mentor-section-title">현재 스터디 멤버</h4>
+                     <div className="group-mentor-member-list">
+                       {selectedStudy.members.map((member) => (
+                         <div key={member.id} className="group-mentor-member-item">
+                           <div className="group-mentor-member-info">
+                             <span className="group-mentor-member-name">{member.name}</span>
+                             <span className="group-mentor-member-status">
+                               경고: {member.warning}회
+                             </span>
+                           </div>
+                           <button 
+                             className="group-mentor-remove-btn"
+                             onClick={() => removeMemberFromStudy(member.id)}
+                           >
+                             <i className="fas fa-minus"></i>
+                           </button>
+                         </div>
+                       ))}
+                     </div>
+                   </div>
+                 )}
                </div>
              </div>
            </div>
@@ -598,17 +779,17 @@ export default function Group() {
     <section className="contact">
       <h1 className="heading">Groups</h1>
       
-      <div className="studies-container">
-        <div className="studies-grid">
+      <div className="groups-container">
+        <div className="groups-grid">
           {myStudies.map((study) => (
-            <div key={study.groupId} className="study-card">
-              <div className="study-header">
-                <h3 className="study-title">{study.name}</h3>
-                <span className="study-date">{formatDate(study.createdAt)}</span>
+            <div key={study.groupId} className="group-card">
+              <div className="group-header">
+                <h3 className="group-title">{study.name}</h3>
+                <span className="group-date">{formatDate(study.createdAt)}</span>
               </div>
               
-                             <div className="study-content">
-                 <div className="study-image">
+                             <div className="group-content">
+                 <div className="group-image">
                    <img 
                      src={study.GroupImage || "/images/default-study.svg"} 
                      alt={study.name}
@@ -617,21 +798,21 @@ export default function Group() {
                      }}
                    />
                  </div>
-                 <p className="study-description">{study.description}</p>
+                 <p className="group-description">{study.description}</p>
                  
-                 <div className="study-categories">
+                 <div className="group-categories">
                    {study.category.map((cat, index) => (
-                     <span key={index} className="category-tag">
+                     <span key={index} className="group-category-tag">
                        {cat}
                      </span>
                    ))}
                  </div>
                </div>
               
-              <div className="study-footer">
+              <div className="group-footer">
                 <Link 
                   to={`/groups/${study.groupId}`} 
-                  className="btn more-btn"
+                  className="btn group-more-btn"
                 >
                   More
                 </Link>

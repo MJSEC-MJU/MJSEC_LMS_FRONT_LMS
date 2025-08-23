@@ -1,15 +1,17 @@
-﻿import { Link, useParams, useNavigate } from "react-router-dom"
+﻿﻿import { Link } from "react-router-dom"
 import { useState, useEffect } from "react"
 import { useAuth } from "../components/auth"
 import { Editor } from '@tinymce/tinymce-react'
 
+// API 기본 설정
+const API_BASE_URL = 'http://localhost:8080'
+const API_VERSION = '/api/v1'
+
 export default function Notifications() {
   const { user } = useAuth();
-  const { notificationId } = useParams();
-  const navigate = useNavigate();
   
-  // 임시로 어드민 권한 부여 (테스트용)
-  const isAdmin = true; // 또는 user?.role === 'admin' || true
+  // (테스트용)
+  const isAdmin = true;
   
   const [searchTerm, setSearchTerm] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
@@ -17,7 +19,7 @@ export default function Notifications() {
   
   // 모달 상태 관리
   const [showModal, setShowModal] = useState(false)
-  const [modalType, setModalType] = useState("") // "create", "edit", "delete"
+  const [modalType, setModalType] = useState("")
   const [selectedNotification, setSelectedNotification] = useState(null)
   const [formData, setFormData] = useState({
     title: "",
@@ -34,37 +36,6 @@ export default function Notifications() {
   // 네브바 상태 감지
   const [isNavbarOpen, setIsNavbarOpen] = useState(false)
   
-  // URL 파라미터에 따른 모달 자동 열기
-  useEffect(() => {
-    if (notificationId) {
-      const notification = notifications.find(n => n.announcement_id === parseInt(notificationId));
-      if (notification) {
-        // URL 쿼리 파라미터 확인
-        const urlParams = new URLSearchParams(window.location.search);
-        const mode = urlParams.get('mode');
-        
-        if (mode === 'edit') {
-          setModalType("edit");
-          setFormData({
-            title: notification.title,
-            content: notification.content,
-            type: notification.type
-          });
-        } else if (mode === 'delete') {
-          setModalType("delete");
-        } else {
-          setModalType("view");
-        }
-        
-        setSelectedNotification(notification);
-        setShowModal(true);
-      } else {
-        // 해당 ID의 공지사항이 없으면 메인 페이지로 리다이렉트
-        navigate('/notifications');
-      }
-    }
-  }, [notificationId, navigate]);
-
   // 네브바 상태 변화 감지
   useEffect(() => {
     const checkNavbarState = () => {
@@ -84,6 +55,122 @@ export default function Notifications() {
     
     return () => observer.disconnect()
   }, [])
+
+  // API 호출 함수들
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem('jwt_token')
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': token ? `Bearer ${token}` : ''
+    }
+  }
+
+  // 공지사항 생성 API
+  const createAnnouncement = async (announcementData) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}${API_VERSION}/users/announcements/`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(announcementData)
+      })
+
+      if (response.status === 201) {
+        const result = await response.json()
+        return { success: true, data: result.data }
+      } else if (response.status === 400) {
+        const errorData = await response.json()
+        return { success: false, error: errorData }
+      } else {
+        return { success: false, error: { message: '서버 오류가 발생했습니다.' } }
+      }
+    } catch (error) {
+      console.error('공지사항 생성 오류:', error)
+      return { success: false, error: { message: '네트워크 오류가 발생했습니다.' } }
+    }
+  }
+
+  // 공지사항 목록 조회 API (GET)
+  const fetchAnnouncements = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}${API_VERSION}/users/announcements/`, {
+        method: 'GET',
+        headers: getAuthHeaders()
+      })
+
+      if (response.ok) {
+        const result = await response.json()
+        return { success: true, data: result.data }
+      } else {
+        return { success: false, error: { message: '공지사항 목록을 불러오는데 실패했습니다.' } }
+      }
+    } catch (error) {
+      console.error('공지사항 목록 조회 오류:', error)
+      return { success: false, error: { message: '네트워크 오류가 발생했습니다.' } }
+    }
+  }
+
+  // 공지사항 상세 조회 API (GET)
+  const fetchAnnouncementDetail = async (announcementId) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}${API_VERSION}/users/announcements/${announcementId}`, {
+        method: 'GET',
+        headers: getAuthHeaders()
+      })
+
+      if (response.ok) {
+        const result = await response.json()
+        return { success: true, data: result.data }
+      } else {
+        return { success: false, error: { message: '공지사항 상세 정보를 불러오는데 실패했습니다.' } }
+      }
+    } catch (error) {
+      console.error('공지사항 상세 조회 오류:', error)
+      return { success: false, error: { message: '네트워크 오류가 발생했습니다.' } }
+    }
+  }
+
+  // 공지사항 수정 API (PUT)
+  const updateAnnouncement = async (announcementId, announcementData) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}${API_VERSION}/users/announcements/${announcementId}`, {
+        method: 'PUT',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(announcementData)
+      })
+
+      if (response.ok) {
+        const result = await response.json()
+        return { success: true, data: result.data }
+      } else if (response.status === 400) {
+        const errorData = await response.json()
+        return { success: false, error: errorData }
+      } else {
+        return { success: false, error: { message: '서버 오류가 발생했습니다.' } }
+      }
+    } catch (error) {
+      console.error('공지사항 수정 오류:', error)
+      return { success: false, error: { message: '네트워크 오류가 발생했습니다.' } }
+    }
+  }
+
+  // 공지사항 삭제 API (DELETE)
+  const deleteAnnouncement = async (announcementId) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}${API_VERSION}/users/announcements/${announcementId}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders()
+      })
+
+      if (response.ok) {
+        return { success: true }
+      } else {
+        return { success: false, error: { message: '공지사항 삭제에 실패했습니다.' } }
+      }
+    } catch (error) {
+      console.error('공지사항 삭제 오류:', error)
+      return { success: false, error: { message: '네트워크 오류가 발생했습니다.' } }
+    }
+  }
   
   // TinyMCE 설정
   const tinymceConfig = {
@@ -122,110 +209,37 @@ export default function Notifications() {
     setTimeout(() => setIsDragging(false), 100)
   }
 
-  // 공지사항 데이터 (DB 스키마에 맞춤)
-  const notifications = [
-    {
-      announcement_id: 1,
-      type: "COMPETITION",
-      title: "MSG CTF 대회 안내",
-      content: "OO월 OO일에 MSG CTF 대회가 개최됩니다.",
-      created_at: "2024-01-15T00:00:00.000Z",
-      updated_at: "2024-01-15T00:00:00.000Z"
-    },
-    {
-      announcement_id: 2,
-      type: "EVENT",
-      title: "학기말 프로젝트 발표회",
-      content: "학기말 프로젝트 발표회가 예정되어 있습니다. 모든 학생들의 참여를 바랍니다.",
-      created_at: "2024-01-14T00:00:00.000Z",
-      updated_at: "2024-01-14T00:00:00.000Z"
-    },
-    {
-      announcement_id: 3,
-      type: "GENERAL",
-      title: "앱 버전 2.1.0 출시",
-      content: "버그 수정 및 성능 개선이 포함된 새로운 버전이 출시되었습니다. 앱스토어에서 업데이트를 진행해주세요.",
-      created_at: "2024-01-13T00:00:00.000Z",
-      updated_at: "2024-01-13T00:00:00.000Z"
-    },
-    {
-      announcement_id: 4,
-      type: "NOTICE",
-      title: "동아리 운영 방침",
-      content: "동아리 운여에 있어서 가이드라인이 업데이트되었습니다. 모든 사용자분들의 참고 부탁드립니다.",
-      created_at: "2024-01-12T00:00:00.000Z",
-      updated_at: "2024-01-12T00:00:00.000Z"
-    },
-    {
-      announcement_id: 5,
-      type: "COMPETITION",
-      title: "해킹 대회 참가자 모집",
-      content: "보안에 관심이 있는 학생들을 위한 해킹 대회가 개최됩니다. 신청 기간은 한 달간입니다.",
-      created_at: "2024-01-11T00:00:00.000Z",
-      updated_at: "2024-01-11T00:00:00.000Z"
-    },
-    {
-      announcement_id: 6,
-      type: "EVENT",
-      title: "웹사이트 디자인 개선",
-      content: "사용자 경험 향상을 위해 웹사이트 디자인이 개선되었습니다. 더욱 직관적이고 편리한 인터페이스를 제공합니다.",
-      created_at: "2024-01-10T00:00:00.000Z",
-      updated_at: "2024-01-10T00:00:00.000Z"
-    },
-    {
-      announcement_id: 7,
-      type: "EVENT",
-      title: "웹사이트 디자인 개선1",
-      content: "사용자 경험 향상을 위해 웹사이트 디자인이 개선되었습니다. 더욱 직관적이고 편리한 인터페이스를 제공합니다.",
-      created_at: "2024-01-10T00:00:00.000Z",
-      updated_at: "2024-01-10T00:00:00.000Z"
-    },
-    {
-      announcement_id: 8,
-      type: "EVENT",
-      title: "웹사이트 디자인 개선2",
-      content: "사용자 경험 향상을 위해 웹사이트 디자인이 개선되었습니다. 더욱 직관적이고 편리한 인터페이스를 제공합니다.",
-      created_at: "2024-01-10T00:00:00.000Z",
-      updated_at: "2024-01-10T00:00:00.000Z"
-    },
-    {
-      announcement_id: 9,
-      type: "EVENT",
-      title: "웹사이트 디자인 개선3",
-      content: "사용자 경험 향상을 위해 웹사이트 디자인이 개선되었습니다. 더욱 직관적이고 편리한 인터페이스를 제공합니다.",
-      created_at: "2024-01-10T00:00:00.000Z",
-      updated_at: "2024-01-10T00:00:00.000Z"
-    },
-    {
-      announcement_id: 10,
-      type: "EVENT",
-      title: "웹사이트 디자인 개선4",
-      content: "사용자 경험 향상을 위해 웹사이트 디자인이 개선되었습니다. 더욱 직관적이고 편리한 인터페이스를 제공합니다.",
-      created_at: "2024-01-10T00:00:00.000Z",
-      updated_at: "2024-01-10T00:00:00.000Z"
-    },
-    {
-      announcement_id: 11,
-      type: "EVENT",
-      title: "웹사이트 디자인 개선5",
-      content: "사용자 경험 향상을 위해 웹사이트 디자인이 개선되었습니다. 더욱 직관적이고 편리한 인터페이스를 제공합니다.",
-      created_at: "2024-01-10T00:00:00.000Z",
-      updated_at: "2024-01-10T00:00:00.000Z"
-    },
-    {
-      announcement_id: 12,
-      type: "EVENT",
-      title: "웹사이트 디자인 개선6",
-      content: "사용자 경험 향상을 위해 웹사이트 디자인이 개선되었습니다. 더욱 직관적이고 편리한 인터페이스를 제공합니다.",
-      created_at: "2024-01-10T00:00:00.000Z",
-      updated_at: "2024-01-10T00:00:00.000Z"
+  // 공지사항 데이터 상태 관리
+  const [notifications, setNotifications] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
+
+  // 공지사항 목록 조회
+  useEffect(() => {
+    const loadAnnouncements = async () => {
+      setLoading(true)
+      setError(null)
+      
+      const result = await fetchAnnouncements()
+      
+      if (result.success) {
+        setNotifications(result.data)
+      } else {
+        setError(result.error.message)
+        // 에러 발생 시 빈 배열로 설정
+        setNotifications([])
+      }
+      
+      setLoading(false)
     }
-  ]
+    
+    loadAnnouncements()
+  }, [])
 
   // 카테고리별 필터링
   const filteredNotifications = notifications.filter(notification => {
     const matchesSearch = notification.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                        notification.content.toLowerCase().includes(searchTerm.toLowerCase())
+                         notification.content.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesCategory = selectedCategory === "all" || notification.type === selectedCategory
     return matchesSearch && matchesCategory
   })
@@ -236,13 +250,6 @@ export default function Notifications() {
   const startIndex = (currentPage - 1) * itemsPerPage
   const endIndex = startIndex + itemsPerPage
   const currentNotifications = filteredNotifications.slice(startIndex, endIndex)
-
-  // 현재 페이지가 총 페이지 수를 초과하는 경우 1페이지로 리셋
-  useEffect(() => {
-    if (currentPage > totalPages && totalPages > 0) {
-      setCurrentPage(1)
-    }
-  }, [totalPages, currentPage])
 
   const handlePageChange = (page) => {
     setCurrentPage(page)
@@ -259,9 +266,6 @@ export default function Notifications() {
     setModalType("view")
     setSelectedNotification(notification)
     setShowModal(true)
-    
-    // URL 업데이트
-    navigate(`/notifications/${notification.announcement_id}`);
   }
 
   // 모달 관련 핸들러들
@@ -280,18 +284,12 @@ export default function Notifications() {
       type: notification.type
     })
     setShowModal(true)
-    
-    // URL 업데이트 (수정 모드)
-    navigate(`/notifications/${notification.announcement_id}?mode=edit`);
   }
 
   const handleDelete = (notification) => {
     setModalType("delete")
     setSelectedNotification(notification)
     setShowModal(true)
-    
-    // URL 업데이트 (삭제 모드)
-    navigate(`/notifications/${notification.announcement_id}?mode=delete`);
   }
 
   // 모달 닫기 핸들러 (드래그 중에는 닫히지 않음)
@@ -302,41 +300,55 @@ export default function Notifications() {
     setModalType("")
     setSelectedNotification(null)
     setFormData({ title: "", content: "", type: "NOTICE" })
-    
-    // URL이 /notifications/{id} 형태라면 메인 페이지로 이동
-    if (notificationId) {
-      navigate('/notifications');
-    }
   }
 
   const handleFormSubmit = async (e) => {
     e.preventDefault()
     
     try {
+      let result
+      
       if (modalType === "create") {
-        // TODO: API 호출로 공지사항 생성
-        console.log("공지사항 생성:", formData)
+        result = await createAnnouncement(formData)
       } else if (modalType === "edit") {
-        // TODO: API 호출로 공지사항 수정
-        console.log("공지사항 수정:", selectedNotification.announcement_id, formData)
+        result = await updateAnnouncement(selectedNotification.announcement_id, formData)
       }
       
-      handleModalClose()
-      // TODO: 공지사항 목록 새로고침
+      if (result.success) {
+        handleModalClose()
+        // 공지사항 목록 새로고침
+        const refreshResult = await fetchAnnouncements()
+        if (refreshResult.success) {
+          setNotifications(refreshResult.data)
+        }
+      } else {
+        console.error("API 오류:", result.error)
+        alert(result.error.message || "오류가 발생했습니다.")
+      }
     } catch (error) {
       console.error("오류 발생:", error)
+      alert("네트워크 오류가 발생했습니다.")
     }
   }
 
   const handleConfirmDelete = async () => {
     try {
-      // TODO: API 호출로 공지사항 삭제
-      console.log("공지사항 삭제:", selectedNotification.announcement_id)
+      const result = await deleteAnnouncement(selectedNotification.announcement_id)
       
-      handleModalClose()
-      // TODO: 공지사항 목록 새로고침
+      if (result.success) {
+        handleModalClose()
+        // 공지사항 목록 새로고침
+        const refreshResult = await fetchAnnouncements()
+        if (refreshResult.success) {
+          setNotifications(refreshResult.data)
+        }
+      } else {
+        console.error("삭제 오류:", result.error)
+        alert(result.error.message || "삭제에 실패했습니다.")
+      }
     } catch (error) {
       console.error("삭제 오류:", error)
+      alert("네트워크 오류가 발생했습니다.")
     }
   }
 
@@ -425,14 +437,30 @@ export default function Notifications() {
 
         {/* 공지사항 목록 */}
         <div className="notifications-section">
-          <div className="notifications-list">
-                         {currentNotifications.map((notification) => (
-               <article 
-                 key={notification.announcement_id} 
-                 className={`notification-item ${getTypeClass(notification.type)}`}
-                 style={{ cursor: 'pointer' }}
-                 onClick={() => handleNotificationClick(notification)}
-               >
+          {loading ? (
+            <div className="loading-message">
+              <i className="fas fa-spinner fa-spin"></i>
+              공지사항을 불러오는 중...
+            </div>
+          ) : error ? (
+            <div className="error-message">
+              <i className="fas fa-exclamation-triangle"></i>
+              {error}
+            </div>
+          ) : currentNotifications.length === 0 ? (
+            <div className="empty-message">
+              <i className="fas fa-inbox"></i>
+              공지사항이 없습니다.
+            </div>
+          ) : (
+            <div className="notifications-list">
+              {currentNotifications.map((notification) => (
+              <article 
+                key={notification.announcement_id} 
+                className={`notification-item ${getTypeClass(notification.type)}`}
+                onClick={() => handleNotificationClick(notification)}
+                style={{ cursor: 'pointer' }}
+              >
                 <div className="notification-header">
                   <div className="notification-meta">
                     <span className={`notification-badge ${getTypeClass(notification.type)}`}>
@@ -467,21 +495,11 @@ export default function Notifications() {
                     </div>
                   )}
                 </div>
-                                 <h3 className="notification-title">
-                   <Link 
-                     to={`/notifications/${notification.announcement_id}`}
-                     className="notification-link"
-                     onClick={(e) => {
-                       e.stopPropagation();
-                       handleNotificationClick(notification);
-                     }}
-                   >
-                     {notification.title}
-                   </Link>
-                 </h3>
+                <h3 className="notification-title">{notification.title}</h3>
               </article>
             ))}
-          </div>
+            </div>
+          )}
         </div>
 
         {/* 페이지네이션 */}
@@ -498,10 +516,9 @@ export default function Notifications() {
               
               {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
                 <button
-                  key={`page-${page}`}
+                  key={page}
                   className={`page-btn ${currentPage === page ? 'active' : ''}`}
                   onClick={() => handlePageChange(page)}
-                  disabled={currentPage === page}
                 >
                   {page}
                 </button>
@@ -539,26 +556,26 @@ export default function Notifications() {
 
       {/* 모달 */}
       {showModal && (
-        <div className="modal-overlay">
-          <div className={`modal-content ${modalType === "delete" ? "delete-modal" : ""} ${modalType === "view" ? "view-modal" : ""}`} onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
+        <div className="notification-modal-overlay">
+          <div className={`notification-modal-content ${modalType === "delete" ? "delete-modal" : ""} ${modalType === "view" ? "view-modal" : ""}`} onClick={(e) => e.stopPropagation()}>
+            <div className="notification-modal-header">
               <h3>
                 {modalType === "create" && "공지사항 등록"}
                 {modalType === "edit" && "공지사항 수정"}
                 {modalType === "delete" && "공지사항 삭제"}
               </h3>
-              <button className="modal-close" onClick={handleModalClose}>
+              <button className="notification-modal-close" onClick={handleModalClose}>
                 <i className="fas fa-times"></i>
               </button>
             </div>
 
             {modalType === "delete" ? (
-              <div className="modal-body">
+              <div className="notification-modal-body">
                 <p>정말로 "{selectedNotification?.title}" 공지사항을 삭제하시겠습니까?</p>
                 <p>이 작업은 되돌릴 수 없습니다.</p>
               </div>
             ) : modalType === "view" ? (
-              <div className="modal-body">
+              <div className="notification-modal-body">
                 <div className="notification-detail">
                   <div className="detail-header">
                     <span className={`detail-badge ${getTypeClass(selectedNotification?.type)}`}>
@@ -574,7 +591,7 @@ export default function Notifications() {
                 </div>
               </div>
             ) : (
-              <form onSubmit={handleFormSubmit} className="modal-body">
+              <form onSubmit={handleFormSubmit} className="notification-modal-body">
                 <div className="form-group">
                   <label>제목</label>
                   <input
@@ -617,7 +634,7 @@ export default function Notifications() {
               </form>
             )}
 
-            <div className="modal-footer">
+            <div className="notification-modal-footer">
               {modalType === "delete" ? (
                 <>
                   <button className="btn btn-secondary" onClick={handleModalClose}>
