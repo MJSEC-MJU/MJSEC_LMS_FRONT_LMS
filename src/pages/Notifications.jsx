@@ -7,7 +7,7 @@ export default function Notifications() {
   const { user } = useAuth();
   
   // 임시로 어드민 권한 부여 (테스트용)
-  const isAdmin = false; // 또는 user?.role === 'admin' || true
+  const isAdmin = true; // 또는 user?.role === 'admin' || true
   
   const [searchTerm, setSearchTerm] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
