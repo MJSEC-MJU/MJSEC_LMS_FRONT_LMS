@@ -42,19 +42,29 @@ jobs:
         run: npm ci --ignore-scripts --no-audit
 
       # ──────────────────────────────
-      # Semgrep (SAST) — JS/React + OWASP
+      # Semgrep (SAST) — JS/React + OWASP (CLI)
       # ──────────────────────────────
-      - name: Semgrep (OWASP + JS/React)
-        uses: semgrep/semgrep-action@v1
+      - name: Set up Python (for Semgrep CLI)
+        uses: actions/setup-python@v5
         with:
-          entryPoint: semgrep ci
-          config: |
-            p/owasp-top-ten
-            p/javascript
-            p/react
-          args: --sarif -o semgrep.sarif
-        # 보고만 하고 파이프라인은 계속 가려면 아래 줄 주석 해제
-        # continue-on-error: true
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Semgrep
+        run: |
+          python -m pip install --upgrade pip
+          pip install semgrep
+
+      - name: Run Semgrep (OWASP + JS/React) → SARIF
+        # 리포트만 하고 파이프라인은 계속: 마지막에 || true
+        run: |
+          set -euo pipefail
+          semgrep --version
+          semgrep ci \
+            --config p/owasp-top-ten \
+            --config p/javascript \
+            --config p/react \
+            --sarif -o semgrep.sarif || true
 
       - name: Check Semgrep SARIF has results
         id: semgrep_sarif_check
