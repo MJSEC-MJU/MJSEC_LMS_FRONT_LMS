@@ -47,7 +47,7 @@ jobs:
       - name: Set up Python (for Semgrep CLI)
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'  # cache 옵션 제거(파이썬 프로젝트 아님)
+          python-version: '3.11'   # cache 제거 (파이썬 프로젝트가 아님)
 
       - name: Install Semgrep
         run: |
@@ -195,14 +195,13 @@ jobs:
           sarif_file: trivy-image.sarif
 
       # ──────────────────────────────
-      # Gitleaks (Secrets) — CLI via Docker (no license required)
+      # Gitleaks (Secrets) — CLI via GHCR (no license required)
       # ──────────────────────────────
       - name: Run Gitleaks (secrets scan) → SARIF
         shell: bash
         run: |
           set -euo pipefail
-          # 필요한 경우 특정 버전으로 고정 가능: gitleaks/gitleaks:v8.18.4
-          docker run --rm -v "$PWD":/repo gitleaks/gitleaks:latest detect \
+          docker run --rm -v "$PWD":/repo ghcr.io/gitleaks/gitleaks:v8.18.4 detect \
             --source=/repo \
             --redact \
             --report-format sarif \
