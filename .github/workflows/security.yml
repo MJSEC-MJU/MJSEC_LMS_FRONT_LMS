@@ -47,7 +47,7 @@ jobs:
       - name: Set up Python (for Semgrep CLI)
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'  # ⬅️ cache 제거 (pip 파일이 없어서 에러 났던 부분)
+          python-version: '3.11'  # cache 옵션 제거(파이썬 프로젝트 아님)
 
       - name: Install Semgrep
         run: |
@@ -195,9 +195,34 @@ jobs:
           sarif_file: trivy-image.sarif
 
       # ──────────────────────────────
-      # Gitleaks (Secrets)
+      # Gitleaks (Secrets) — CLI via Docker (no license required)
       # ──────────────────────────────
-      - name: Gitleaks
-        uses: gitleaks/gitleaks-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Run Gitleaks (secrets scan) → SARIF
+        shell: bash
+        run: |
+          set -euo pipefail
+          # 필요한 경우 특정 버전으로 고정 가능: gitleaks/gitleaks:v8.18.4
+          docker run --rm -v "$PWD":/repo gitleaks/gitleaks:latest detect \
+            --source=/repo \
+            --redact \
+            --report-format sarif \
+            --report-path /repo/gitleaks.sarif \
+            --exit-code 0
+          test -s gitleaks.sarif || echo '{"version":"2.1.0","runs":[]}' > gitleaks.sarif
+          ls -l gitleaks.sarif
+
+      - name: Check Gitleaks SARIF has results
+        id: gitleaks_sarif_check
+        run: |
+          if [ ! -s gitleaks.sarif ]; then
+            echo "ok=false" >> $GITHUB_OUTPUT; exit 0
+          fi
+          runs=$(jq '.runs | length' gitleaks.sarif 2>/dev/null || echo 0)
+          results=$(jq '[.runs[].results] | flatten | length' gitleaks.sarif 2>/dev/null || echo 0)
+          if [ "$runs" -gt 0 ] && [ "$results" -gt 0 ]; then echo "ok=true" >> $GITHUB_OUTPUT; else echo "ok=false" >> $GITHUB_OUTPUT; fi
+
+      - name: Upload Gitleaks SARIF
+        if: ${{ steps.gitleaks_sarif_check.outputs.ok == 'true' }}
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: gitleaks.sarif
