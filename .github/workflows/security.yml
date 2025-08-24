@@ -14,14 +14,14 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      security-events: write    # SARIF 업로드 권한
-      pull-requests: write      # (선택) PR 코멘트용
+      security-events: write
+      pull-requests: write
 
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0        # gitleaks가 히스토리 스캔 가능
+          fetch-depth: 0
 
       - name: Install jq (for SARIF checks)
         run: |
@@ -29,7 +29,7 @@ jobs:
           sudo apt-get install -y jq
 
       # ──────────────────────────────
-      # Node deps 설치 (npm audit용)
+      # Node deps (for npm audit)
       # ──────────────────────────────
       - name: Use Node
         uses: actions/setup-node@v4
@@ -47,11 +47,14 @@ jobs:
       - name: Semgrep (OWASP + JS/React)
         uses: semgrep/semgrep-action@v1
         with:
+          entryPoint: semgrep ci
           config: |
             p/owasp-top-ten
             p/javascript
             p/react
           args: --sarif -o semgrep.sarif
+        # 보고만 하고 파이프라인은 계속 가려면 아래 줄 주석 해제
+        # continue-on-error: true
 
       - name: Check Semgrep SARIF has results
         id: semgrep_sarif_check
@@ -70,7 +73,7 @@ jobs:
           sarif_file: semgrep.sarif
 
       # ──────────────────────────────
-      # Node 의존성 SCA — npm audit (리포팅 모드)
+      # Node SCA — npm audit (reporting)
       # ──────────────────────────────
       - name: Node audit (npm)
         if: ${{ hashFiles('**/package-lock.json') != '' || hashFiles('**/pnpm-lock.yaml') != '' || hashFiles('**/yarn.lock') != '' }}
@@ -78,7 +81,7 @@ jobs:
           npm audit --audit-level=high || true
 
       # ──────────────────────────────
-      # Trivy (filesystem scan) — package-lock.json 등에서 취약점 탐지 + SARIF
+      # Trivy (filesystem scan) → SARIF
       # ──────────────────────────────
       - name: Trivy filesystem scan
         uses: aquasecurity/trivy-action@0.28.0
@@ -144,7 +147,7 @@ jobs:
           sarif_file: hadolint.sarif
 
       # ──────────────────────────────
-      # (선택) 도커 이미지 스캔: Dockerfile 있을 때 로컬에서 빌드 → Trivy image
+      # (optional) Build local image → Trivy image scan
       # ──────────────────────────────
       - name: Build image (local only)
         if: ${{ steps.df.outputs.found == 'true' }}
