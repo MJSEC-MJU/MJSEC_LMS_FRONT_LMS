@@ -10,7 +10,7 @@ export default function Register() {
   const [phonePart1, setPhonePart1] = useState(''); // 전화번호 첫째 부분
   const [phonePart2, setPhonePart2] = useState(''); // 전화번호 둘째 부분
   const [phonePart3, setPhonePart3] = useState(''); // 전화번호 셋째 부분
-  const [profilePic, setProfilePic] = useState(null);
+const [, setProfilePic] = useState(null)
   const [busy, setBusy] = useState(false); // 전체 폼 제출 상태
 
   const handleSubmit = async (e) => {
