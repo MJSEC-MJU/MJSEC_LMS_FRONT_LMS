@@ -47,8 +47,7 @@ jobs:
       - name: Set up Python (for Semgrep CLI)
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
-          cache: 'pip'
+          python-version: '3.11'  # ⬅️ cache 제거 (pip 파일이 없어서 에러 났던 부분)
 
       - name: Install Semgrep
         run: |
@@ -56,7 +55,6 @@ jobs:
           pip install semgrep
 
       - name: Run Semgrep (OWASP + JS/React) → SARIF
-        # 리포트만 하고 파이프라인은 계속: 마지막에 || true
         run: |
           set -euo pipefail
           semgrep --version
@@ -83,7 +81,7 @@ jobs:
           sarif_file: semgrep.sarif
 
       # ──────────────────────────────
-      # Node SCA — npm audit (reporting)
+      # Node SCA — npm audit (report-only)
       # ──────────────────────────────
       - name: Node audit (npm)
         if: ${{ hashFiles('**/package-lock.json') != '' || hashFiles('**/pnpm-lock.yaml') != '' || hashFiles('**/yarn.lock') != '' }}
@@ -101,7 +99,7 @@ jobs:
           severity: HIGH,CRITICAL
           format: sarif
           output: trivy-fs.sarif
-          exit-code: '0'   # 게이트로 쓸 땐 '1'
+          exit-code: '0'
 
       - name: Check Trivy SARIF has results
         id: trivyfs_sarif_check
