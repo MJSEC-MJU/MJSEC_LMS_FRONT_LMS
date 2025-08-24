@@ -38,11 +38,11 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies (no scripts)
-        if: ${{ hashFiles('**/package-lock.json', '**/pnpm-lock.yaml', '**/yarn.lock') != '' }}
+        if: ${{ hashFiles('**/package-lock.json') != '' || hashFiles('**/pnpm-lock.yaml') != '' || hashFiles('**/yarn.lock') != '' }}
         run: npm ci --ignore-scripts --no-audit
 
       # ──────────────────────────────
-      # Semgrep (SAST) — JS/React + OWASP (컨테이너 액션)
+      # Semgrep (SAST) — JS/React + OWASP
       # ──────────────────────────────
       - name: Semgrep (OWASP + JS/React)
         uses: semgrep/semgrep-action@v1
@@ -51,8 +51,7 @@ jobs:
             p/owasp-top-ten
             p/javascript
             p/react
-          generateSarif: true
-          sarifFile: semgrep.sarif      # 생성 파일 경로
+          args: --sarif -o semgrep.sarif
 
       - name: Check Semgrep SARIF has results
         id: semgrep_sarif_check
@@ -74,7 +73,7 @@ jobs:
       # Node 의존성 SCA — npm audit (리포팅 모드)
       # ──────────────────────────────
       - name: Node audit (npm)
-        if: ${{ hashFiles('**/package-lock.json', '**/pnpm-lock.yaml', '**/yarn.lock') != '' }}
+        if: ${{ hashFiles('**/package-lock.json') != '' || hashFiles('**/pnpm-lock.yaml') != '' || hashFiles('**/yarn.lock') != '' }}
         run: |
           npm audit --audit-level=high || true
 
@@ -191,8 +190,3 @@ jobs:
         uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # 필요 시:
-          # GITLEAKS_CONFIG: .gitleaks.toml
-          # GITLEAKS_ENABLE_COMMENTS: "true"
-          # GITLEAKS_ENABLE_UPLOAD_ARTIFACT: "true"
-          # GITLEAKS_ENABLE_SUMMARY: "true"
