@@ -5,10 +5,63 @@ import { Editor } from '@tinymce/tinymce-react'
 import { api } from "../components/client"
 
 export default function Notifications() {
-  const { user, token } = useAuth();
+  const { user, token, isInitialized } = useAuth();
   
-  // (테스트용)
-  const isAdmin = true;
+  // 실제 사용자 권한 기반으로 어드민 여부 확인
+  const isAdmin = user && (
+    user.role === 'ROLE_ADMIN' || 
+    user.authorities?.some(auth => auth.authority === 'ROLE_ADMIN') ||
+    user.roles?.includes('ROLE_ADMIN')
+  );
+
+  // 디버깅을 위한 사용자 정보 로그
+  useEffect(() => {
+    if (user) {
+      console.log('Current user info:', user);
+      console.log('User role:', user.role);
+      console.log('User authorities:', user.authorities);
+      console.log('User roles:', user.roles);
+      console.log('User studentNumber:', user.studentNumber);
+      console.log('User userId:', user.userId);
+      console.log('User sub:', user.sub);
+      console.log('Is admin (ROLE_ADMIN):', isAdmin);
+      console.log('User type:', user.role === 'ROLE_ADMIN' ? '관리자' : '일반 사용자');
+    }
+  }, [user, isAdmin]);
+
+  // 어드민 권한 확인 함수
+  const checkAdminPermission = () => {
+    if (!isAdmin) {
+      alert('관리자(ROLE_ADMIN) 권한이 필요합니다.');
+      return false;
+    }
+    return true;
+  };
+
+  // 작성자 권한 확인 함수
+  const checkCreatorPermission = (notification) => {
+    if (!user) return false;
+    
+    // 관리자는 모든 공지사항 수정/삭제 가능
+    if (isAdmin) return true;
+    
+    // creator가 null인 경우 관리자만 수정/삭제 가능
+    if (!notification.userId && !notification.creator) {
+      alert('작성자 정보가 없는 공지사항은 관리자만 수정/삭제할 수 있습니다.');
+      return false;
+    }
+    
+    // 일반 사용자는 작성자 본인만 수정/삭제 가능
+    const isCreator = notification.userId === user.userId || 
+                     notification.creator?.userId === user.userId;
+    
+    if (!isCreator) {
+      alert('작성자 본인만 수정/삭제할 수 있습니다.');
+      return false;
+    }
+    
+    return true;
+  };
   
   const [searchTerm, setSearchTerm] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
@@ -55,6 +108,13 @@ export default function Notifications() {
 
   // API 호출 함수들
   const getAuthToken = () => {
+    if (!isInitialized) {
+      throw new Error('인증이 아직 초기화되지 않았습니다. 잠시 후 다시 시도해주세요.');
+    }
+    if (!token) {
+      throw new Error('토큰이 없습니다. 다시 로그인해주세요.');
+    }
+    console.log('Using token for API call:', token.substring(0, 20) + '...');
     return token
   }
 
@@ -62,22 +122,46 @@ export default function Notifications() {
   const createAnnouncement = async (announcementData) => {
     try {
       const token = getAuthToken()
-      // API 명세서에 맞는 JSON 형식으로 요청 구성
-      const requestData = {
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: {
-          title: announcementData.title,
-          content: announcementData.content,
-          type: announcementData.type
-        }
+      
+      // 데이터 검증
+      if (!announcementData.title || announcementData.title.trim() === '') {
+        throw new Error('공지사항 제목은 필수입니다.');
       }
-      const result = await api('POST', '/users/announcements/', requestData, token)
+      if (!announcementData.content || announcementData.content.trim() === '') {
+        throw new Error('공지사항 내용은 필수입니다.');
+      }
+      if (!announcementData.type) {
+        throw new Error('공지 타입은 필수입니다.');
+      }
+      
+      // API 명세서에 맞는 body 구조
+      const requestBody = {
+        title: announcementData.title.trim(),
+        content: announcementData.content.trim(),
+        type: announcementData.type
+      }
+      console.log('Creating announcement with data:', requestBody)
+      console.log('Current user info for creation:', user)
+      console.log('User studentNumber:', user?.studentNumber)
+      console.log('User userId:', user?.userId)
+      console.log('User role:', user?.role)
+      console.log('User sub:', user?.sub)
+      console.log('User name:', user?.name)
+      console.log('User email:', user?.email)
+      console.log('Full JWT decoded user:', JSON.stringify(user, null, 2))
+      console.log('Token being used:', token)
+      console.log('Student number from token:', user?.studentNumber)
+      const result = await api('POST', '/users/announcements', requestBody, token)
+      console.log('Create announcement result:', result)
       return { success: true, data: result.data }
     } catch (error) {
       console.error('공지사항 생성 오류:', error)
+      console.error('Error details:', {
+        message: error.message,
+        stack: error.stack,
+        requestData: announcementData,
+        userInfo: user
+      })
       return { success: false, error: { message: error.message || '네트워크 오류가 발생했습니다.' } }
     }
   }
@@ -86,7 +170,9 @@ export default function Notifications() {
   const fetchAnnouncements = async () => {
     try {
       const token = getAuthToken()
+      console.log('Fetching announcements with token:', token ? 'Token exists' : 'No token')
       const result = await api('GET', '/users/announcements', null, token)
+      console.log('Fetch announcements result:', result)
       return { success: true, data: result.data }
     } catch (error) {
       console.error('공지사항 목록 조회 오류:', error)
@@ -110,10 +196,26 @@ export default function Notifications() {
   const updateAnnouncement = async (announcementId, announcementData) => {
     try {
       const token = getAuthToken()
-      const result = await api('PUT', `/users/announcements/${announcementId}`, announcementData, token)
+      // API 명세서에 맞는 body 구조
+      const requestBody = {
+        title: announcementData.title.trim(),
+        content: announcementData.content.trim(),
+        type: announcementData.type
+      }
+      console.log('Updating announcement with ID:', announcementId)
+      console.log('Updating announcement with data:', requestBody)
+      console.log('API endpoint:', `/users/announcements/${announcementId}`)
+      const result = await api('PUT', `/users/announcements/${announcementId}`, requestBody, token)
+      console.log('Update announcement result:', result)
       return { success: true, data: result.data }
     } catch (error) {
       console.error('공지사항 수정 오류:', error)
+      console.error('Error details:', {
+        message: error.message,
+        stack: error.stack,
+        announcementId: announcementId,
+        requestData: announcementData
+      })
       return { success: false, error: { message: error.message || '네트워크 오류가 발생했습니다.' } }
     }
   }
@@ -122,10 +224,18 @@ export default function Notifications() {
   const deleteAnnouncement = async (announcementId) => {
     try {
       const token = getAuthToken()
+      console.log('Deleting announcement with ID:', announcementId)
+      console.log('API endpoint:', `/users/announcements/${announcementId}`)
       await api('DELETE', `/users/announcements/${announcementId}`, null, token)
+      console.log('Delete announcement successful')
       return { success: true }
     } catch (error) {
       console.error('공지사항 삭제 오류:', error)
+      console.error('Error details:', {
+        message: error.message,
+        stack: error.stack,
+        announcementId: announcementId
+      })
       return { success: false, error: { message: error.message || '공지사항 삭제에 실패했습니다.' } }
     }
   }
@@ -174,17 +284,30 @@ export default function Notifications() {
 
   // 공지사항 목록 조회
   useEffect(() => {
+    // 인증이 초기화된 후에만 API 호출
+    if (!isInitialized) {
+      console.log('Auth not initialized yet, waiting...');
+      return;
+    }
+
     const loadAnnouncements = async () => {
       setLoading(true)
       setError(null)
       
-      const result = await fetchAnnouncements()
-      
-      if (result.success) {
-        setNotifications(result.data)
-      } else {
-        setError(result.error.message)
-        // 에러 발생 시 빈 배열로 설정
+      try {
+        const result = await fetchAnnouncements()
+        
+        if (result.success) {
+          console.log('Fetched notifications:', result.data)
+          setNotifications(result.data)
+        } else {
+          setError(result.error.message)
+          // 에러 발생 시 빈 배열로 설정
+          setNotifications([])
+        }
+      } catch (error) {
+        console.error('공지사항 로드 중 오류:', error)
+        setError('공지사항을 불러오는 중 오류가 발생했습니다.')
         setNotifications([])
       }
       
@@ -192,15 +315,23 @@ export default function Notifications() {
     }
     
     loadAnnouncements()
-  }, [])
+  }, [isInitialized])
 
-  // 카테고리별 필터링
-  const filteredNotifications = notifications.filter(notification => {
-    const matchesSearch = notification.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         notification.content.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesCategory = selectedCategory === "all" || notification.type === selectedCategory
-    return matchesSearch && matchesCategory
-  })
+
+  //공지사항 정렬 
+  const filteredNotifications = notifications
+    .filter(notification => {
+      const matchesSearch = notification.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           notification.content.toLowerCase().includes(searchTerm.toLowerCase())
+      const matchesCategory = selectedCategory === "all" || notification.type === selectedCategory
+      return matchesSearch && matchesCategory
+    })
+    .sort((a, b) => {
+
+      const idA = a.announcementId || 0;
+      const idB = b.announcementId || 0;
+      return idB - idA;
+    })
 
   // 페이지네이션
   const itemsPerPage = 5
@@ -228,12 +359,14 @@ export default function Notifications() {
 
   // 모달 관련 핸들러들
   const handleCreate = () => {
+    if (!checkAdminPermission()) return;
     setModalType("create")
     setFormData({ title: "", content: "", type: "NOTICE" })
     setShowModal(true)
   }
 
   const handleEdit = (notification) => {
+    if (!checkCreatorPermission(notification)) return;
     setModalType("edit")
     setSelectedNotification(notification)
     setFormData({
@@ -245,6 +378,7 @@ export default function Notifications() {
   }
 
   const handleDelete = (notification) => {
+    if (!checkCreatorPermission(notification)) return;
     setModalType("delete")
     setSelectedNotification(notification)
     setShowModal(true)
@@ -266,11 +400,22 @@ export default function Notifications() {
     try {
       let result
       
-             if (modalType === "create") {
-         result = await createAnnouncement(formData)
-       } else if (modalType === "edit") {
-         result = await updateAnnouncement(selectedNotification.announcementId, formData)
-       }
+      if (modalType === "create") {
+        result = await createAnnouncement(formData)
+      } else if (modalType === "edit") {
+        console.log('Editing notification:', selectedNotification)
+        console.log('Selected notification ID:', selectedNotification.announcementId)
+        console.log('Form data:', formData)
+        
+        // ID 필드 확인
+        const notificationId = selectedNotification.announcementId || selectedNotification.id || selectedNotification.noticeId
+        if (!notificationId) {
+          alert('공지사항 ID를 찾을 수 없습니다.')
+          return
+        }
+        
+        result = await updateAnnouncement(notificationId, formData)
+      }
       
       if (result.success) {
         handleModalClose()
@@ -290,8 +435,18 @@ export default function Notifications() {
   }
 
   const handleConfirmDelete = async () => {
-         try {
-       const result = await deleteAnnouncement(selectedNotification.announcementId)
+    try {
+      console.log('Deleting notification:', selectedNotification)
+      console.log('Selected notification ID:', selectedNotification.announcementId)
+      
+      // ID 필드 확인
+      const notificationId = selectedNotification.announcementId || selectedNotification.id || selectedNotification.noticeId
+      if (!notificationId) {
+        alert('공지사항 ID를 찾을 수 없습니다.')
+        return
+      }
+      
+      const result = await deleteAnnouncement(notificationId)
       
       if (result.success) {
         handleModalClose()
@@ -412,13 +567,18 @@ export default function Notifications() {
             </div>
           ) : (
             <div className="notifications-list">
-                             {currentNotifications.map((notification) => (
-               <article 
-                 key={notification.announcementId} 
-                 className={`notification-item ${getTypeClass(notification.type)}`}
-                 onClick={() => handleNotificationClick(notification)}
-                 style={{ cursor: 'pointer' }}
-               >
+              {currentNotifications.map((notification) => {
+                console.log('Rendering notification:', notification)
+                console.log('Notification userId:', notification.userId)
+                console.log('Notification creator:', notification.creator)
+                console.log('Notification announcementId:', notification.announcementId)
+                return (
+                  <article 
+                    key={notification.announcementId || notification.id || notification.noticeId} 
+                    className={`notification-item ${getTypeClass(notification.type)}`}
+                    onClick={() => handleNotificationClick(notification)}
+                    style={{ cursor: 'pointer' }}
+                  >
                 <div className="notification-header">
                   <div className="notification-meta">
                     <span className={`notification-badge ${getTypeClass(notification.type)}`}>
@@ -455,7 +615,8 @@ export default function Notifications() {
                 </div>
                 <h3 className="notification-title">{notification.title}</h3>
               </article>
-            ))}
+                )
+              })}
             </div>
           )}
         </div>

@@ -1,11 +1,25 @@
 ﻿import { useState, useEffect } from "react"
-import { Link, useParams } from "react-router-dom"
+import { Link, useParams, useNavigate } from "react-router-dom"
 import { useAuth } from "../components/auth"
 import { api } from "../components/client"
+import DatePicker from 'react-datepicker'
+import { registerLocale } from 'react-datepicker'
+import ko from 'date-fns/locale/ko'
+import 'react-datepicker/dist/react-datepicker.css'
+
+// 한국어 로케일 등록
+registerLocale('ko', ko);
 
 export default function Group() {
   const { groupId } = useParams();
-  const { user } = useAuth();
+  const { user, token } = useAuth();
+  const navigate = useNavigate();
+  
+  // react-datepicker 테스트용 상태
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [dateRange, setDateRange] = useState([null, null]);
+  const [startDate, endDate] = dateRange;
+  const [selectedDateTime, setSelectedDateTime] = useState(null);
   
   // 수강중인 과목 데이터
   const [myStudies, setMyStudies] = useState([
@@ -77,8 +91,24 @@ export default function Group() {
     }
   ]);
 
-  // 멘토 권한 확인 (임시로 true로 설정)
-  const isMentor = true;
+  // 멘토 권한 확인 (어드민 또는 멘토 권한)
+  const isMentor = user && (
+    user.role === 'ROLE_ADMIN' || 
+    user.role === 'ROLE_MENTOR' ||
+    user.authorities?.some(auth => auth.authority === 'ROLE_ADMIN' || auth.authority === 'ROLE_MENTOR') ||
+    user.roles?.includes('ROLE_ADMIN') ||
+    user.roles?.includes('ROLE_MENTOR')
+  );
+
+  // 디버깅을 위한 사용자 정보 로그
+  useEffect(() => {
+    if (user) {
+      console.log('Group - Current user info:', user);
+      console.log('Group - User role:', user.role);
+      console.log('Group - Is mentor (ROLE_ADMIN/ROLE_MENTOR):', isMentor);
+      console.log('Group - User type:', user.role === 'ROLE_ADMIN' ? '관리자' : user.role === 'ROLE_MENTOR' ? '멘토' : '일반 사용자');
+    }
+  }, [user, isMentor]);
 
   // 주차별 과제 확장 상태 관리
   const [expandedWeeks, setExpandedWeeks] = useState({
@@ -181,20 +211,18 @@ export default function Group() {
   // 과제 생성 API 함수
   const createAssignment = async (assignmentData) => {
     try {
-      const token = localStorage.getItem('token');
-      const requestData = {
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: {
-          title: assignmentData.title,
-          description: assignmentData.description,
-          startDate: assignmentData.startDate,
-          endDate: assignmentData.endDate
-        }
+      if (!token) {
+        throw new Error('토큰이 없습니다. 다시 로그인해주세요.');
+      }
+      const requestBody = {
+        title: assignmentData.title,
+        description: assignmentData.description,
+        startDate: assignmentData.startDate,
+        endDate: assignmentData.endDate
       };
-      const result = await api('POST', `/groups/${groupId}/assignments`, requestData, token);
+      console.log('Creating assignment with data:', requestBody);
+      const result = await api('POST', `/groups/${groupId}/assignments`, requestBody, token);
+      console.log('Create assignment result:', result);
       return { success: true, data: result.data };
     } catch (error) {
       console.error('과제 생성 오류:', error);
@@ -205,8 +233,12 @@ export default function Group() {
   // 과제 삭제 API 함수
   const deleteAssignment = async (assignmentId) => {
     try {
-      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('토큰이 없습니다. 다시 로그인해주세요.');
+      }
+      console.log('Deleting assignment with ID:', assignmentId);
       await api('DELETE', `/groups/${groupId}/assignments/${assignmentId}`, null, token);
+      console.log('Delete assignment successful');
       return { success: true };
     } catch (error) {
       console.error('과제 삭제 오류:', error);
@@ -1145,6 +1177,137 @@ export default function Group() {
        </section>
      );
    }
+
+  // groupId가 있으면 상세 페이지, 없으면 목록 페이지
+  if (groupId) {
+    const currentGroup = myStudies.find(study => study.groupId === parseInt(groupId));
+    
+    if (!currentGroup) {
+      return (
+        <section className="contact">
+          <h1 className="heading">그룹을 찾을 수 없습니다</h1>
+          <button onClick={() => navigate('/groups')} className="btn btn-primary">
+            목록으로 돌아가기
+          </button>
+        </section>
+      );
+    }
+
+    return (
+      <section className="contact">
+        <div className="group-detail-header">
+          <button onClick={() => navigate('/groups')} className="btn btn-secondary">
+            ← 목록으로 돌아가기
+          </button>
+          <h1 className="heading">{currentGroup.name} - 상세보기</h1>
+        </div>
+
+        <div className="group-detail-container">
+          <div className="group-info-section">
+            <h2>그룹 정보</h2>
+            <div className="group-info">
+              <p><strong>설명:</strong> {currentGroup.description}</p>
+              <p><strong>생성일:</strong> {formatDate(currentGroup.createdAt)}</p>
+              <p><strong>카테고리:</strong> {currentGroup.category.join(', ')}</p>
+            </div>
+          </div>
+
+          <div className="datepicker-test-section">
+            <h2>📅 React DatePicker 테스트</h2>
+            
+            <div className="datepicker-examples">
+              <div className="datepicker-example">
+                <h3>1. 기본 날짜 선택</h3>
+                <DatePicker
+                  selected={selectedDate}
+                  onChange={(date) => setSelectedDate(date)}
+                  locale="ko"
+                  dateFormat="yyyy/MM/dd"
+                  placeholderText="날짜를 선택하세요"
+                  className="datepicker-input"
+                />
+                <p>선택된 날짜: {selectedDate ? selectedDate.toLocaleDateString('ko-KR') : '없음'}</p>
+              </div>
+
+              <div className="datepicker-example">
+                <h3>2. 날짜 범위 선택</h3>
+                <DatePicker
+                  selectsRange={true}
+                  startDate={startDate}
+                  endDate={endDate}
+                  onChange={(update) => setDateRange(update)}
+                  locale="ko"
+                  dateFormat="yyyy/MM/dd"
+                  placeholderText="날짜 범위를 선택하세요"
+                  className="datepicker-input"
+                />
+                <p>
+                  시작일: {startDate ? startDate.toLocaleDateString('ko-KR') : '없음'} | 
+                  종료일: {endDate ? endDate.toLocaleDateString('ko-KR') : '없음'}
+                </p>
+              </div>
+
+              <div className="datepicker-example">
+                <h3>3. 날짜 + 시간 선택</h3>
+                <DatePicker
+                  selected={selectedDateTime}
+                  onChange={(date) => setSelectedDateTime(date)}
+                  showTimeSelect
+                  timeFormat="HH:mm"
+                  timeIntervals={15}
+                  dateFormat="yyyy/MM/dd HH:mm"
+                  locale="ko"
+                  placeholderText="날짜와 시간을 선택하세요"
+                  className="datepicker-input"
+                />
+                <p>선택된 날짜/시간: {selectedDateTime ? selectedDateTime.toLocaleString('ko-KR') : '없음'}</p>
+              </div>
+
+              <div className="datepicker-example">
+                <h3>4. 제한된 날짜 선택 (오늘부터 30일 후까지)</h3>
+                <DatePicker
+                  selected={selectedDate}
+                  onChange={(date) => setSelectedDate(date)}
+                  minDate={new Date()}
+                  maxDate={new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)}
+                  locale="ko"
+                  dateFormat="yyyy/MM/dd"
+                  placeholderText="오늘부터 30일 후까지 선택"
+                  className="datepicker-input"
+                />
+              </div>
+            </div>
+
+            <div className="datepicker-actions">
+              <button 
+                onClick={() => {
+                  setSelectedDate(null);
+                  setDateRange([null, null]);
+                  setSelectedDateTime(null);
+                }} 
+                className="btn btn-secondary"
+              >
+                모든 날짜 초기화
+              </button>
+            </div>
+          </div>
+
+          <div className="group-members-section">
+            <h2>멤버 목록</h2>
+            <div className="members-list">
+              {currentGroup.members.map((member) => (
+                <div key={member.id} className="member-card">
+                  <h4>{member.name}</h4>
+                  <p>출석: {member.attendance}</p>
+                  <p>경고: {member.warning}회</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   // 전체 Groups 페이지
   return (

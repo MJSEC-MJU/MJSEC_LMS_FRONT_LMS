@@ -837,3 +837,66 @@ body.dark .detail-content {
   background: rgba(0, 0, 0, 0.8);
   backdrop-filter: blur(8px);
 }
+
+/* 공지사항이 없을 때 표시되는 메시지 스타일 */
+.empty-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+  background: var(--white);
+  border-radius: 1rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 2px dashed var(--border);
+  margin: 2rem 0;
+  transition: all 0.3s ease;
+}
+
+.empty-message:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+  border-color: var(--main-color);
+}
+
+.empty-message i {
+  font-size: 4rem;
+  color: var(--light-color);
+  margin-bottom: 1.5rem;
+  opacity: 0.7;
+  transition: all 0.3s ease;
+}
+
+.empty-message:hover i {
+  color: var(--main-color);
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.empty-message::after {
+  content: '';
+  font-size: 1.6rem;
+  color: var(--light-color);
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+/* 다크모드에서 빈 메시지 스타일 */
+body.dark .empty-message {
+  background: var(--light-bg);
+  border-color: var(--border);
+  color: var(--white);
+}
+
+body.dark .empty-message i {
+  color: var(--light-color);
+}
+
+body.dark .empty-message:hover {
+  border-color: var(--main-color);
+}
+
+body.dark .empty-message:hover i {
+  color: var(--main-color);
+}

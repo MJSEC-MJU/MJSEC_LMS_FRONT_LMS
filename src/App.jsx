@@ -1,4 +1,4 @@
-﻿﻿import { Routes, Route } from "react-router-dom"
+﻿﻿import { Routes, Route, Navigate } from "react-router-dom"
 import Navbar from "./components/Navbar.jsx"
 import Home from "./pages/Home.jsx"
 import Courses from "./pages/Courses.jsx"
@@ -10,13 +10,21 @@ import Group from "./pages/Group.jsx"
 import Notifications from "./pages/Notifications.jsx"
 import Admin from "./pages/Admin.jsx" // Admin 컴포넌트 임포트
 import Unauthorized from "./pages/Unauthorized.jsx";
+import { useAuth } from "./components/auth.jsx"
 
 export default function App() {
+  const { user, isInitialized } = useAuth();
+  
   return (
     <>
       <Navbar />
       <Routes>
-        <Route path="/" element={<Home />} />
+        <Route path="/" element={
+          isInitialized ? (
+            user ? <Navigate to="/home" replace /> : <Navigate to="/login" replace />
+          ) : <div>Loading...</div>
+          } />
+        <Route path="/home" element={<Home />} />
         <Route path="/courses" element={<Courses />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/login" element={<Login />} />
