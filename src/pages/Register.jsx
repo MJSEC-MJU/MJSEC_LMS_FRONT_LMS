@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { api } from '../components/client'; // api 함수 임포트
+import { useNavigate } from 'react-router-dom';
 
 export default function Register() {
+  const nav = useNavigate();
   const [name, setName] = useState('');
   const [studentNo, setStudentNo] = useState('');
   const [email, setEmail] = useState('');
@@ -10,14 +12,11 @@ export default function Register() {
   const [phonePart1, setPhonePart1] = useState(''); // 전화번호 첫째 부분
   const [phonePart2, setPhonePart2] = useState(''); // 전화번호 둘째 부분
   const [phonePart3, setPhonePart3] = useState(''); // 전화번호 셋째 부분
-const [, setProfilePic] = useState(null)
   const [busy, setBusy] = useState(false); // 전체 폼 제출 상태
 
   // 학번 및 이메일 중복 확인을 위한 상태 변수
   const [studentNoAvailability, setStudentNoAvailability] = useState('idle'); // 'idle', 'checking', 'available', 'taken', 'error'
-  const [studentNoMessage, setStudentNoMessage] = useState('');
   const [emailAvailability, setEmailAvailability] = useState('idle'); // 'idle', 'checking', 'available', 'taken', 'error'
-  const [emailMessage, setEmailMessage] = useState('');
 
   // 학번 중복 확인 함수
   const checkStudentNumberDuplication = async () => {
@@ -28,18 +27,26 @@ const [, setProfilePic] = useState(null)
     }
     setStudentNoAvailability('checking');
     try {
-      const { data: responseData } = await api('GET', `/auth/check-student-number?studentNumber=${parseInt(studentNo)}`);
-      if (responseData.data) {
-        setStudentNoAvailability('available');
-        alert('사용 가능한 학번입니다!'); 
+      const response = await api('GET', `/auth/check-student-number?studentNumber=${parseInt(studentNo)}`);
+      
+      if (response.ok && response.status === 200) {
+        if (response.data.data) { // 백엔드 응답의 data 필드가 true면 사용 가능
+          setStudentNoAvailability('available');
+          alert('사용 가능한 학번입니다!'); 
+        } else {
+          setStudentNoAvailability('taken');
+          alert('사용 중인 학번입니다...'); 
+        }
+      } else if (response.status >= 400) {
+        setStudentNoAvailability('error');
+        alert(`학번 확인 중 오류 발생: ${response.data.message || `HTTP 오류 ${response.status}`}`);
       } else {
-        setStudentNoAvailability('taken');
-        alert('사용 중인 학번입니다...'); 
+        setStudentNoAvailability('error');
+        alert('학번 확인 중 알 수 없는 오류 발생!');
       }
     } catch (e) {
       setStudentNoAvailability('error');
-      alert('학번 확인 중 오류 발생!');
-      console.error("Student Number Check Error:", e);
+      alert('학번 확인 중 네트워크 오류 발생!');
     }
   };
 
@@ -53,24 +60,32 @@ const [, setProfilePic] = useState(null)
     setEmailAvailability('checking');
     // setEmailMessage('중복 확인 중...'); 
     try {
-      const { data: responseData } = await api('GET', `/auth/check-email?email=${email}`);
-      if (responseData.data) {
-        setEmailAvailability('available');
-        alert('사용 가능한 이메일입니다!');
+      const response = await api('GET', `/auth/check-email?email=${email}`);
+      
+      if (response.ok && response.status === 200) {
+        if (response.data.data) { // 백엔드 응답의 data 필드가 true면 사용 가능
+          setEmailAvailability('available');
+          alert('사용 가능한 이메일입니다!');
+        } else {
+          setEmailAvailability('taken');
+          alert('사용 중인 이메일입니다...');
+        }
+      } else if (response.status >= 400) {
+        setEmailAvailability('error');
+        alert(`이메일 확인 중 오류 발생: ${response.data.message || `HTTP 오류 ${response.status}`}`);
       } else {
-        setEmailAvailability('taken');
-        alert('사용 중인 이메일입니다...');
+        setEmailAvailability('error');
+        alert('이메일 확인 중 알 수 없는 오류 발생!');
       }
     } catch (e) {
       setEmailAvailability('error');
-      alert('이메일 확인 중 오류 발생!');
-      console.error("Email Check Error:", e);
+      alert('이메일 확인 중 네트워크 오류 발생!');
+      console.error("Email Check Network Error:", e);
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("handleSubmit 호출됨"); // 이 줄을 추가합니다.
     if (busy) return;
     if (!name || !studentNo || !email || !pass || !cPass || !phonePart1 || !phonePart2 || !phonePart3) { 
       alert('모든 필수 필드를 입력하세요.');
@@ -94,7 +109,7 @@ const [, setProfilePic] = useState(null)
     }
 
     // 비밀번호 유효성 검사
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).*$/;
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*()_+\-={}\[\]|'\";:,.<>?]).*$/;
     if (!passwordRegex.test(pass)) {
       alert('비밀번호는 대소문자, 숫자, 특수문자를 포함해야 합니다.');
       return;
@@ -119,10 +134,14 @@ const [, setProfilePic] = useState(null)
       const requestBody = { userDto: userData }; // userDto로 묶어서 전송
 
       const data = await api('POST', '/auth/register', requestBody);
-      console.log("회원가입 성공:", data);
-      // 성공 시 로그인 페이지로 리다이렉트 또는 성공 메시지 표시
-      // nav('/login', { replace: true }); // navigate 필요 시 import
-      alert('회원가입 성공!'); // 성공 메시지도 alert로
+
+      if (data.ok && data.status === 200) {
+        alert('회원가입 성공! 승인을 기다려 주세요.');
+        nav('/login', { replace: true }); // 로그인 페이지로 리다이렉션
+      } else {
+        const errorMessages = data.data.errors ? data.data.errors.map(err => err.message).join('\n') : data.data.message || '회원가입 중 알 수 없는 오류가 발생했습니다.';
+        alert(`회원가입 실패:\n${errorMessages}`);
+      }
     } catch (e) {
       alert(e?.message || '회원가입 중 오류가 발생했습니다.'); // 오류 메시지도 alert로
     } finally {

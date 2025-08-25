@@ -1,7 +1,8 @@
-import { useState } from 'react';
+﻿﻿import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { api } from '../components/client';        
 import { useAuth } from '../components/auth';  
+import { jwtDecode } from "jwt-decode";
 
 export default function Login() {
   const { setToken } = useAuth();
@@ -22,18 +23,18 @@ export default function Login() {
     try {
       // 백엔드 명세에 맞게 studentNumber와 password 전송
       const data = await api('POST', '/auth/login', { studentNumber: parseInt(studentNo), password });
-      console.log("Login API response data:", data); // Added log
 
-      const token = data?.accessToken;
-      // const refreshToken = data?.refreshToken; // refreshToken 제거
-      console.log("Extracted Access Token:", token); // Added log
-      // console.log("Extracted Refresh Token:", refreshToken); // Extracted Refresh Token 로그 제거
+      const token = data?.data?.accessToken; // data.data?.accessToken으로 수정
+      
 
       if (!token) throw new Error('토큰을 받지 못했습니다.'); // refreshToken 확인 제거
       setToken(token); // login 함수 대신 setToken 함수 호출
       
+      const decodedToken = jwtDecode(token); // 토큰 디코딩
+      const userRole = decodedToken?.role; // 디코딩된 토큰에서 role 추출
+      
       // 역할에 따라 리다이렉션
-      if (data?.role === 'ROLE_ADMIN') {
+      if (userRole === 'ROLE_ADMIN') {
         nav('/admin', { replace: true });
       } else {
         nav('/', { replace: true }); // 일반 사용자라면 홈페이지로 리다이렉션
@@ -49,7 +50,6 @@ export default function Login() {
     <section className="form-container">
       <form onSubmit={submit} noValidate>
         <div className="logo-header">
-          <img src="/logo.png" alt="로고" className="logo-image" />
           <h3>MJSEC LMS</h3>
         </div>
 

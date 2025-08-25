@@ -28,7 +28,7 @@ function getCookie(name) {
   console.log(`getCookie('${name}') returning: null`); // Added log
   return null;
 }
-function eraseCookie(name) { /* ... */ }
+// eraseCookie 함수는 setToken 내부로 이동하여 직접 사용하도록 합니다.
 
 // Function to decode JWT and get expiration time
 function decodeJwt(token) {
@@ -61,7 +61,7 @@ export function AuthProvider({ children }) {
       console.log("setUser called with:", decoded); // Added log
       // setUser(decoded); // 이전 user 업데이트 로직 제거 (useMemo로 변경)
     } else {
-      eraseCookie('token');
+      document.cookie = 'token=; Max-Age=0; path=/; SameSite=Lax'; // eraseCookie 직접 구현
       // setUser(null); // 이전 user 업데이트 로직 제거 (useMemo로 변경)
     }
   }, []);
@@ -81,7 +81,7 @@ export function AuthProvider({ children }) {
 
   const logout = useCallback(() => { setToken(''); }, [setToken]);
 
-  const value = useMemo(() => ({ token, setToken, user, logout }), [token, user, logout]);
+  const value = useMemo(() => ({ token, setToken, user, logout }), [token, setToken, user, logout]);
 
   return <AuthCtx.Provider value={value}>{children}</AuthCtx.Provider>;
 }
