@@ -1,7 +1,7 @@
 ﻿﻿import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { api } from '../components/client';        
-import { useAuth } from '../components/auth';  
+import { useAuth } from '../hooks/useAuth';
 import { jwtDecode } from "jwt-decode";
 
 export default function Login() {

@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../components/auth';
+import { useAuth } from '../hooks/useAuth';
 import { api } from '../components/client'; // api 함수 임포트
 
 export default function Admin() {

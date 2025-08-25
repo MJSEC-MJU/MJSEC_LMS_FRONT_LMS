@@ -44,7 +44,7 @@ export default function Register() {
         setStudentNoAvailability('error');
         alert('학번 확인 중 알 수 없는 오류 발생!');
       }
-    } catch (e) {
+    } catch {
       setStudentNoAvailability('error');
       alert('학번 확인 중 네트워크 오류 발생!');
     }
@@ -109,8 +109,7 @@ export default function Register() {
     }
 
     // 비밀번호 유효성 검사
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*()_+\-={}\[\]|'\";:,.<>?]).*$/;
-    if (!passwordRegex.test(pass)) {
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-={}[|'";:,.<>?]).*$/;    if (!passwordRegex.test(pass)) {
       alert('비밀번호는 대소문자, 숫자, 특수문자를 포함해야 합니다.');
       return;
     }
