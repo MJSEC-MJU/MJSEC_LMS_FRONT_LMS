@@ -50,9 +50,11 @@ export default function Navbar() {
             <div id="toggle-btn" className={isDarkModeEnabled ? "fas fa-moon" : "fas fa-sun"} onClick={() => setIsDarkModeEnabled(v => !v)} />
           </div>
 
-          <div className={`profile ${isProfileOpen ? "active" : ""}`}>
-            <img src="/images/pic-1.jpg" className="image" alt="" />
-            <h3 className="name">이름</h3>
+                     <div className={`profile ${isProfileOpen ? "active" : ""}`}>
+             <img src="/lms/images/default-study.jpg" className="image" alt="" onError={(e) => {
+               e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='40' fill='%23ccc'/%3E%3Ctext x='50' y='55' text-anchor='middle' fill='%23666' font-size='12'%3E사용자%3C/text%3E%3C/svg%3E";
+             }} />
+             <h3 className="name">이름</h3>
             <p className="role">학번</p>
             <Link to="/profile" className="btn">view profile</Link>
             <div className="flex-btn">
@@ -68,9 +70,11 @@ export default function Navbar() {
           <i className="fas fa-times"></i>
         </div>
 
-        <div className="profile">
-          <img src="/images/pic-1.jpg" className="image" alt="" />
-          <h3 className="name">이름</h3>
+                 <div className="profile">
+           <img src="/lms/images/default-study.jpg" className="image" alt="" onError={(e) => {
+             e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='40' fill='%23ccc'/%3E%3Ctext x='50' y='55' text-anchor='middle' fill='%23666' font-size='12'%3E사용자%3C/text%3E%3C/svg%3E";
+           }} />
+           <h3 className="name">이름</h3>
           <p className="role">학번</p>
           <Link to="/profile" className="btn" onClick={() => setIsSidebarOpen(false)}>view profile</Link>
         </div>

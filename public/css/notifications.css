@@ -658,8 +658,6 @@ body:not(.active) .notification-modal-overlay {
   border: 2px solid var(--border) !important;
   border-radius: 0.5rem !important;
   font-size: 1.4rem !important;
-  background: var(--white) !important;
-  color: var(--black) !important;
   transition: all 0.3s ease !important;
   box-sizing: border-box !important;
 }
@@ -718,7 +716,7 @@ body:not(.active) .notification-modal-overlay {
 
 .notification-modal-content .form-group input::placeholder,
 .notification-modal-content .form-group textarea::placeholder {
-  color: var(--light-color) !important;
+  color: white !important;
 }
 
 /* TinyMCE 에디터 스타일 */
@@ -729,16 +727,11 @@ body:not(.active) .notification-modal-overlay {
   overflow: hidden;
 }
 
-.tinymce-editor-container .tox-tinymce {
-  border: none !important;
-}
 
-/* 다크모드에서 TinyMCE 테마 조정 */
 body.dark .tinymce-editor-container .tox-tinymce {
   background-color: #000000 !important;
 }
 
-/* 상세보기 모달 스타일 */
 .notification-detail {
   padding: 1rem 0;
 }

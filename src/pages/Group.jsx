@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react"
+﻿import React, { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate } from "react-router-dom"
 import { useAuth } from "../components/auth"
 import { api } from "../components/client"
@@ -6,12 +6,14 @@ import DatePicker from 'react-datepicker'
 import { registerLocale } from 'react-datepicker'
 import ko from 'date-fns/locale/ko'
 import 'react-datepicker/dist/react-datepicker.css'
+import { Editor } from '@tinymce/tinymce-react'
 
 // 한국어 로케일 등록
 registerLocale('ko', ko);
 
 export default function Group() {
-  const { groupId } = useParams();
+  const { groupId: groupIdParam } = useParams();
+  const groupId = parseInt(groupIdParam, 10);
   const { user, token } = useAuth();
   const navigate = useNavigate();
   
@@ -88,27 +90,49 @@ export default function Group() {
           }
         }
       ]
+    },
+    {
+      groupId: 3,
+      name: "스터디 3",
+      createdAt: "2025-08-25T10:52:13.000Z",
+      description: "스터디 3입니다",
+      category: ["기타"],
+      GroupImage: "----------------",
+      createdById: 1,
+      members: [
+        { 
+          id: 1, 
+          name: "나건하", 
+          attendance: "출석", 
+          warning: 0,
+          assignments: {
+            week1: { status: "미제출", url: "" },
+            week2: { status: "미제출", url: "" },
+            week3: { status: "미제출", url: "" }
+          }
+        }
+      ]
     }
   ]);
 
-  // 멘토 권한 확인 (어드민 또는 멘토 권한)
-  const isMentor = user && (
-    user.role === 'ROLE_ADMIN' || 
-    user.role === 'ROLE_MENTOR' ||
-    user.authorities?.some(auth => auth.authority === 'ROLE_ADMIN' || auth.authority === 'ROLE_MENTOR') ||
-    user.roles?.includes('ROLE_ADMIN') ||
-    user.roles?.includes('ROLE_MENTOR')
-  );
+  // 멘토 권한 확인 (JWT 토큰의 ROLE_ADMIN만 확인)
+  const isMentor = user && user.role === 'ROLE_ADMIN';
 
   // 디버깅을 위한 사용자 정보 로그
   useEffect(() => {
     if (user) {
       console.log('Group - Current user info:', user);
-      console.log('Group - User role:', user.role);
-      console.log('Group - Is mentor (ROLE_ADMIN/ROLE_MENTOR):', isMentor);
-      console.log('Group - User type:', user.role === 'ROLE_ADMIN' ? '관리자' : user.role === 'ROLE_MENTOR' ? '멘토' : '일반 사용자');
+      console.log('Group - Is mentor (ROLE_ADMIN):', isMentor);
+      console.log('Group - User type:', user.role === 'ROLE_ADMIN' ? '관리자' : '일반 사용자');
     }
   }, [user, isMentor]);
+
+  // 과제 목록 조회
+  useEffect(() => {
+    if (groupId && token) {
+      fetchAssignments();
+    }
+  }, [groupId, token]);
 
   // 주차별 과제 확장 상태 관리
   const [expandedWeeks, setExpandedWeeks] = useState({
@@ -118,37 +142,68 @@ export default function Group() {
   });
 
   // 과제 데이터 상태 관리
-  const [assignments, setAssignments] = useState([
-    {
-      id: 1,
-      title: "1주차 과제",
-      description: "리버싱 기초 학습 및 실습",
-      startDate: "2025-07-29T09:00:00",
-      endDate: "2025-08-05T23:59:59",
-      week: "week1"
-    },
-    {
-      id: 2,
-      title: "2주차 과제",
-      description: "웹 해킹 기초 실습",
-      startDate: "2025-08-06T09:00:00",
-      endDate: "2025-08-12T23:59:59",
-      week: "week2"
-    },
-    {
-      id: 3,
-      title: "3주차 과제",
-      description: "고급 리버싱 기법 실습",
-      startDate: "2025-08-13T09:00:00",
-      endDate: "2025-08-19T23:59:59",
-      week: "week3"
+  const [assignments, setAssignments] = useState([]);
+  
+  // 과제 목록 조회 함수
+  const fetchAssignments = async () => {
+    try {
+      if (!token || !groupId || isNaN(groupId)) {
+        console.log('fetchAssignments: Missing token or invalid groupId', { token: !!token, groupId, isNaN: isNaN(groupId) });
+        return;
+      }
+      
+      console.log('=== fetchAssignments 디버깅 정보 ===');
+      console.log('GroupId:', groupId, '(타입:', typeof groupId, ')');
+      console.log('Token available:', !!token);
+      console.log('Token 길이:', token ? token.length : 0);
+             console.log('API endpoint:', `/groups/${groupId}/assignments`);
+       console.log('Full URL:', `http://localhost:8080/api/v1/groups/${groupId}/assignments`);
+       
+       const result = await api('GET', `/groups/${groupId}/assignments`, null, token);
+      console.log('Fetch assignments result:', result);
+      console.log('Result type:', typeof result);
+      console.log('Result structure:', Object.keys(result));
+      
+      // 백엔드 응답 구조에 따라 처리
+      if (result.code === 'SUCCESS') {
+        console.log('과제 목록 조회 성공, 데이터:', result.data);
+        setAssignments(result.data);
+      } else if (Array.isArray(result)) {
+        // 백엔드에서 직접 리스트를 반환하는 경우
+        console.log('백엔드에서 직접 리스트 반환:', result);
+        setAssignments(result);
+      } else {
+        console.error('과제 목록 조회 실패:', result.message || '알 수 없는 응답 구조');
+        setAssignments([]);
+      }
+    } catch (error) {
+      console.error('=== 과제 목록 조회 오류 상세 정보 ===');
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
+      console.error('GroupId:', groupId);
+      console.error('Has token:', !!token);
+      console.error('Token preview:', token ? token.substring(0, 20) + '...' : 'No token');
+      setAssignments([]);
+      
+      // 사용자에게 더 명확한 에러 메시지 제공
+      if (error.message.includes('500')) {
+        console.error('백엔드 서버 오류가 발생했습니다. 백엔드 개발자에게 문의하세요.');
+      }
     }
-  ]);
+  };
+  
+
 
   // 과제 생성/수정 모달 상태 관리
   const [assignmentModal, setAssignmentModal] = useState({
     isOpen: false,
     mode: 'create', // 'create' 또는 'edit'
+    assignment: null
+  });
+
+  // 과제 삭제 모달 상태 관리
+  const [deleteModal, setDeleteModal] = useState({
+    isOpen: false,
     assignment: null
   });
 
@@ -159,6 +214,41 @@ export default function Group() {
     startDate: "",
     endDate: ""
   });
+
+  // 현재 테마 감지
+  const isDarkMode = document.body.classList.contains('dark');
+  
+  // TinyMCE 설정
+  const tinymceConfig = {
+    height: 400,
+    language: 'ko_KR',
+    menubar: false,
+    plugins: [
+      'advlist autolink lists link image charmap print preview anchor',
+      'searchreplace visualblocks code fullscreen',
+      'insertdatetime media table paste code help wordcount'
+    ],
+    toolbar: 'undo redo | formatselect fontselect fontsizeselect | bold italic underline strikethrough | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image media table | removeformat code',
+    font_formats: 'Arial=arial,helvetica,sans-serif; Courier New=courier new,courier,monospace; AkrutiKndPadmini=Akpdmi-n',
+    fontsize_formats: '8pt 10pt 12pt 14pt 18pt 24pt 36pt',
+    content_style: `body { 
+      font-family: "Noto Sans KR", "Malgun Gothic", sans-serif; 
+      font-size: 14px; 
+      line-height: 1.6; 
+      background-color: ${isDarkMode ? '#222' : '#ffffff'};
+      color: ${isDarkMode ? '#ffffff' : '#000000'};
+    }
+    .mce-content-body[data-mce-placeholder]:not(.mce-visualblocks)::before {
+      color: ${isDarkMode ? '#aaa' : '#888'} !important;
+      font-style: italic;
+    }`,
+    placeholder: '과제 설명을 입력하세요...',
+    branding: false,
+    elementpath: false,
+    resize: false,
+    statusbar: false,
+    content_css: isDarkMode ? 'dark' : 'default'
+  }
 
   // 주차별 과제 확장/축소 토글 함수
   const toggleWeekExpansion = (week) => {
@@ -173,9 +263,9 @@ export default function Group() {
     if (mode === 'edit' && assignment) {
       setAssignmentFormData({
         title: assignment.title,
-        description: assignment.description,
-        startDate: assignment.startDate.slice(0, 16), // datetime-local 형식에 맞게 변환
-        endDate: assignment.endDate.slice(0, 16)
+        description: assignment.content, // API에서는 content로 오지만 프론트에서는 description으로 사용
+        startDate: assignment.startDate ? assignment.startDate.slice(0, 16) : '', // datetime-local 형식에 맞게 변환
+        endDate: assignment.endDate ? assignment.endDate.slice(0, 16) : ''
       });
     } else {
       setAssignmentFormData({
@@ -208,25 +298,89 @@ export default function Group() {
     });
   };
 
+  // 과제 삭제 모달 열기 함수
+  const openDeleteModal = (assignment) => {
+    setDeleteModal({
+      isOpen: true,
+      assignment: assignment
+    });
+  };
+
+  // 과제 삭제 모달 닫기 함수
+  const closeDeleteModal = () => {
+    setDeleteModal({
+      isOpen: false,
+      assignment: null
+    });
+  };
+
   // 과제 생성 API 함수
   const createAssignment = async (assignmentData) => {
     try {
       if (!token) {
         throw new Error('토큰이 없습니다. 다시 로그인해주세요.');
       }
+      
+      if (!groupId || isNaN(groupId)) {
+        throw new Error('유효하지 않은 그룹 ID입니다.');
+      }
+      
       const requestBody = {
         title: assignmentData.title,
-        description: assignmentData.description,
+        content: assignmentData.description, // API에서는 content로 보내야 함
         startDate: assignmentData.startDate,
         endDate: assignmentData.endDate
       };
+      
       console.log('Creating assignment with data:', requestBody);
-      const result = await api('POST', `/groups/${groupId}/assignments`, requestBody, token);
+      console.log('API endpoint:', `/groups/${groupId}/create-assignment`);
+      
+      const result = await api('POST', `/groups/${groupId}/create-assignment`, requestBody, token);
       console.log('Create assignment result:', result);
-      return { success: true, data: result.data };
+      
+      if (result.code === 'SUCCESS') {
+        return { success: true, data: result.data };
+      } else {
+        throw new Error(result.message || '과제 생성에 실패했습니다.');
+      }
     } catch (error) {
       console.error('과제 생성 오류:', error);
       return { success: false, error: { message: error.message || '과제 생성에 실패했습니다.' } };
+    }
+  };
+
+  // 과제 수정 API 함수
+  const updateAssignment = async (assignmentId, assignmentData) => {
+    try {
+      if (!token) {
+        throw new Error('토큰이 없습니다. 다시 로그인해주세요.');
+      }
+      
+      if (!groupId || isNaN(groupId)) {
+        throw new Error('유효하지 않은 그룹 ID입니다.');
+      }
+      
+      const requestBody = {
+        title: assignmentData.title,
+        content: assignmentData.description, // API에서는 content로 보내야 함
+        startDate: assignmentData.startDate,
+        endDate: assignmentData.endDate
+      };
+      
+      console.log('Updating assignment with data:', requestBody);
+             console.log('API endpoint:', `/groups/${groupId}/assignments/${assignmentId}`);
+       
+       const result = await api('PUT', `/groups/${groupId}/assignments/${assignmentId}`, requestBody, token);
+      console.log('Update assignment result:', result);
+      
+      if (result.code === 'SUCCESS') {
+        return { success: true, data: result.data };
+      } else {
+        throw new Error(result.message || '과제 수정에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('과제 수정 오류:', error);
+      return { success: false, error: { message: error.message || '과제 수정에 실패했습니다.' } };
     }
   };
 
@@ -236,10 +390,19 @@ export default function Group() {
       if (!token) {
         throw new Error('토큰이 없습니다. 다시 로그인해주세요.');
       }
-      console.log('Deleting assignment with ID:', assignmentId);
-      await api('DELETE', `/groups/${groupId}/assignments/${assignmentId}`, null, token);
-      console.log('Delete assignment successful');
-      return { success: true };
+      
+      if (!groupId || isNaN(groupId)) {
+        throw new Error('유효하지 않은 그룹 ID입니다.');
+      }
+             console.log('Deleting assignment with ID:', assignmentId);
+       const result = await api('DELETE', `/groups/${groupId}/assignments/${assignmentId}`, null, token);
+      console.log('Delete assignment result:', result);
+      
+      if (result.code === 'SUCCESS') {
+        return { success: true };
+      } else {
+        throw new Error(result.message || '과제 삭제에 실패했습니다.');
+      }
     } catch (error) {
       console.error('과제 삭제 오류:', error);
       return { success: false, error: { message: error.message || '과제 삭제에 실패했습니다.' } };
@@ -256,13 +419,30 @@ export default function Group() {
       if (assignmentModal.mode === 'create') {
         result = await createAssignment(assignmentFormData);
         if (result.success) {
-          // 새로운 과제를 로컬 상태에 추가
-          const newAssignment = {
-            id: Date.now(), // 임시 ID
-            ...assignmentFormData,
-            week: `week${assignments.length + 1}`
-          };
-          setAssignments(prev => [...prev, newAssignment]);
+          // 과제 생성 후 목록 새로고침 (에러 처리 추가)
+          console.log('Assignment created successfully, now fetching assignments...');
+          console.log('Current groupId:', groupId);
+          console.log('Current token available:', !!token);
+          try {
+            await fetchAssignments();
+          } catch (fetchError) {
+            console.error('과제 목록 새로고침 실패:', fetchError);
+            alert('과제가 생성되었지만 목록을 새로고침하는 중 오류가 발생했습니다. 페이지를 새로고침해주세요.');
+          }
+        }
+      } else if (assignmentModal.mode === 'edit') {
+        result = await updateAssignment(assignmentModal.assignment.assignmentId, assignmentFormData);
+        if (result.success) {
+          // 과제 수정 후 목록 새로고침 (에러 처리 추가)
+          console.log('Assignment updated successfully, now fetching assignments...');
+          console.log('Current groupId:', groupId);
+          console.log('Current token available:', !!token);
+          try {
+            await fetchAssignments();
+          } catch (fetchError) {
+            console.error('과제 목록 새로고침 실패:', fetchError);
+            alert('과제가 수정되었지만 목록을 새로고침하는 중 오류가 발생했습니다. 페이지를 새로고침해주세요.');
+          }
         }
       }
       
@@ -278,15 +458,22 @@ export default function Group() {
     }
   };
 
-  // 과제 삭제 확인 함수
-  const handleAssignmentDelete = async (assignmentId) => {
-    if (!confirm('정말로 이 과제를 삭제하시겠습니까?')) return;
+  // 과제 삭제 확인 함수 (모달에서 호출)
+  const handleConfirmDelete = async () => {
+    if (!deleteModal.assignment) return;
     
     try {
-      const result = await deleteAssignment(assignmentId);
+      const result = await deleteAssignment(deleteModal.assignment.assignmentId);
       if (result.success) {
-        setAssignments(prev => prev.filter(assignment => assignment.id !== assignmentId));
-        alert('과제가 삭제되었습니다.');
+        // 과제 삭제 후 목록 새로고침 (에러 처리 추가)
+        try {
+          await fetchAssignments();
+          closeDeleteModal();
+          alert('과제가 삭제되었습니다.');
+        } catch (fetchError) {
+          console.error('과제 목록 새로고침 실패:', fetchError);
+          alert('과제가 삭제되었지만 목록을 새로고침하는 중 오류가 발생했습니다. 페이지를 새로고침해주세요.');
+        }
       } else {
         alert(result.error.message || '과제 삭제에 실패했습니다.');
       }
@@ -478,7 +665,12 @@ export default function Group() {
                       ...member, 
                       assignments: {
                         ...member.assignments,
-                        [week]: { ...member.assignments[week], url: newUrl }
+                        [week]: { 
+                          ...member.assignments[week], 
+                          url: newUrl,
+                          // tistory.com이 포함되어 있으면 자동으로 제출완료로 변경
+                          status: newUrl.toLowerCase().includes('tistory.com') ? '제출완료' : member.assignments[week].status
+                        }
                       }
                     }
                   : member
@@ -519,477 +711,175 @@ export default function Group() {
       <section className="contact">
         <div className="groups-container">
           <div className="group-detail">
-                         {/* 뒤로가기 버튼 */}
-             <div className="group-detail-back">
-                             <Link to="/groups" className="group-back-btn">
-                <i className="fas fa-arrow-left"></i> Back to Groups
-              </Link>
-             </div>
-             
-             {/* 스터디 제목 */}
-             <div className="group-detail-title">
-               <h1 className="heading">{selectedStudy.name}</h1>
-             </div>
+                                       {/* 스터디 제목과 뒤로가기 버튼 */}
+              <div className="group-detail-title">
+                <Link to="/groups" className="group-back-btn">
+                  <i className="fas fa-arrow-left"></i> Back to Groups
+                </Link>
+                <h1 className="heading">{selectedStudy.name}</h1>
+              </div>
             
             
             
-                         {/* 멤버 관리 테이블 */}
-             <div className="group-members">
-               <div className="group-members-header">
-                 <h2 className="group-members-title">멤버 관리</h2>
-                 {isMentor && (
-                   <button 
-                     className="group-mentor-manage-btn"
-                     onClick={openMentorModal}
-                   >
-                     <i className="fas fa-users-cog"></i>
-                     멤버 관리
-                   </button>
-                 )}
-               </div>
-               <div className="group-members-table-container">
-                 <table className="group-members-table">
-                   <thead>
-                     <tr>
-                       <th>이름</th>
-                       <th>출석상태</th>
-                       <th>경고횟수</th>
-                       <th>관리</th>
-                     </tr>
-                   </thead>
-                   <tbody>
-                     {selectedStudy.members.map((member) => (
-                       <tr key={member.id} className="group-member-row">
-                         <td className="group-member-name">{member.name}</td>
-                         <td className="member-attendance">
-                           <span className={`status-badge ${member.attendance === '출석' ? 'present' : 'absent'}`}>
-                             {member.attendance}
-                           </span>
-                         </td>
-                         <td className="member-warning">
-                           <span className={`warning-count ${member.warning > 0 ? 'has-warning' : 'no-warning'}`}>
-                             {member.warning}회
-                           </span>
-                         </td>
-                                                   <td className="member-actions">
-                            <div className="action-buttons">
-                              <button className="action-btn attendance-btn" title="출석체크">
-                                <i className="fas fa-calendar-check"></i>
-                              </button>
-                              <button 
-                                className="action-btn warning-btn" 
-                                title="경고부여"
-                                onClick={() => openWarningModal(member.id, member.name, 'add')}
-                              >
-                                <i className="fas fa-exclamation-triangle"></i>
-                              </button>
-                              {member.warning > 0 && (
-                                <button 
-                                  className="action-btn warning-remove-btn" 
-                                  title="경고삭감"
-                                  onClick={() => openWarningModal(member.id, member.name, 'remove')}
-                                >
-                                  <i className="fas fa-minus-circle"></i>
-                                </button>
-                              )}
-                            </div>
-                          </td>
-                       </tr>
-                     ))}
-                   </tbody>
-                 </table>
-               </div>
-             </div>
+                         
 
-             {/* 주차별 과제 제출 테이블 */}
-             <div className="group-assignments">
-               <div className="group-assignments-header">
-                 <h2 className="group-assignments-title">과제</h2>
-                 {isMentor && (
-                   <button 
-                     className="btn assignment-create-btn"
-                     onClick={() => openAssignmentModal('create')}
-                   >
-                     <i className="fas fa-plus"></i> 과제 생성
-                   </button>
-                 )}
-               </div>
+                           {/* 주차별 과제 제출 테이블 */}
+              <div className="group-assignments">
+                <div className="group-assignments-header">
+                  <h2 className="group-assignments-title">
+                    과제
+                    {isMentor && (
+                      <button 
+                        className="btn assignment-create-btn"
+                        onClick={() => openAssignmentModal('create')}
+                      >
+                        <i className="fas fa-plus"></i> 과제 생성
+                      </button>
+                    )}
+                  </h2>
+                </div>
                
-               {/* 1주차 과제 */}
-               <div className="week-assignment">
-                 <button 
-                   className={`week-button ${expandedWeeks.week1 ? 'expanded' : ''}`}
-                   onClick={() => toggleWeekExpansion('week1')}
-                 >
-                   <div className="week-button-content">
-                     <h3 className="week-title">1주차 과제</h3>
-                     <div className="week-summary">
-                       <span className="week-status">
-                         {selectedStudy.members.filter(m => m.assignments.week1.status === '제출완료').length}/
-                         {selectedStudy.members.length} 제출완료
-                       </span>
-                     </div>
-                     <i className={`fas fa-chevron-${expandedWeeks.week1 ? 'up' : 'down'} week-icon`}></i>
-                   </div>
-                 </button>
-                 
-                 <div className={`week-content ${expandedWeeks.week1 ? 'expanded' : ''}`}>
-                   {/* 과제 설명 섹션 */}
-                   <div className="assignment-description">
-                     <h4 className="assignment-description-title">과제 설명</h4>
-                     <p className="assignment-description-text">
-                       {assignments.find(a => a.week === 'week1')?.description || '과제 설명이 없습니다.'}
-                     </p>
-                     <div className="assignment-dates">
-                       <span className="assignment-date">
-                         <i className="fas fa-calendar-alt"></i>
-                         시작: {assignments.find(a => a.week === 'week1')?.startDate ? 
-                           new Date(assignments.find(a => a.week === 'week1').startDate).toLocaleString('ko-KR') : '미정'}
-                       </span>
-                       <span className="assignment-date">
-                         <i className="fas fa-calendar-check"></i>
-                         마감: {assignments.find(a => a.week === 'week1')?.endDate ? 
-                           new Date(assignments.find(a => a.week === 'week1').endDate).toLocaleString('ko-KR') : '미정'}
-                       </span>
-                     </div>
-                     {isMentor && (
-                       <div className="assignment-actions">
-                         <button 
-                           className="btn btn-small btn-secondary"
-                           onClick={() => openAssignmentModal('edit', assignments.find(a => a.week === 'week1'))}
-                         >
-                           <i className="fas fa-edit"></i> 수정
-                         </button>
-                         <button 
-                           className="btn btn-small btn-danger"
-                           onClick={() => handleAssignmentDelete(assignments.find(a => a.week === 'week1')?.id)}
-                         >
-                           <i className="fas fa-trash"></i> 삭제
-                         </button>
-                       </div>
-                     )}
-                   </div>
-                   
-                                      {/* 멤버 제출 현황 섹션 */}
-                   <div className="assignment-submissions">
-                     <h4 className="assignment-submissions-title">멤버 제출 현황</h4>
-                     <div className="group-members-table-container">
-                     <table className="group-members-table">
-                       <thead>
-                         <tr>
-                           <th>이름</th>
-                           <th>과제상태</th>
-                           <th>과제주소</th>
-                         </tr>
-                       </thead>
-                       <tbody>
-                         {selectedStudy.members.map((member) => (
-                           <tr key={member.id} className="group-member-row">
-                             <td className="group-member-name">{member.name}</td>
-                             <td className="member-assignment">
-                               {isMentor ? (
-                                 <select 
-                                   className="assignment-select"
-                                   value={member.assignments.week1.status}
-                                   onChange={(e) => handleAssignmentChange(selectedStudy.groupId, member.id, 'week1', e.target.value)}
-                                 >
-                                   <option value="미제출">미제출</option>
-                                   <option value="제출완료">제출완료</option>
-                                   <option value="검토중">검토중</option>
-                                   <option value="수정요청">수정요청</option>
-                                   <option value="완료">완료</option>
-                                 </select>
-                               ) : (
-                                 <span className={`status-badge ${member.assignments.week1.status === '제출완료' ? 'submitted' : 'not-submitted'}`}>
-                                   {member.assignments.week1.status}
-                                 </span>
-                               )}
-                             </td>
-                             <td className="member-assignment-url">
-                               {isMentor ? (
-                                 <input
-                                   type="text"
-                                   className="assignment-url-input"
-                                   placeholder="과제 주소 입력"
-                                   value={member.assignments.week1.url || ""}
-                                   onChange={(e) => handleAssignmentUrlChange(selectedStudy.groupId, member.id, 'week1', e.target.value)}
-                                 />
-                               ) : (
-                                 member.assignments.week1.url ? (
-                                   <a 
-                                     href={member.assignments.week1.url} 
-                                     target="_blank" 
-                                     rel="noopener noreferrer"
-                                     className="assignment-link"
-                                   >
-                                     <i className="fas fa-external-link-alt"></i> 보기
-                                   </a>
-                                 ) : (
-                                   <span className="no-url">주소 없음</span>
-                                 )
-                               )}
-                             </td>
-                           </tr>
-                         ))}
-                       </tbody>
-                     </table>
-                   </div>
-                   </div>
-                 </div>
-               </div>
+                                                               {/* 과제 목록 */}
+                {assignments.length > 0 ? (
+                  assignments.map((assignment, index) => (
+                    <div key={assignment.assignmentId} className="week-assignment">
+                      <button 
+                        className={`week-button ${expandedWeeks[`assignment-${assignment.assignmentId}`] ? 'expanded' : ''}`}
+                        onClick={() => toggleWeekExpansion(`assignment-${assignment.assignmentId}`)}
+                      >
+                        <div className="week-button-content">
+                          <h3 className="week-title">{assignment.title}</h3>
+                          <div className="week-summary">
+                            <span className="week-status">
+                              {selectedStudy.members.filter(m => m.assignments.week1.status === '제출완료').length}/
+                              {selectedStudy.members.length} 제출완료
+                            </span>
+                          </div>
+                          <i className={`fas fa-chevron-${expandedWeeks[`assignment-${assignment.assignmentId}`] ? 'up' : 'down'} week-icon`}></i>
+                        </div>
+                      </button>
+                      
+                      <div className={`week-content ${expandedWeeks[`assignment-${assignment.assignmentId}`] ? 'expanded' : ''}`}>
+                        {/* 과제 설명 섹션 */}
+                        <div className="assignment-description">
+                          <div className="assignment-description-header">
+                            <h4 className="assignment-description-title">과제 설명</h4>
+                            {isMentor && (
+                              <div className="assignment-actions">
+                                <button 
+                                  className="btn btn-small btn-secondary"
+                                  onClick={() => openAssignmentModal('edit', assignment)}
+                                >
+                                  <i className="fas fa-edit"></i> 수정
+                                </button>
+                                <button 
+                                  className="btn btn-small btn-danger"
+                                  onClick={() => openDeleteModal(assignment)}
+                                >
+                                  <i className="fas fa-trash"></i> 삭제
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                          <p className="assignment-description-text">
+                            <div dangerouslySetInnerHTML={{ __html: assignment.content }}></div>
+                          </p>
+                          <div className="assignment-dates">
+                            <span className="assignment-date">
+                              <i className="fas fa-calendar-alt"></i>
+                              시작: {assignment.startDate ? 
+                                new Date(assignment.startDate).toLocaleString('ko-KR') : '미정'}
+                            </span>
+                            <span className="assignment-date">
+                              <i className="fas fa-calendar-check"></i>
+                              마감: {assignment.endDate ? 
+                                new Date(assignment.endDate).toLocaleString('ko-KR') : '미정'}
+                            </span>
+                          </div>
+                        </div>
+                        
+                        {/* 멤버 제출 현황 섹션 */}
+                        <div className="assignment-submissions">
+                          <h4 className="assignment-submissions-title">멤버 제출 현황</h4>
+                          <div className="group-members-table-container">
+                            <table className="group-members-table">
+                              <thead>
+                                <tr>
+                                  <th>이름</th>
+                                  <th>과제상태</th>
+                                  <th>과제주소</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {selectedStudy.members.map((member) => (
+                                  <tr key={member.id} className="group-member-row">
+                                    <td className="group-member-name">{member.name}</td>
+                                    <td className="member-assignment">
+                                      {isMentor ? (
+                                        <select 
+                                          className="assignment-select"
+                                          value={member.assignments.week1.status}
+                                          onChange={(e) => handleAssignmentChange(selectedStudy.groupId, member.id, 'week1', e.target.value)}
+                                        >
+                                          <option value="미제출">미제출</option>
+                                          <option value="제출완료">제출완료</option>
+                                        </select>
+                                      ) : (
+                                        <span className={`status-badge ${member.assignments.week1.status === '제출완료' ? 'submitted' : 'not-submitted'}`}>
+                                          {member.assignments.week1.status}
+                                        </span>
+                                      )}
+                                    </td>
+                                    <td className="member-assignment-url">
+                                      {isMentor ? (
+                                        <input
+                                          type="text"
+                                          className="assignment-url-input"
+                                          placeholder="과제 주소 입력"
+                                          value={member.assignments.week1.url || ""}
+                                          onChange={(e) => handleAssignmentUrlChange(selectedStudy.groupId, member.id, 'week1', e.target.value)}
+                                        />
+                                      ) : (
+                                        member.assignments.week1.url ? (
+                                          <a 
+                                            href={member.assignments.week1.url} 
+                                            target="_blank" 
+                                            rel="noopener noreferrer"
+                                            className="assignment-link"
+                                          >
+                                            <i className="fas fa-external-link-alt"></i> 보기
+                                          </a>
+                                        ) : (
+                                          <span className="no-url">주소 없음</span>
+                                        )
+                                      )}
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="no-assignments">
+                    <p className="no-assignments-text">아직 등록된 과제가 없습니다.</p>
+                    {isMentor && (
+                      <p className="no-assignments-hint">과제 생성 버튼을 클릭하여 첫 번째 과제를 등록해보세요.</p>
+                    )}
+                  </div>
+                )}
 
-               {/* 2주차 과제 */}
-               <div className="week-assignment">
-                 <button 
-                   className={`week-button ${expandedWeeks.week2 ? 'expanded' : ''}`}
-                   onClick={() => toggleWeekExpansion('week2')}
-                 >
-                   <div className="week-button-content">
-                     <h3 className="week-title">2주차 과제</h3>
-                     <div className="week-summary">
-                       <span className="week-status">
-                         {selectedStudy.members.filter(m => m.assignments.week2.status === '제출완료').length}/
-                         {selectedStudy.members.length} 제출완료
-                       </span>
-                     </div>
-                     <i className={`fas fa-chevron-${expandedWeeks.week2 ? 'up' : 'down'} week-icon`}></i>
-                   </div>
-                 </button>
-                 
-                 <div className={`week-content ${expandedWeeks.week2 ? 'expanded' : ''}`}>
-                   {/* 과제 설명 섹션 */}
-                   <div className="assignment-description">
-                     <h4 className="assignment-description-title">과제 설명</h4>
-                     <p className="assignment-description-text">
-                       {assignments.find(a => a.week === 'week2')?.description || '과제 설명이 없습니다.'}
-                     </p>
-                     <div className="assignment-dates">
-                       <span className="assignment-date">
-                         <i className="fas fa-calendar-alt"></i>
-                         시작: {assignments.find(a => a.week === 'week2')?.startDate ? 
-                           new Date(assignments.find(a => a.week === 'week2').startDate).toLocaleString('ko-KR') : '미정'}
-                       </span>
-                       <span className="assignment-date">
-                         <i className="fas fa-calendar-check"></i>
-                         마감: {assignments.find(a => a.week === 'week2')?.endDate ? 
-                           new Date(assignments.find(a => a.week === 'week2').endDate).toLocaleString('ko-KR') : '미정'}
-                       </span>
-                     </div>
-                     {isMentor && (
-                       <div className="assignment-actions">
-                         <button 
-                           className="btn btn-small btn-secondary"
-                           onClick={() => openAssignmentModal('edit', assignments.find(a => a.week === 'week2'))}
-                         >
-                           <i className="fas fa-edit"></i> 수정
-                         </button>
-                         <button 
-                           className="btn btn-small btn-danger"
-                           onClick={() => handleAssignmentDelete(assignments.find(a => a.week === 'week2')?.id)}
-                         >
-                           <i className="fas fa-trash"></i> 삭제
-                         </button>
-                       </div>
-                     )}
-                   </div>
-                   
-                   {/* 멤버 제출 현황 섹션 */}
-                   <div className="assignment-submissions">
-                     <h4 className="assignment-submissions-title">멤버 제출 현황</h4>
-                     <div className="group-members-table-container">
-                     <table className="group-members-table">
-                       <thead>
-                         <tr>
-                           <th>이름</th>
-                           <th>과제상태</th>
-                           <th>과제주소</th>
-                         </tr>
-                       </thead>
-                       <tbody>
-                         {selectedStudy.members.map((member) => (
-                           <tr key={member.id} className="group-member-row">
-                             <td className="group-member-name">{member.name}</td>
-                             <td className="member-assignment">
-                               {isMentor ? (
-                                 <select 
-                                   className="assignment-select"
-                                   value={member.assignments.week2.status}
-                                   onChange={(e) => handleAssignmentChange(selectedStudy.groupId, member.id, 'week2', e.target.value)}
-                                 >
-                                   <option value="미제출">미제출</option>
-                                   <option value="제출완료">제출완료</option>
-                                   <option value="검토중">검토중</option>
-                                   <option value="수정요청">수정요청</option>
-                                   <option value="완료">완료</option>
-                                 </select>
-                               ) : (
-                                 <span className={`status-badge ${member.assignments.week2.status === '제출완료' ? 'submitted' : 'not-submitted'}`}>
-                                   {member.assignments.week2.status}
-                                 </span>
-                               )}
-                             </td>
-                             <td className="member-assignment-url">
-                               {isMentor ? (
-                                 <input
-                                   type="text"
-                                   className="assignment-url-input"
-                                   placeholder="과제 주소 입력"
-                                   value={member.assignments.week2.url || ""}
-                                   onChange={(e) => handleAssignmentUrlChange(selectedStudy.groupId, member.id, 'week2', e.target.value)}
-                                 />
-                               ) : (
-                                 member.assignments.week2.url ? (
-                                   <a 
-                                     href={member.assignments.week2.url} 
-                                     target="_blank" 
-                                     rel="noopener noreferrer"
-                                     className="assignment-link"
-                                   >
-                                     <i className="fas fa-external-link-alt"></i> 보기
-                                   </a>
-                                 ) : (
-                                   <span className="no-url">주소 없음</span>
-                                 )
-                               )}
-                             </td>
-                           </tr>
-                         ))}
-                       </tbody>
-                     </table>
-                   </div>
-                   </div>
-                 </div>
-               </div>
-
-               {/* 3주차 과제 */}
-               <div className="week-assignment">
-                 <button 
-                   className={`week-button ${expandedWeeks.week3 ? 'expanded' : ''}`}
-                   onClick={() => toggleWeekExpansion('week3')}
-                 >
-                   <div className="week-button-content">
-                     <h3 className="week-title">3주차 과제</h3>
-                     <div className="week-summary">
-                       <span className="week-status">
-                         {selectedStudy.members.filter(m => m.assignments.week3.status === '제출완료').length}/
-                         {selectedStudy.members.length} 제출완료
-                       </span>
-                     </div>
-                     <i className={`fas fa-chevron-${expandedWeeks.week3 ? 'up' : 'down'} week-icon`}></i>
-                   </div>
-                 </button>
-                 
-                 <div className={`week-content ${expandedWeeks.week3 ? 'expanded' : ''}`}>
-                   {/* 과제 설명 섹션 */}
-                   <div className="assignment-description">
-                     <h4 className="assignment-description-title">과제 설명</h4>
-                     <p className="assignment-description-text">
-                       {assignments.find(a => a.week === 'week3')?.description || '과제 설명이 없습니다.'}
-                     </p>
-                     <div className="assignment-dates">
-                       <span className="assignment-date">
-                         <i className="fas fa-calendar-alt"></i>
-                         시작: {assignments.find(a => a.week === 'week3')?.startDate ? 
-                           new Date(assignments.find(a => a.week === 'week3').startDate).toLocaleString('ko-KR') : '미정'}
-                       </span>
-                       <span className="assignment-date">
-                         <i className="fas fa-calendar-check"></i>
-                         마감: {assignments.find(a => a.week === 'week3')?.endDate ? 
-                           new Date(assignments.find(a => a.week === 'week3').endDate).toLocaleString('ko-KR') : '미정'}
-                       </span>
-                     </div>
-                     {isMentor && (
-                       <div className="assignment-actions">
-                         <button 
-                           className="btn btn-small btn-secondary"
-                           onClick={() => openAssignmentModal('edit', assignments.find(a => a.week === 'week3'))}
-                         >
-                           <i className="fas fa-edit"></i> 수정
-                         </button>
-                         <button 
-                           className="btn btn-small btn-danger"
-                           onClick={() => handleAssignmentDelete(assignments.find(a => a.week === 'week3')?.id)}
-                         >
-                           <i className="fas fa-trash"></i> 삭제
-                         </button>
-                       </div>
-                     )}
-                   </div>
-                   
-                   {/* 멤버 제출 현황 섹션 */}
-                   <div className="assignment-submissions">
-                     <h4 className="assignment-submissions-title">멤버 제출 현황</h4>
-                     <div className="group-members-table-container">
-                     <table className="group-members-table">
-                       <thead>
-                         <tr>
-                           <th>이름</th>
-                           <th>과제상태</th>
-                           <th>과제주소</th>
-                         </tr>
-                       </thead>
-                       <tbody>
-                         {selectedStudy.members.map((member) => (
-                           <tr key={member.id} className="group-member-row">
-                             <td className="group-member-name">{member.name}</td>
-                             <td className="member-assignment">
-                               {isMentor ? (
-                                 <select 
-                                   className="assignment-select"
-                                   value={member.assignments.week3.status}
-                                   onChange={(e) => handleAssignmentChange(selectedStudy.groupId, member.id, 'week3', e.target.value)}
-                                 >
-                                   <option value="미제출">미제출</option>
-                                   <option value="제출완료">제출완료</option>
-                                   <option value="검토중">검토중</option>
-                                   <option value="수정요청">수정요청</option>
-                                   <option value="완료">완료</option>
-                                 </select>
-                               ) : (
-                                 <span className={`status-badge ${member.assignments.week3.status === '제출완료' ? 'submitted' : 'not-submitted'}`}>
-                                   {member.assignments.week3.status}
-                                 </span>
-                               )}
-                             </td>
-                             <td className="member-assignment-url">
-                               {isMentor ? (
-                                 <input
-                                   type="text"
-                                   className="assignment-url-input"
-                                   placeholder="과제 주소 입력"
-                                   value={member.assignments.week3.url || ""}
-                                   onChange={(e) => handleAssignmentUrlChange(selectedStudy.groupId, member.id, 'week3', e.target.value)}
-                                 />
-                               ) : (
-                                 member.assignments.week3.url ? (
-                                   <a 
-                                     href={member.assignments.week3.url} 
-                                     target="_blank" 
-                                     rel="noopener noreferrer"
-                                     className="assignment-link"
-                                   >
-                                     <i className="fas fa-external-link-alt"></i> 보기
-                                   </a>
-                                 ) : (
-                                   <span className="no-url">주소 없음</span>
-                                 )
-                               )}
-                             </td>
-                           </tr>
-                         ))}
-                       </tbody>
-                     </table>
-                   </div>
-                   </div>
-                 </div>
-               </div>
+               
                           </div>
            </div>
          </div>
 
-         {/* 경고 모달 */}
-         {warningModal.isOpen && (
-           <div className="group-modal-overlay" onClick={closeWarningModal}>
+                   {/* 경고 모달 */}
+          {warningModal.isOpen && (
+            <div className="group-modal-overlay">
              <div className="group-modal-content" onClick={(e) => e.stopPropagation()}>
                <div className="group-modal-header">
                  <h3 className="group-modal-title">
@@ -1023,9 +913,9 @@ export default function Group() {
            </div>
          )}
 
-         {/* 멘토 관리 모달 */}
-         {mentorModal.isOpen && (
-           <div className="group-mentor-modal-overlay" onClick={closeMentorModal}>
+                   {/* 멘토 관리 모달 */}
+          {mentorModal.isOpen && (
+            <div className="group-mentor-modal-overlay">
              <div className="group-mentor-modal-content" onClick={(e) => e.stopPropagation()}>
                <div className="group-mentor-modal-header">
                  <h3 className="group-mentor-modal-title">멤버 관리</h3>
@@ -1103,9 +993,9 @@ export default function Group() {
            </div>
          )}
 
-         {/* 과제 생성/수정 모달 */}
-         {assignmentModal.isOpen && (
-           <div className="assignment-modal-overlay" onClick={closeAssignmentModal}>
+                   {/* 과제 생성/수정 모달 */}
+          {assignmentModal.isOpen && (
+            <div className="assignment-modal-overlay">
              <div className="assignment-modal-content" onClick={(e) => e.stopPropagation()}>
                <div className="assignment-modal-header">
                  <h3 className="assignment-modal-title">
@@ -1118,7 +1008,7 @@ export default function Group() {
                
                <form onSubmit={handleAssignmentSubmit} className="assignment-modal-body">
                  <div className="form-group">
-                   <label>과제 제목</label>
+                   <label>제목</label>
                    <input
                      type="text"
                      value={assignmentFormData.title}
@@ -1130,35 +1020,74 @@ export default function Group() {
                  </div>
                  
                  <div className="form-group">
-                   <label>과제 설명</label>
-                   <textarea
-                     value={assignmentFormData.description}
-                     onChange={(e) => setAssignmentFormData({...assignmentFormData, description: e.target.value})}
-                     required
-                     rows={4}
-                     placeholder="과제 설명을 입력하세요"
-                   />
+                   <label>설명</label>
+                   <div className="tinymce-editor-container">
+                     <Editor
+                       apiKey="r8m7hvh9qbys442qwv4rtviyoy86dqrshoqtwq18z96lol4w"
+                       init={tinymceConfig}
+                       value={assignmentFormData.description}
+                       onEditorChange={(content) => setAssignmentFormData({...assignmentFormData, description: content})}
+                     />
+                   </div>
                  </div>
                  
                  <div className="form-row">
                    <div className="form-group">
                      <label>시작 날짜</label>
-                     <input
-                       type="datetime-local"
-                       value={assignmentFormData.startDate}
-                       onChange={(e) => setAssignmentFormData({...assignmentFormData, startDate: e.target.value})}
-                       required
-                     />
+                                           <DatePicker
+                        selected={assignmentFormData.startDate ? new Date(assignmentFormData.startDate) : null}
+                        onChange={(date) => {
+                          if (date) {
+                            const year = date.getFullYear();
+                            const month = String(date.getMonth() + 1).padStart(2, '0');
+                            const day = String(date.getDate()).padStart(2, '0');
+                            const hours = String(date.getHours()).padStart(2, '0');
+                            const minutes = String(date.getMinutes()).padStart(2, '0');
+                            const formattedDate = `${year}-${month}-${day}T${hours}:${minutes}`;
+                            setAssignmentFormData({...assignmentFormData, startDate: formattedDate});
+                          } else {
+                            setAssignmentFormData({...assignmentFormData, startDate: ''});
+                          }
+                        }}
+                        showTimeSelect
+                        showTimeSelectOnly={false}
+                        timeFormat="HH:mm"
+                        timeIntervals={60}
+                        dateFormat="yyyy-MM-dd HH:mm"
+                        placeholderText="시작 날짜와 시간을 선택하세요"
+                        className="datepicker-input"
+                        locale="ko"
+                        required
+                      />
                    </div>
                    
                    <div className="form-group">
                      <label>마감 날짜</label>
-                     <input
-                       type="datetime-local"
-                       value={assignmentFormData.endDate}
-                       onChange={(e) => setAssignmentFormData({...assignmentFormData, endDate: e.target.value})}
-                       required
-                     />
+                                           <DatePicker
+                        selected={assignmentFormData.endDate ? new Date(assignmentFormData.endDate) : null}
+                        onChange={(date) => {
+                          if (date) {
+                            const year = date.getFullYear();
+                            const month = String(date.getMonth() + 1).padStart(2, '0');
+                            const day = String(date.getDate()).padStart(2, '0');
+                            const hours = String(date.getHours()).padStart(2, '0');
+                            const minutes = String(date.getMinutes()).padStart(2, '0');
+                            const formattedDate = `${year}-${month}-${day}T${hours}:${minutes}`;
+                            setAssignmentFormData({...assignmentFormData, endDate: formattedDate});
+                          } else {
+                            setAssignmentFormData({...assignmentFormData, endDate: ''});
+                          }
+                        }}
+                        showTimeSelect
+                        showTimeSelectOnly={false}
+                        timeFormat="HH:mm"
+                        timeIntervals={60}
+                        dateFormat="yyyy-MM-dd HH:mm"
+                        placeholderText="마감 날짜와 시간을 선택하세요"
+                        className="datepicker-input"
+                        locale="ko"
+                        required
+                      />
                    </div>
                  </div>
                </form>
@@ -1173,10 +1102,38 @@ export default function Group() {
                </div>
              </div>
            </div>
-         )}
-       </section>
-     );
-   }
+                   )}
+
+          {/* 과제 삭제 모달 */}
+          {deleteModal.isOpen && (
+            <div className="assignment-modal-overlay">
+              <div className="assignment-modal-content delete-modal" onClick={(e) => e.stopPropagation()}>
+                <div className="assignment-modal-header">
+                  <h3 className="assignment-modal-title">과제 삭제</h3>
+                  <button className="assignment-modal-close" onClick={closeDeleteModal}>
+                    <i className="fas fa-times"></i>
+                  </button>
+                </div>
+                
+                <div className="assignment-modal-body">
+                  <p>정말로 "{deleteModal.assignment?.title}" 과제를 삭제하시겠습니까?</p>
+                  <p>이 작업은 되돌릴 수 없습니다.</p>
+                </div>
+                
+                <div className="assignment-modal-footer">
+                  <button className="btn btn-secondary" onClick={closeDeleteModal}>
+                    취소
+                  </button>
+                  <button className="btn btn-danger" onClick={handleConfirmDelete}>
+                    삭제
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </section>
+      );
+    }
 
   // groupId가 있으면 상세 페이지, 없으면 목록 페이지
   if (groupId) {
@@ -1359,3 +1316,5 @@ export default function Group() {
     </section>
   )
 }
+
+

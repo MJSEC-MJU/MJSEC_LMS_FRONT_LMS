@@ -1,4 +1,4 @@
-﻿﻿import { Link } from "react-router-dom"
+﻿import { Link } from "react-router-dom"
 import { useState, useEffect } from "react"
 import { useAuth } from "../components/auth"
 import { Editor } from '@tinymce/tinymce-react'
@@ -8,11 +8,7 @@ export default function Notifications() {
   const { user, token, isInitialized } = useAuth();
   
   // 실제 사용자 권한 기반으로 어드민 여부 확인
-  const isAdmin = user && (
-    user.role === 'ROLE_ADMIN' || 
-    user.authorities?.some(auth => auth.authority === 'ROLE_ADMIN') ||
-    user.roles?.includes('ROLE_ADMIN')
-  );
+  const isAdmin = user && user.role === 'ROLE_ADMIN';
 
   // 디버깅을 위한 사용자 정보 로그
   useEffect(() => {
@@ -250,22 +246,28 @@ export default function Notifications() {
       'searchreplace visualblocks code fullscreen',
       'insertdatetime media table paste code help wordcount'
     ],
-    toolbar: 'undo redo | formatselect | bold italic underline strikethrough | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image media table | removeformat code',
+    toolbar: 'undo redo | formatselect fontselect fontsizeselect | bold italic underline strikethrough | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image media table | removeformat code',
+    font_formats: 'Arial=arial,helvetica,sans-serif; Courier New=courier new,courier,monospace; AkrutiKndPadmini=Akpdmi-n',
+    fontsize_formats: '8pt 10pt 12pt 14pt 18pt 24pt 36pt',
     content_style: `body { 
       font-family: "Noto Sans KR", "Malgun Gothic", sans-serif; 
       font-size: 14px; 
       line-height: 1.6; 
-      background-color: ${isDarkMode ? '#2d3748' : '#ffffff'};
+      background-color: ${isDarkMode ? '#222' : '#ffffff'};
       color: ${isDarkMode ? '#ffffff' : '#000000'};
+    }
+    .mce-content-body[data-mce-placeholder]:not(.mce-visualblocks)::before {
+      color: ${isDarkMode ? '#aaa' : '#888'} !important;
+      font-style: italic;
     }`,
     placeholder: '공지사항 내용을 입력하세요...',
     branding: false,
     elementpath: false,
     resize: false,
     statusbar: false,
-    skin: isDarkMode ? 'oxide-dark' : 'oxide',
     content_css: isDarkMode ? 'dark' : 'default'
   }
+  
 
   // 드래그 이벤트 핸들러
   const handleDragStart = () => {
