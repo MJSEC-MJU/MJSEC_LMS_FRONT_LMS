@@ -775,12 +775,12 @@
         left: 0;
         right: 0;
         bottom: 0;
-        background: rgba(0, 0, 0, 0.5);
         display: flex;
         align-items: center;
         justify-content: center;
         z-index: 1000;
-        backdrop-filter: blur(4px);
+        background: rgba(0, 0, 0, 0.8);
+        backdrop-filter: blur(8px);
       }
 
       .group-modal-content {
@@ -1132,12 +1132,12 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.8);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(8px);
 }
 
  .group-mentor-modal-content {
@@ -1946,12 +1946,12 @@ body.dark .tinymce-editor-container .tox-tinymce {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.8);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
-  backdrop-filter: blur(5px);
+  backdrop-filter: blur(8px);
 }
 
 .assignment-modal-content {
@@ -2185,7 +2185,7 @@ body.dark .tinymce-editor-container .tox-tinymce {
 
 /* 다크모드 과제 없음 스타일 */
 .dark .no-assignments {
-  background: var(--black);
+  background: #2a2a2a;
 }
 
 .dark .no-assignments-text {
@@ -2234,6 +2234,17 @@ body.dark .tinymce-editor-container .tox-tinymce {
   height: auto;
   max-height: 30vh;
   font-size: 2rem;
+}
+body.active .assignment-modal-overlay {
+  left: 0 !important;
+  margin-right: 0 !important;
+  width: 100% !important;
+}
+
+body:not(.active) .assignment-modal-overlay {
+  left: 0 !important;
+  margin-right: 30rem !important;
+  width: calc(100% - 30rem) !important;
 }
 
 .assignment-modal-content.delete-modal .assignment-modal-title {

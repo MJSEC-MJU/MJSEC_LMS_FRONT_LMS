@@ -241,14 +241,10 @@ export default function Notifications() {
     height: 400,
     language: 'ko_KR',
     menubar: false,
-    plugins: [
-      'advlist autolink lists link image charmap print preview anchor',
-      'searchreplace visualblocks code fullscreen',
-      'insertdatetime media table paste code help wordcount'
-    ],
+    plugins: 'advlist autolink lists link image charmap anchor searchreplace visualblocks code fullscreen insertdatetime media table help wordcount',
     toolbar: 'undo redo | formatselect fontselect fontsizeselect | bold italic underline strikethrough | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image media table | removeformat code',
-    font_formats: 'Arial=arial,helvetica,sans-serif; Courier New=courier new,courier,monospace; AkrutiKndPadmini=Akpdmi-n',
-    fontsize_formats: '8pt 10pt 12pt 14pt 18pt 24pt 36pt',
+    font_formats: 'Arial=arial,helvetica,sans-serif; Courier New=courier new,courier,monospace; Times New Roman=times new roman,times; Noto Sans KR=noto sans kr,sans-serif; Malgun Gothic=malgun gothic,sans-serif',
+    fontsize_formats: '8pt 10pt 12pt 14pt 16pt 18pt 20pt 24pt 28pt 32pt 36pt',
     content_style: `body { 
       font-family: "Noto Sans KR", "Malgun Gothic", sans-serif; 
       font-size: 14px; 
@@ -259,13 +255,30 @@ export default function Notifications() {
     .mce-content-body[data-mce-placeholder]:not(.mce-visualblocks)::before {
       color: ${isDarkMode ? '#aaa' : '#888'} !important;
       font-style: italic;
+    }
+    a {
+      color: #0066cc;
+      text-decoration: underline;
+    }
+    a:hover {
+      color: #0052a3;
+      text-decoration: none;
     }`,
     placeholder: '공지사항 내용을 입력하세요...',
     branding: false,
     elementpath: false,
     resize: false,
     statusbar: false,
-    content_css: isDarkMode ? 'dark' : 'default'
+    content_css: isDarkMode ? 'dark' : 'default',
+    // 링크 관련 설정
+    link_list: [
+      {title: 'My page 1', value: 'https://www.tiny.cloud'},
+      {title: 'My page 2', value: 'https://about.tiny.cloud'}
+    ],
+    link_title: false,
+    link_quicklink: true,
+    link_assume_external_targets: true,
+    link_default_target: '_blank'
   }
   
 
