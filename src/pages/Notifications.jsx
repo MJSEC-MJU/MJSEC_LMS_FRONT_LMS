@@ -4,10 +4,10 @@ import { useAuth } from "../components/auth"
 import { Editor } from '@tinymce/tinymce-react'
 
 export default function Notifications() {
-  const { user } = useAuth();
+  const { user: _user } = useAuth();
   
   // 임시로 어드민 권한 부여 (테스트용)
-  const isAdmin = false; // 또는 user?.role === 'admin' || true
+  const isAdmin = true; // 또는 user?.role === 'admin' || true
   
   const [searchTerm, setSearchTerm] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
@@ -30,7 +30,7 @@ export default function Notifications() {
   const isDarkMode = document.body.classList.contains('dark')
   
   // 네브바 상태 감지
-  const [isNavbarOpen, setIsNavbarOpen] = useState(false)
+  const [, setIsNavbarOpen] = useState(false)
   
   // 네브바 상태 변화 감지
   useEffect(() => {

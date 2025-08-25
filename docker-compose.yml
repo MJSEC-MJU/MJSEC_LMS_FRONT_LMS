@@ -1,0 +1,15 @@
+
+services:
+  lms-front:
+    image: 98cc98b67751     
+    networks: [net]
+
+  proxy:
+    image: nginx:alpine
+    ports: ["8081:80"]
+    volumes:
+      - ./local-proxy.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on: [lms-front]
+    networks: [net]
+
+networks: { net: {} }
