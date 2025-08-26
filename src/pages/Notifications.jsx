@@ -1,6 +1,6 @@
 ﻿import { Link } from "react-router-dom"
 import { useState, useEffect } from "react"
-import { useAuth } from "../components/auth"
+import { useAuth } from "../hooks/useAuth.js";
 import { Editor } from '@tinymce/tinymce-react'
 
 export default function Notifications() {

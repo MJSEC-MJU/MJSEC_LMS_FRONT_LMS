@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState, useCallback } from 'react';
-import { AuthCtx } from '../contexts/auth-context';
-
+import { AuthCtx } from '../contexts/auth-context.js';
 // cookie helpers
 function setCookie(name, value, days) {
   console.log(`Attempting to set cookie: ${name}=${value}`);
