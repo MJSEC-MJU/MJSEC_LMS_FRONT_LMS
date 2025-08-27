@@ -31,7 +31,7 @@ export default function Group() {
       createdAt: "2025-09-08T07:47:49.803Z",
       description: "리버싱입니당",
       category: ["리버싱"],
-      GroupImage: "----------------",
+      GroupImage: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=400&h=300&fit=crop", // 스터디룸 이미지
       createdById: 1,
       members: [
         { 
@@ -64,7 +64,7 @@ export default function Group() {
       createdAt: "2025-09-08T07:47:49.803Z",
       description: "웹심입니당",
       category: ["웹해킹"],
-      GroupImage: "----------------",
+      GroupImage: "https://images.unsplash.com/photo-1517077304055-6e89abbf09b0?w=400&h=300&fit=crop", // 웹 개발 관련 이미지
       createdById: 1,
       members: [
         { 
@@ -97,7 +97,7 @@ export default function Group() {
       createdAt: "2025-08-25T10:52:13.000Z",
       description: "스터디 3입니다",
       category: ["기타"],
-      GroupImage: "----------------",
+      GroupImage: "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=400&h=300&fit=crop", // 학습/책 이미지
       createdById: 1,
       members: [
         { 
@@ -115,17 +115,17 @@ export default function Group() {
     }
   ]);
 
-  // 멘토 권한 확인 (JWT 토큰의 ROLE_ADMIN만 확인)
-  const isMentor = user && user.role === 'ROLE_ADMIN';
+
+
+
 
   // 디버깅을 위한 사용자 정보 로그
   useEffect(() => {
     if (user) {
       console.log('Group - Current user info:', user);
-      console.log('Group - Is mentor (ROLE_ADMIN):', isMentor);
-      console.log('Group - User type:', user.role === 'ROLE_ADMIN' ? '관리자' : '일반 사용자');
+      console.log('Group - Current groupId:', groupId);
     }
-  }, [user, isMentor]);
+  }, [user, groupId]);
 
   // 과제 목록 조회
   useEffect(() => {
@@ -143,6 +143,14 @@ export default function Group() {
 
   // 과제 데이터 상태 관리
   const [assignments, setAssignments] = useState([]);
+  
+  // 마감 시간이 지났는지 확인하는 함수
+  const isDeadlinePassed = (endDate) => {
+    if (!endDate) return false;
+    const now = new Date();
+    const deadline = new Date(endDate);
+    return now > deadline;
+  };
   
   // 과제 목록 조회 함수
   const fetchAssignments = async () => {
@@ -741,14 +749,13 @@ export default function Group() {
                 <div className="group-assignments-header">
                   <h2 className="group-assignments-title">
                     과제
-                    {isMentor && (
-                      <button 
-                        className="btn assignment-create-btn"
-                        onClick={() => openAssignmentModal('create')}
-                      >
-                        <i className="fas fa-plus"></i> 과제 생성
-                      </button>
-                    )}
+
+                    <button 
+                      className="btn assignment-create-btn"
+                      onClick={() => openAssignmentModal('create')}
+                    >
+                      <i className="fas fa-plus"></i> 과제 생성
+                    </button>
                   </h2>
                 </div>
                
@@ -761,7 +768,12 @@ export default function Group() {
                         onClick={() => toggleWeekExpansion(`assignment-${assignment.assignmentId}`)}
                       >
                         <div className="week-button-content">
-                          <h3 className="week-title">{assignment.title}</h3>
+                          <div className="week-title-container">
+                            <h3 className="week-title">{assignment.title}</h3>
+                            {isDeadlinePassed(assignment.endDate) && (
+                              <span className="deadline-badge">마감</span>
+                            )}
+                          </div>
                           <div className="week-summary">
                             <span className="week-status">
                               {selectedStudy.members.filter(m => m.assignments.week1.status === '제출완료').length}/
@@ -777,22 +789,20 @@ export default function Group() {
                         <div className="assignment-description">
                           <div className="assignment-description-header">
                             <h4 className="assignment-description-title">과제 설명</h4>
-                            {isMentor && (
-                              <div className="assignment-actions">
-                                <button 
-                                  className="btn btn-small btn-secondary"
-                                  onClick={() => openAssignmentModal('edit', assignment)}
-                                >
-                                  <i className="fas fa-edit"></i> 수정
-                                </button>
-                                <button 
-                                  className="btn btn-small btn-danger"
-                                  onClick={() => openDeleteModal(assignment)}
-                                >
-                                  <i className="fas fa-trash"></i> 삭제
-                                </button>
-                              </div>
-                            )}
+                            <div className="assignment-actions">
+                              <button 
+                                className="btn btn-small btn-secondary"
+                                onClick={() => openAssignmentModal('edit', assignment)}
+                              >
+                                <i className="fas fa-edit"></i> 수정
+                              </button>
+                              <button 
+                                className="btn btn-small btn-danger"
+                                onClick={() => openDeleteModal(assignment)}
+                              >
+                                <i className="fas fa-trash"></i> 삭제
+                              </button>
+                            </div>
                           </div>
                           <p className="assignment-description-text">
                             <div dangerouslySetInnerHTML={{ __html: assignment.content }}></div>
@@ -828,44 +838,23 @@ export default function Group() {
                                   <tr key={member.id} className="group-member-row">
                                     <td className="group-member-name">{member.name}</td>
                                     <td className="member-assignment">
-                                      {isMentor ? (
-                                        <select 
-                                          className="assignment-select"
-                                          value={member.assignments.week1.status}
-                                          onChange={(e) => handleAssignmentChange(selectedStudy.groupId, member.id, 'week1', e.target.value)}
-                                        >
-                                          <option value="미제출">미제출</option>
-                                          <option value="제출완료">제출완료</option>
-                                        </select>
-                                      ) : (
-                                        <span className={`status-badge ${member.assignments.week1.status === '제출완료' ? 'submitted' : 'not-submitted'}`}>
-                                          {member.assignments.week1.status}
-                                        </span>
-                                      )}
+                                      <select 
+                                        className="assignment-select"
+                                        value={member.assignments.week1.status}
+                                        onChange={(e) => handleAssignmentChange(selectedStudy.groupId, member.id, 'week1', e.target.value)}
+                                      >
+                                        <option value="미제출">미제출</option>
+                                        <option value="제출완료">제출완료</option>
+                                      </select>
                                     </td>
                                     <td className="member-assignment-url">
-                                      {isMentor ? (
-                                        <input
-                                          type="text"
-                                          className="assignment-url-input"
-                                          placeholder="과제 주소 입력"
-                                          value={member.assignments.week1.url || ""}
-                                          onChange={(e) => handleAssignmentUrlChange(selectedStudy.groupId, member.id, 'week1', e.target.value)}
-                                        />
-                                      ) : (
-                                        member.assignments.week1.url ? (
-                                          <a 
-                                            href={member.assignments.week1.url} 
-                                            target="_blank" 
-                                            rel="noopener noreferrer"
-                                            className="assignment-link"
-                                          >
-                                            <i className="fas fa-external-link-alt"></i> 보기
-                                          </a>
-                                        ) : (
-                                          <span className="no-url">주소 없음</span>
-                                        )
-                                      )}
+                                      <input
+                                        type="text"
+                                        className="assignment-url-input"
+                                        placeholder="과제 주소 입력"
+                                        value={member.assignments.week1.url || ""}
+                                        onChange={(e) => handleAssignmentUrlChange(selectedStudy.groupId, member.id, 'week1', e.target.value)}
+                                      />
                                     </td>
                                   </tr>
                                 ))}
@@ -879,9 +868,7 @@ export default function Group() {
                 ) : (
                   <div className="no-assignments">
                     <p className="no-assignments-text">아직 등록된 과제가 없습니다.</p>
-                    {isMentor && (
-                      <p className="no-assignments-hint">과제 생성 버튼을 클릭하여 첫 번째 과제를 등록해보세요.</p>
-                    )}
+                    <p className="no-assignments-hint">과제 생성 버튼을 클릭하여 첫 번째 과제를 등록해보세요.</p>
                   </div>
                 )}
 

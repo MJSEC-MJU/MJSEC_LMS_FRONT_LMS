@@ -2345,3 +2345,36 @@ body:not(.active) .assignment-modal-overlay {
 .dark .react-datepicker__time-list-item {
   color: var(--white) !important;
 }
+
+/* 마감 배지 스타일 */
+.deadline-badge {
+  display: inline-block;
+  background-color: #dc3545;
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 12px;
+  margin-left: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.week-title-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+.week-title {
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
