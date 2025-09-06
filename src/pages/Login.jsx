@@ -1,7 +1,8 @@
 ﻿import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { api } from '../components/client';        
-import { useAuth } from '../components/auth';  
+import { useAuth } from '../hooks/useAuth';
+import { jwtDecode } from "jwt-decode";
 
 export default function Login() {
   const { setToken } = useAuth();
@@ -22,36 +23,19 @@ export default function Login() {
     try {
       // 백엔드 명세에 맞게 studentNumber와 password 전송
       const data = await api('POST', '/auth/login', { studentNumber: parseInt(studentNo), password });
-      console.log("Login API response data:", data); // Added log
 
-      // 다양한 응답 구조에서 토큰 추출 시도
-      let token = null;
-      if (data?.data?.accessToken) {
-        token = data.data.accessToken;
-      } else if (data?.accessToken) {
-        token = data.accessToken;
-      } else if (data?.data?.token) {
-        token = data.data.token;
-      } else if (data?.token) {
-        token = data.token;
-      } else if (data?.jwt) {
-        token = data.jwt;
-      } else if (data?.data?.jwt) {
-        token = data.data.jwt;
-      }
+      const token = data?.data?.accessToken; // data.data?.accessToken으로 수정
       
-      console.log("Extracted Access Token:", token); // Added log
-      console.log("Type of Extracted Access Token:", typeof token); // Added log for type
-      console.log("Full response structure:", JSON.stringify(data, null, 2)); // 전체 응답 구조 로그
 
-      if (!token) {
-        console.error("Token extraction failed. Available data:", data);
-        throw new Error('토큰을 받지 못했습니다. 백엔드 응답 구조를 확인해주세요.');
-      }
+      if (!token) throw new Error('토큰을 받지 못했습니다.'); // refreshToken 확인 제거
       setToken(token); // login 함수 대신 setToken 함수 호출
       
+      const decodedToken = jwtDecode(token); // 토큰 디코딩
+      const userRole = decodedToken?.role; // 디코딩된 토큰에서 role 추출
+      
       // 역할에 따라 리다이렉션
-      if (data?.role === 'ROLE_ADMIN') {
+      if (userRole === 'ROLE_ADMIN') {
+
         nav('/admin', { replace: true });
       } else {
         nav('/', { replace: true }); // 일반 사용자라면 홈페이지로 리다이렉션
@@ -67,7 +51,6 @@ export default function Login() {
     <section className="form-container">
       <form onSubmit={submit} noValidate>
         <div className="logo-header">
-          <img src="/logo.png" alt="로고" className="logo-image" />
           <h3>MJSEC LMS</h3>
         </div>
 
