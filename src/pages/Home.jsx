@@ -84,7 +84,7 @@ export default function Home() {
       </section>
 
       <section className="courses">
-        <h1 className="heading">our courses</h1>
+        <h1 className="heading">GROUPS</h1>
         <div className="box-container">
           <div className="box">
             <div className="tutor">

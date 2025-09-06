@@ -10,21 +10,6 @@ export default function Notifications() {
   // 실제 사용자 권한 기반으로 어드민 여부 확인
   const isAdmin = user && user.role === 'ROLE_ADMIN';
 
-  // 디버깅을 위한 사용자 정보 로그
-  useEffect(() => {
-    if (user) {
-      console.log('Current user info:', user);
-      console.log('User role:', user.role);
-      console.log('User authorities:', user.authorities);
-      console.log('User roles:', user.roles);
-      console.log('User studentNumber:', user.studentNumber);
-      console.log('User userId:', user.userId);
-      console.log('User sub:', user.sub);
-      console.log('Is admin (ROLE_ADMIN):', isAdmin);
-      console.log('User type:', user.role === 'ROLE_ADMIN' ? '관리자' : '일반 사용자');
-    }
-  }, [user, isAdmin]);
-
   // 어드민 권한 확인 함수
   const checkAdminPermission = () => {
     if (!isAdmin) {
@@ -75,32 +60,8 @@ export default function Notifications() {
 
   // 드래그 상태 관리
   const [isDragging, setIsDragging] = useState(false)
-
   // 현재 테마 감지
   const isDarkMode = document.body.classList.contains('dark')
-  
-  // 네브바 상태 감지
-  const [isNavbarOpen, setIsNavbarOpen] = useState(false)
-  
-  // 네브바 상태 변화 감지
-  useEffect(() => {
-    const checkNavbarState = () => {
-      const isActive = document.body.classList.contains('active')
-      setIsNavbarOpen(isActive)
-    }
-    
-    // 초기 상태 확인
-    checkNavbarState()
-    
-    // DOM 변화 감지
-    const observer = new MutationObserver(checkNavbarState)
-    observer.observe(document.body, {
-      attributes: true,
-      attributeFilter: ['class']
-    })
-    
-    return () => observer.disconnect()
-  }, [])
 
   // API 호출 함수들
   const getAuthToken = () => {
@@ -110,7 +71,6 @@ export default function Notifications() {
     if (!token) {
       throw new Error('토큰이 없습니다. 다시 로그인해주세요.');
     }
-    console.log('Using token for API call:', token.substring(0, 20) + '...');
     return token
   }
 
@@ -136,28 +96,9 @@ export default function Notifications() {
         content: announcementData.content.trim(),
         type: announcementData.type
       }
-      console.log('Creating announcement with data:', requestBody)
-      console.log('Current user info for creation:', user)
-      console.log('User studentNumber:', user?.studentNumber)
-      console.log('User userId:', user?.userId)
-      console.log('User role:', user?.role)
-      console.log('User sub:', user?.sub)
-      console.log('User name:', user?.name)
-      console.log('User email:', user?.email)
-      console.log('Full JWT decoded user:', JSON.stringify(user, null, 2))
-      console.log('Token being used:', token)
-      console.log('Student number from token:', user?.studentNumber)
       const result = await api('POST', '/users/create-announcement', requestBody, token)
-      console.log('Create announcement result:', result)
       return { success: true, data: result.data }
     } catch (error) {
-      console.error('공지사항 생성 오류:', error)
-      console.error('Error details:', {
-        message: error.message,
-        stack: error.stack,
-        requestData: announcementData,
-        userInfo: user
-      })
       return { success: false, error: { message: error.message || '네트워크 오류가 발생했습니다.' } }
     }
   }
@@ -166,12 +107,9 @@ export default function Notifications() {
   const fetchAnnouncements = async () => {
     try {
       const token = getAuthToken()
-      console.log('Fetching announcements with token:', token ? 'Token exists' : 'No token')
       const result = await api('GET', '/users/announcements', null, token)
-      console.log('Fetch announcements result:', result)
       return { success: true, data: result.data }
     } catch (error) {
-      console.error('공지사항 목록 조회 오류:', error)
       return { success: false, error: { message: error.message || '공지사항 목록을 불러오는데 실패했습니다.' } }
     }
   }
@@ -183,7 +121,6 @@ export default function Notifications() {
       const result = await api('GET', `/users/announcements/${announcementId}`, null, token)
       return { success: true, data: result.data }
     } catch (error) {
-      console.error('공지사항 상세 조회 오류:', error)
       return { success: false, error: { message: error.message || '공지사항 상세 정보를 불러오는데 실패했습니다.' } }
     }
   }
@@ -198,20 +135,9 @@ export default function Notifications() {
         content: announcementData.content.trim(),
         type: announcementData.type
       }
-      console.log('Updating announcement with ID:', announcementId)
-      console.log('Updating announcement with data:', requestBody)
-      console.log('API endpoint:', `/users/announcements/${announcementId}`)
       const result = await api('PUT', `/users/announcements/${announcementId}`, requestBody, token)
-      console.log('Update announcement result:', result)
       return { success: true, data: result.data }
     } catch (error) {
-      console.error('공지사항 수정 오류:', error)
-      console.error('Error details:', {
-        message: error.message,
-        stack: error.stack,
-        announcementId: announcementId,
-        requestData: announcementData
-      })
       return { success: false, error: { message: error.message || '네트워크 오류가 발생했습니다.' } }
     }
   }
@@ -220,18 +146,9 @@ export default function Notifications() {
   const deleteAnnouncement = async (announcementId) => {
     try {
       const token = getAuthToken()
-      console.log('Deleting announcement with ID:', announcementId)
-      console.log('API endpoint:', `/users/announcements/${announcementId}`)
       await api('DELETE', `/users/announcements/${announcementId}`, null, token)
-      console.log('Delete announcement successful')
       return { success: true }
     } catch (error) {
-      console.error('공지사항 삭제 오류:', error)
-      console.error('Error details:', {
-        message: error.message,
-        stack: error.stack,
-        announcementId: announcementId
-      })
       return { success: false, error: { message: error.message || '공지사항 삭제에 실패했습니다.' } }
     }
   }
@@ -301,7 +218,6 @@ export default function Notifications() {
   useEffect(() => {
     // 인증이 초기화된 후에만 API 호출
     if (!isInitialized) {
-      console.log('Auth not initialized yet, waiting...');
       return;
     }
 
@@ -313,7 +229,6 @@ export default function Notifications() {
         const result = await fetchAnnouncements()
         
         if (result.success) {
-          console.log('Fetched notifications:', result.data)
           setNotifications(result.data)
         } else {
           setError(result.error.message)
@@ -321,7 +236,6 @@ export default function Notifications() {
           setNotifications([])
         }
       } catch (error) {
-        console.error('공지사항 로드 중 오류:', error)
         setError('공지사항을 불러오는 중 오류가 발생했습니다.')
         setNotifications([])
       }
@@ -418,10 +332,6 @@ export default function Notifications() {
       if (modalType === "create") {
         result = await createAnnouncement(formData)
       } else if (modalType === "edit") {
-        console.log('Editing notification:', selectedNotification)
-        console.log('Selected notification ID:', selectedNotification.announcementId)
-        console.log('Form data:', formData)
-        
         // ID 필드 확인
         const notificationId = selectedNotification.announcementId || selectedNotification.id || selectedNotification.noticeId
         if (!notificationId) {
@@ -440,20 +350,15 @@ export default function Notifications() {
           setNotifications(refreshResult.data)
         }
       } else {
-        console.error("API 오류:", result.error)
         alert(result.error.message || "오류가 발생했습니다.")
       }
     } catch (error) {
-      console.error("오류 발생:", error)
       alert("네트워크 오류가 발생했습니다.")
     }
   }
 
   const handleConfirmDelete = async () => {
     try {
-      console.log('Deleting notification:', selectedNotification)
-      console.log('Selected notification ID:', selectedNotification.announcementId)
-      
       // ID 필드 확인
       const notificationId = selectedNotification.announcementId || selectedNotification.id || selectedNotification.noticeId
       if (!notificationId) {
@@ -471,11 +376,9 @@ export default function Notifications() {
           setNotifications(refreshResult.data)
         }
       } else {
-        console.error("삭제 오류:", result.error)
         alert(result.error.message || "삭제에 실패했습니다.")
       }
     } catch (error) {
-      console.error("삭제 오류:", error)
       alert("네트워크 오류가 발생했습니다.")
     }
   }
@@ -583,10 +486,6 @@ export default function Notifications() {
           ) : (
             <div className="notifications-list">
               {currentNotifications.map((notification) => {
-                console.log('Rendering notification:', notification)
-                console.log('Notification userId:', notification.userId)
-                console.log('Notification creator:', notification.creator)
-                console.log('Notification announcementId:', notification.announcementId)
                 return (
                   <article 
                     key={notification.announcementId || notification.id || notification.noticeId} 
@@ -741,7 +640,7 @@ export default function Notifications() {
                   <label>내용</label>
                   <div className="tinymce-editor-container">
                     <Editor
-                      apiKey="r8m7hvh9qbys442qwv4rtviyoy86dqrshoqtwq18z96lol4w"
+                      apiKey={import.meta.env.VITE_TINYMCE_API_KEY || ''}
                       init={tinymceConfig}
                       value={formData.content}
                       onEditorChange={(content) => setFormData({...formData, content: content})}

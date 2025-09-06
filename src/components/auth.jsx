@@ -1,8 +1,8 @@
-import { createContext, useContext, useEffect, useMemo, useState, useCallback } from 'react';
+import { useContext, useEffect, useMemo, useState, useCallback } from 'react';
+import { AuthCtx } from '../contexts/auth-context.js'
 
-// cookie helpers ... (동일)
+// cookie helpers
 function setCookie(name, value, days) {
-  console.log(`Attempting to set cookie: ${name}=${value}`); // Added log
   let expires = "";
   if (days) {
     const date = new Date();
@@ -11,7 +11,6 @@ function setCookie(name, value, days) {
     expires = "; expires=" + date.toUTCString();
   }
   document.cookie = name + "=" + (value || "") + expires + "; path=/; SameSite=Lax";
-  console.log("Document cookies after set:", document.cookie); // Added log
 }
 function getCookie(name) {
   const nameEQ = name + "=";
@@ -38,8 +37,6 @@ function decodeJwt(token) {
     return JSON.parse(jsonPayload);
   } catch { return null; }
 }
-
-const AuthCtx = createContext(null);
 
 export function AuthProvider({ children }) {
   const [token, setToken_] = useState(() => getCookie('token') || '');

@@ -938,7 +938,8 @@ export default function Group() {
                    <label>설명</label>
                    <div className="tinymce-editor-container">
                      <Editor
-                       apiKey="r8m7hvh9qbys442qwv4rtviyoy86dqrshoqtwq18z96lol4w"
+                       
+                       apiKey={import.meta.env.VITE_TINYMCE_API_KEY || ''}
                        init={tinymceConfig}
                        value={assignmentFormData.description}
                        onEditorChange={(content) => setAssignmentFormData({...assignmentFormData, description: content})}
@@ -1231,5 +1232,3 @@ export default function Group() {
     </section>
   )
 }
-
-

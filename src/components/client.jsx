@@ -14,35 +14,43 @@ export async function api(method, path, body, token) {
     requestBody = JSON.stringify(body);
   }
 
-  console.log(`API Request: ${method} ${API_BASE}${path}`);
-  console.log('Headers:', headers);
-  console.log('Body:', requestBody);
 
-  // 임시로 직접 백엔드 주소로 요청 (프록시 문제 해결을 위해)
-  const res = await fetch(`http://localhost:8080${API_BASE}${path}`, {
+  // 환경별 API 베이스 계산
+  const basePath = (import.meta.env.BASE_URL || "/").replace(/\/$/, "");
+  const originBase = import.meta.env.PROD
+    ? `${window.location.origin}${basePath}` // 요놈이 https://mjsec.kr/lms
+    : "http://localhost:8080";
+
+  const url = `${originBase}${API_BASE}${path}`;
+
+
+  const res = await fetch(url, {
+
     method,
     headers,
     body: requestBody,
     credentials: 'include',
   });
 
-  console.log(`API Response Status: ${res.status}`);
-  console.log('Response Headers:', Object.fromEntries(res.headers.entries()));
+
 
   const ct = res.headers.get('content-type') || '';
   const data = ct.includes('application/json') ? await res.json() : await res.text();
 
-  console.log('Response Data:', data);
+ 
 
   if (!res.ok) {
-    console.error('Full error response:', {
-      status: res.status,
-      statusText: res.statusText,
-      data: data,
-      headers: Object.fromEntries(res.headers.entries())
-    });
+    if (!import.meta.env.PROD) {
+      console.error('Full error response:', {
+        status: res.status,
+        statusText: res.statusText,
+        data: data,
+        headers: Object.fromEntries(res.headers.entries())
+      });
+      const msgDev = (data && (data.message || data.error)) || `HTTP ${res.status}`;
+      console.error('API Error:', msgDev);
+    }
     const msg = (data && (data.message || data.error)) || `HTTP ${res.status}`;
-    console.error('API Error:', msg);
     throw new Error(msg);
   }
   return data;
