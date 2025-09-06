@@ -96,7 +96,7 @@ export default function Notifications() {
         content: announcementData.content.trim(),
         type: announcementData.type
       }
-      const result = await api('POST', '/users/create-announcement', requestBody, token)
+      const result = await api('POST', '/user/create-announcement', requestBody, token)
       return { success: true, data: result.data }
     } catch {
       return { success: false, error: { message: '네트워크 오류가 발생했습니다.' } }
@@ -107,7 +107,7 @@ export default function Notifications() {
   const fetchAnnouncements = React.useCallback(async () => {
     try {
       const token = getAuthToken()
-      const result = await api('GET', '/users/announcements', null, token)
+      const result = await api('GET', '/user/announcements', null, token)
       return { success: true, data: result.data }
     } catch {
       return { success: false, error: { message: '공지사항 목록을 불러오는데 실패했습니다.' } }
@@ -127,7 +127,7 @@ export default function Notifications() {
         content: announcementData.content.trim(),
         type: announcementData.type
       }
-      const result = await api('PUT', `/users/announcements/${announcementId}`, requestBody, token)
+      const result = await api('PUT', `/user/announcements/${announcementId}`, requestBody, token)
       return { success: true, data: result.data }
     } catch {
       return { success: false, error: { message: '네트워크 오류가 발생했습니다.' } }
@@ -138,7 +138,7 @@ export default function Notifications() {
   const deleteAnnouncement = async (announcementId) => {
     try {
       const token = getAuthToken()
-      await api('DELETE', `/users/announcements/${announcementId}`, null, token)
+      await api('DELETE', `/user/announcements/${announcementId}`, null, token)
       return { success: true }
     } catch {
       return { success: false, error: { message: '공지사항 삭제에 실패했습니다.' } }
