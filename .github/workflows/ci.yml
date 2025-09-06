@@ -26,7 +26,6 @@ jobs:
       - name: Install deps (clean)
         run: npm ci
 
-      # 선택: 린트/타입체크/테스트 — 스크립트가 있을 때만 실행
       - name: Lint
         run: npm run lint --if-present
 
@@ -36,13 +35,13 @@ jobs:
       - name: Test
         run: npm test --if-present -- --ci
 
-      # Vite 프로덕션 빌드 검증 (항상 /lms/ 기준)
+      # Vite 프로덕션 빌드 (환경변수 주입)
       - name: Build (Vite)
         env:
           VITE_API_BASE: /lms/api
+          VITE_TINYMCE_API_KEY: ${{ secrets.TINYMCE_API_KEY }}  
         run: npm run build
 
-      # (옵션) 산출물 보관해 디버깅 편하게
       - name: Upload dist artifact
         uses: actions/upload-artifact@v4
         with:
@@ -75,7 +74,6 @@ jobs:
             echo "tags=${REPO}:edge" >> $GITHUB_OUTPUT
           fi
 
-      # 도커 빌드 자체도 한 번 더 검증 + 푸시
       - name: Build & Push
         uses: docker/build-push-action@v6
         with:
@@ -84,4 +82,5 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           build-args: |
             VITE_API_BASE=/lms/api
+            VITE_TINYMCE_API_KEY=${{ secrets.TINYMCE_API_KEY }}  
           cache-to: type=inline
