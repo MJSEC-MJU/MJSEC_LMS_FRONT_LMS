@@ -147,7 +147,7 @@ export default function Notifications() {
       console.log('Full JWT decoded user:', JSON.stringify(user, null, 2))
       console.log('Token being used:', token)
       console.log('Student number from token:', user?.studentNumber)
-      const result = await api('POST', '/users/announcements', requestBody, token)
+      const result = await api('POST', '/users/create-announcement', requestBody, token)
       console.log('Create announcement result:', result)
       return { success: true, data: result.data }
     } catch (error) {

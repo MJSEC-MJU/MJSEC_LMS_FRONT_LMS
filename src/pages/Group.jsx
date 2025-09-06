@@ -23,95 +23,17 @@ export default function Group() {
   const [startDate, endDate] = dateRange;
   const [selectedDateTime, setSelectedDateTime] = useState(null);
   
-  // 수강중인 과목 데이터
+  // 수강중인 과목 데이터 (하드코딩 제거하고 샘플 1개만 유지)
   const [myStudies, setMyStudies] = useState([
     {
-      groupId: 1,
-      name: "리버싱크대나무행주",
-      createdAt: "2025-09-08T07:47:49.803Z",
-      description: "리버싱입니당",
-      category: ["리버싱"],
-      GroupImage: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=400&h=300&fit=crop", // 스터디룸 이미지
+      groupId: 1, // DB의 study_group.study_id와 일치
+      name: "샘플 그룹",
+      createdAt: new Date().toISOString(),
+      description: "샘플 스터디입니다.",
+      category: ["WEB"],
+      GroupImage: null,
       createdById: 1,
-      members: [
-        { 
-          id: 1, 
-          name: "나건하", 
-          attendance: "출석", 
-          warning: 0,
-          assignments: {
-            week1: { status: "제출완료", url: "https://github.com/na-geonha/assignment1" },
-            week2: { status: "미제출", url: "" },
-            week3: { status: "검토중", url: "https://github.com/na-geonha/assignment3" }
-          }
-        },
-        { 
-          id: 2, 
-          name: "최윤호", 
-          attendance: "결석", 
-          warning: 1,
-          assignments: {
-            week1: { status: "미제출", url: "" },
-            week2: { status: "제출완료", url: "https://github.com/choi-yunho/assignment2" },
-            week3: { status: "미제출", url: "" }
-          }
-        }
-      ]
-    },
-    {
-      groupId: 2,
-      name: "웹심",
-      createdAt: "2025-09-08T07:47:49.803Z",
-      description: "웹심입니당",
-      category: ["웹해킹"],
-      GroupImage: "https://images.unsplash.com/photo-1517077304055-6e89abbf09b0?w=400&h=300&fit=crop", // 웹 개발 관련 이미지
-      createdById: 1,
-      members: [
-        { 
-          id: 1, 
-          name: "나건하", 
-          attendance: "출석", 
-          warning: 0,
-          assignments: {
-            week1: { status: "제출완료", url: "https://github.com/na-geonha/web-assignment1" },
-            week2: { status: "완료", url: "https://github.com/na-geonha/web-assignment2" },
-            week3: { status: "수정요청", url: "https://github.com/na-geonha/web-assignment3" }
-          }
-        },
-        { 
-          id: 2, 
-          name: "최윤호", 
-          attendance: "출석", 
-          warning: 0,
-          assignments: {
-            week1: { status: "제출완료", url: "https://github.com/choi-yunho/web-assignment1" },
-            week2: { status: "제출완료", url: "https://github.com/choi-yunho/web-assignment2" },
-            week3: { status: "제출완료", url: "https://github.com/choi-yunho/web-assignment3" }
-          }
-        }
-      ]
-    },
-    {
-      groupId: 3,
-      name: "스터디 3",
-      createdAt: "2025-08-25T10:52:13.000Z",
-      description: "스터디 3입니다",
-      category: ["기타"],
-      GroupImage: "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=400&h=300&fit=crop", // 학습/책 이미지
-      createdById: 1,
-      members: [
-        { 
-          id: 1, 
-          name: "나건하", 
-          attendance: "출석", 
-          warning: 0,
-          assignments: {
-            week1: { status: "미제출", url: "" },
-            week2: { status: "미제출", url: "" },
-            week3: { status: "미제출", url: "" }
-          }
-        }
-      ]
+      members: []
     }
   ]);
 
@@ -518,15 +440,8 @@ export default function Group() {
     activeTab: 'add' // 'add' 또는 'remove'
   });
 
-  // 동아리 전체 부원 목록 (임시 데이터)
-  const [clubMembers, setClubMembers] = useState([
-    { id: 1, name: "나건하", email: "na@example.com", role: "member" },
-    { id: 2, name: "최윤호", email: "choi@example.com", role: "member" },
-    { id: 3, name: "김철수", email: "kim@example.com", role: "member" },
-    { id: 4, name: "이영희", email: "lee@example.com", role: "member" },
-    { id: 5, name: "박민수", email: "park@example.com", role: "member" },
-    { id: 6, name: "정수진", email: "jung@example.com", role: "member" }
-  ]);
+  // 동아리 전체 부원 목록 (하드코딩 제거)
+  const [clubMembers, setClubMembers] = useState([]);
 
   // 경고 모달 열기 함수
   const openWarningModal = (memberId, memberName, action) => {
