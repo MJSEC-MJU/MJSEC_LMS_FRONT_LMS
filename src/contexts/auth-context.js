@@ -1,2 +1,4 @@
-import { createContext } from 'react';
-export const AuthCtx = createContext(null);
+
+import { createContext } from 'react'
+
+export const AuthCtx = createContext(null)

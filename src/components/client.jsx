@@ -14,22 +14,44 @@ export async function api(method, path, body, token) {
     requestBody = JSON.stringify(body);
   }
 
-  const res = await fetch(`${API_BASE}${path}`, {
+
+  // 환경별 API 베이스 계산
+  const basePath = (import.meta.env.BASE_URL || "/").replace(/\/$/, "");
+  const originBase = import.meta.env.PROD
+    ? `${window.location.origin}${basePath}` // 요놈이 https://mjsec.kr/lms
+    : "http://localhost:8080";
+
+  const url = `${originBase}${API_BASE}${path}`;
+
+
+  const res = await fetch(url, {
+
     method,
     headers,
     body: requestBody,
     credentials: 'include',
   });
 
+
+
   const ct = res.headers.get('content-type') || '';
   const data = ct.includes('application/json') ? await res.json() : await res.text();
 
-  // if (!res.ok) {
-  //   const msg = (data && (data.message || data.error)) || `HTTP ${res.status}`;
-  //   throw new Error(msg);
-  // }
-  // return data;
+ 
 
-  // HTTP 상태 코드와 응답 데이터를 함께 반환
-  return { ok: res.ok, status: res.status, data: data };
+  if (!res.ok) {
+    if (!import.meta.env.PROD) {
+      console.error('Full error response:', {
+        status: res.status,
+        statusText: res.statusText,
+        data: data,
+        headers: Object.fromEntries(res.headers.entries())
+      });
+      const msgDev = (data && (data.message || data.error)) || `HTTP ${res.status}`;
+      console.error('API Error:', msgDev);
+    }
+    const msg = (data && (data.message || data.error)) || `HTTP ${res.status}`;
+    throw new Error(msg);
+  }
+  return data;
 }

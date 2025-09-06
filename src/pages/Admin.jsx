@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
@@ -7,6 +8,7 @@ const CATEGORIES = [
   'WEB','PWNABLE','REVERSING','FORENSICS','CRYPTOGRAPHY',
   'MOBILE','NETWORK','HARDWARE','SYSTEM','MISC','DEV','ALGORITHM'
 ];
+
 
 export default function Admin() {
   const { token, user } = useAuth();
@@ -160,9 +162,11 @@ export default function Admin() {
     }
   }, [token, editGroupId, editGroupName, editGroupDescription, editGroupCategory, editGroupMentor, updatingGroup]);
 
+
   useEffect(() => {
     if (!token || !user || user.role !== 'ROLE_ADMIN') {
       nav('/unauthorized', { replace: true }); // Unauthorized 페이지로 리다이렉션
+
       return;
     }
     fetchPendingMembers();
