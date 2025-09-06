@@ -50,11 +50,23 @@ export default function Group() {
   }, [user, groupId]);
 
   // 과제 목록 조회
-  useEffect(() => {
-    if (groupId && token) {
-      fetchAssignments();
+  const fetchAssignmentsCb = React.useCallback(async () => {
+    try {
+      if (!token || !groupId || isNaN(groupId)) {
+        return;
+      }
+      const result = await api('GET', `/groups/${groupId}/assignments`, null, token);
+      if (result.code === 'SUCCESS') setAssignments(result.data);
+      else if (Array.isArray(result)) setAssignments(result);
+      else setAssignments([]);
+    } catch {
+      setAssignments([]);
     }
   }, [groupId, token]);
+
+  useEffect(() => {
+    if (groupId && token) fetchAssignmentsCb();
+  }, [groupId, token, fetchAssignmentsCb]);
 
   // 주차별 과제 확장 상태 관리
   const [expandedWeeks, setExpandedWeeks] = useState({
@@ -441,17 +453,12 @@ export default function Group() {
   });
 
   // 동아리 전체 부원 목록 (하드코딩 제거)
-  const [clubMembers, setClubMembers] = useState([]);
+  const [clubMembers] = useState([]);
 
   // 경고 모달 열기 함수
-  const openWarningModal = (memberId, memberName, action) => {
-    setWarningModal({
-      isOpen: true,
-      memberId,
-      memberName,
-      action
-    });
-  };
+  // const openWarningModal = (memberId, memberName, action) => {
+  //   setWarningModal({ isOpen: true, memberId, memberName, action });
+  // };
 
   // 경고 모달 닫기 함수
   const closeWarningModal = () => {
@@ -464,12 +471,9 @@ export default function Group() {
   };
 
   // 멘토 관리 모달 열기 함수
-  const openMentorModal = () => {
-    setMentorModal({
-      isOpen: true,
-      activeTab: 'add'
-    });
-  };
+  // const openMentorModal = () => {
+  //   setMentorModal({ isOpen: true, activeTab: 'add' });
+  // };
 
   // 멘토 관리 모달 닫기 함수
   const closeMentorModal = () => {
@@ -676,7 +680,7 @@ export default function Group() {
                
                                                                {/* 과제 목록 */}
                 {assignments.length > 0 ? (
-                  assignments.map((assignment, index) => (
+                  assignments.map((assignment) => (
                     <div key={assignment.assignmentId} className="week-assignment">
                       <button 
                         className={`week-button ${expandedWeeks[`assignment-${assignment.assignmentId}`] ? 'expanded' : ''}`}

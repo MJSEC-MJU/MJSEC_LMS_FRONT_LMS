@@ -1,5 +1,5 @@
 ﻿import { Link } from "react-router-dom"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useAuth } from "../components/auth"
 import { api } from "../components/client"
 
@@ -9,7 +9,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
 
   // 공지사항 가져오기
-  const fetchNotifications = async () => {
+  const fetchNotifications = useCallback(async () => {
     try {
       if (!token) {
         console.log('토큰이 없어서 공지사항을 가져올 수 없습니다.');
@@ -37,11 +37,11 @@ export default function Home() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
 
   useEffect(() => {
     fetchNotifications();
-  }, [token]);
+  }, [fetchNotifications]);
   return (
     <>
       <section className="home-grid">

@@ -1,5 +1,5 @@
-﻿import { Link } from "react-router-dom"
-import { useState, useEffect } from "react"
+﻿import React, { useState, useEffect } from "react"
+import { Link } from "react-router-dom"
 import { useAuth } from "../hooks/useAuth.js";
 import { Editor } from '@tinymce/tinymce-react'
 import { api } from "../components/client"
@@ -64,7 +64,7 @@ export default function Notifications() {
   const isDarkMode = document.body.classList.contains('dark')
 
   // API 호출 함수들
-  const getAuthToken = () => {
+  const getAuthToken = React.useCallback(() => {
     if (!isInitialized) {
       throw new Error('인증이 아직 초기화되지 않았습니다. 잠시 후 다시 시도해주세요.');
     }
@@ -72,7 +72,7 @@ export default function Notifications() {
       throw new Error('토큰이 없습니다. 다시 로그인해주세요.');
     }
     return token
-  }
+  }, [isInitialized, token])
 
   // 공지사항 생성 API
   const createAnnouncement = async (announcementData) => {
@@ -98,32 +98,24 @@ export default function Notifications() {
       }
       const result = await api('POST', '/users/create-announcement', requestBody, token)
       return { success: true, data: result.data }
-    } catch (error) {
-      return { success: false, error: { message: error.message || '네트워크 오류가 발생했습니다.' } }
+    } catch {
+      return { success: false, error: { message: '네트워크 오류가 발생했습니다.' } }
     }
   }
 
   // 공지사항 목록 조회 API (GET)
-  const fetchAnnouncements = async () => {
+  const fetchAnnouncements = React.useCallback(async () => {
     try {
       const token = getAuthToken()
       const result = await api('GET', '/users/announcements', null, token)
       return { success: true, data: result.data }
-    } catch (error) {
-      return { success: false, error: { message: error.message || '공지사항 목록을 불러오는데 실패했습니다.' } }
+    } catch {
+      return { success: false, error: { message: '공지사항 목록을 불러오는데 실패했습니다.' } }
     }
-  }
+  }, [getAuthToken])
 
-  // 공지사항 상세 조회 API (GET)
-  const fetchAnnouncementDetail = async (announcementId) => {
-    try {
-      const token = getAuthToken()
-      const result = await api('GET', `/users/announcements/${announcementId}`, null, token)
-      return { success: true, data: result.data }
-    } catch (error) {
-      return { success: false, error: { message: error.message || '공지사항 상세 정보를 불러오는데 실패했습니다.' } }
-    }
-  }
+  // 상세 조회는 현재 미사용. 필요 시 활성화
+  // const fetchAnnouncementDetail = async (announcementId) => { ... }
 
   // 공지사항 수정 API (PUT)
   const updateAnnouncement = async (announcementId, announcementData) => {
@@ -137,8 +129,8 @@ export default function Notifications() {
       }
       const result = await api('PUT', `/users/announcements/${announcementId}`, requestBody, token)
       return { success: true, data: result.data }
-    } catch (error) {
-      return { success: false, error: { message: error.message || '네트워크 오류가 발생했습니다.' } }
+    } catch {
+      return { success: false, error: { message: '네트워크 오류가 발생했습니다.' } }
     }
   }
 
@@ -148,8 +140,8 @@ export default function Notifications() {
       const token = getAuthToken()
       await api('DELETE', `/users/announcements/${announcementId}`, null, token)
       return { success: true }
-    } catch (error) {
-      return { success: false, error: { message: error.message || '공지사항 삭제에 실패했습니다.' } }
+    } catch {
+      return { success: false, error: { message: '공지사항 삭제에 실패했습니다.' } }
     }
   }
   
@@ -235,7 +227,7 @@ export default function Notifications() {
           // 에러 발생 시 빈 배열로 설정
           setNotifications([])
         }
-      } catch (error) {
+      } catch {
         setError('공지사항을 불러오는 중 오류가 발생했습니다.')
         setNotifications([])
       }
@@ -244,7 +236,7 @@ export default function Notifications() {
     }
     
     loadAnnouncements()
-  }, [isInitialized])
+  }, [isInitialized, fetchAnnouncements])
 
 
   //공지사항 정렬 
@@ -352,7 +344,7 @@ export default function Notifications() {
       } else {
         alert(result.error.message || "오류가 발생했습니다.")
       }
-    } catch (error) {
+    } catch {
       alert("네트워크 오류가 발생했습니다.")
     }
   }
@@ -378,7 +370,7 @@ export default function Notifications() {
       } else {
         alert(result.error.message || "삭제에 실패했습니다.")
       }
-    } catch (error) {
+    } catch {
       alert("네트워크 오류가 발생했습니다.")
     }
   }
