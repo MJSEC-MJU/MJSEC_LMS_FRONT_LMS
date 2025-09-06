@@ -83,29 +83,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="courses">
-        <h1 className="heading">GROUPS</h1>
-        <div className="box-container">
-          <div className="box">
-            <div className="tutor">
-              <img src="/images/pic-2.jpg" alt="" />
-              <div className="info">
-                <h3>리버싱크대나무행주</h3>
-                <span>한우혁</span>
-              </div>
-            </div>
-            <div className="thumb">
-              <img src="/images/thumb-1.png" alt="" />
-            </div>
-            <h3 className="title">리버싱크대나무행주</h3>
-            <a href="#" className="inline-btn">자세히 보기</a>
-          </div>
-        </div>
 
-        <div className="more-btn">
-          <Link to="/courses" className="inline-option-btn">view all courses</Link>
-        </div>
-      </section>
     </>
   )
 }
