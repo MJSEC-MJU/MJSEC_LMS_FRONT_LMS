@@ -66,7 +66,7 @@ export default function Admin() {
 
     setCreatingGroup(true);
     try {
-      const response = await api('POST', '/admin/group/create', { name: newGroupName, description: newGroupDescription }, token);
+      const response = await api('POST', '/admin/group', { name: newGroupName, description: newGroupDescription }, token);
       if (response.ok && response.status === 200) {
         alert('스터디 그룹 생성 성공!');
         setNewGroupName('');
