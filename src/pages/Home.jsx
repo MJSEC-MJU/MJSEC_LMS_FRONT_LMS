@@ -17,7 +17,7 @@ export default function Home() {
         return;
       }
       
-      const result = await api('GET', '/users/announcements', null, token);
+      const result = await api('GET', '/user/announcements', null, token);
       console.log('Fetched notifications for home:', result);
       
       if (result.code === 'SUCCESS') {
