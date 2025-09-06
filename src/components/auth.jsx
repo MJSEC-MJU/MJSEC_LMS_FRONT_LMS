@@ -49,6 +49,7 @@ function decodeJwt(token) {
   }
 }
 
+/* eslint-disable react-refresh/only-export-components */
 export default function AuthProvider({ children }) {
   const [token, setToken_] = useState(() => getCookie('token') || '');
   const [isInitialized, setIsInitialized] = useState(false);
@@ -74,7 +75,7 @@ export default function AuthProvider({ children }) {
 
   const logout = useCallback(() => { setToken(''); }, [setToken]);
 
-  const value = useMemo(() => ({ token, setToken, user, logout, isInitialized }), [token, user, logout, isInitialized]);
+  const value = useMemo(() => ({ token, setToken, user, logout, isInitialized }), [token, setToken, user, logout, isInitialized]);
 
   return <AuthCtx.Provider value={value}>{children}</AuthCtx.Provider>;
 }
