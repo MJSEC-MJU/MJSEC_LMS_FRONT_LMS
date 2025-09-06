@@ -1,7 +1,7 @@
 ﻿﻿import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { api } from '../components/client';        
-import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '../components/auth';
 import { jwtDecode } from "jwt-decode";
 
 export default function Login() {
@@ -22,9 +22,18 @@ export default function Login() {
     setErr('');
     try {
       // 백엔드 명세에 맞게 studentNumber와 password 전송
-      const data = await api('POST', '/auth/login', { studentNumber: parseInt(studentNo), password });
+      const data = await api('POST', '/auth/login', { studentNumber: parseInt(studentNo, 10), password });
 
-      const token = data?.data?.accessToken; // data.data?.accessToken으로 수정
+      const token = (
+        data?.data?.accessToken ||
+        data?.accessToken ||
+        data?.data?.token ||
+        data?.token ||
+        data?.jwt ||
+        data?.data?.jwt ||
+        data?.access_token ||
+        data?.data?.access_token
+      );
       
 
       if (!token) throw new Error('토큰을 받지 못했습니다.'); // refreshToken 확인 제거
@@ -35,6 +44,7 @@ export default function Login() {
       
       // 역할에 따라 리다이렉션
       if (userRole === 'ROLE_ADMIN') {
+
         nav('/admin', { replace: true });
       } else {
         nav('/', { replace: true }); // 일반 사용자라면 홈페이지로 리다이렉션

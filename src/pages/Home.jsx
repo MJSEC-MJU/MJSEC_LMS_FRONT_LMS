@@ -1,6 +1,47 @@
 ﻿import { Link } from "react-router-dom"
+import { useState, useEffect, useCallback } from "react"
+import { useAuth } from "../components/auth"
+import { api } from "../components/client"
 
 export default function Home() {
+  const { token } = useAuth();
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // 공지사항 가져오기
+  const fetchNotifications = useCallback(async () => {
+    try {
+      if (!token) {
+        console.log('토큰이 없어서 공지사항을 가져올 수 없습니다.');
+        setLoading(false);
+        return;
+      }
+      
+      const result = await api('GET', '/users/announcements', null, token);
+      console.log('Fetched notifications for home:', result);
+      
+      if (result.code === 'SUCCESS') {
+        // announcementId 기준으로 내림차순 정렬 후 최신 4개만 가져오기
+        const sortedNotifications = result.data.sort((a, b) => {
+          const idA = a.announcementId || 0;
+          const idB = b.announcementId || 0;
+          return idB - idA; // 내림차순 정렬 (큰 ID가 먼저)
+        });
+        const latestNotifications = sortedNotifications.slice(0, 4);
+        setNotifications(latestNotifications);
+      }
+    } catch (error) {
+      console.error('공지사항 가져오기 오류:', error);
+      // 에러 발생 시 빈 배열로 설정
+      setNotifications([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [token]);
+
+  useEffect(() => {
+    fetchNotifications();
+  }, [fetchNotifications]);
   return (
     <>
       <section className="home-grid">
@@ -17,10 +58,19 @@ export default function Home() {
           <div className="box">
             <h3 className="title">공지사항</h3>
             <div className="notice-box">
-              <a href="/notifications"><span>•MSG CTF 대회 안내</span></a>
-              <a href="/notifications"><span>•학기말 프로젝트 발표회</span></a>
-              <a href="/notifications"><span>•앱 버전 2.1.0 출시</span></a>
-              <a href="/notifications"><span>•동아리 운영 방침</span></a>
+              {loading ? (
+                <div className="loading-notice">로딩 중...</div>
+              ) : notifications.length > 0 ? (
+                notifications.map((notification) => (
+                  <Link key={notification.announcementId} to="/notifications">
+                    <span>•{notification.title}</span>
+                  </Link>
+                ))
+              ) : (
+                <div className="no-notice">
+                  {loading ? '로딩 중...' : '현재 공지사항이 없습니다.'}
+                </div>
+              )}
             </div>
           </div>
 
@@ -33,29 +83,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="courses">
-        <h1 className="heading">our courses</h1>
-        <div className="box-container">
-          <div className="box">
-            <div className="tutor">
-              <img src="/images/pic-2.jpg" alt="" />
-              <div className="info">
-                <h3>리버싱크대나무행주</h3>
-                <span>한우혁</span>
-              </div>
-            </div>
-            <div className="thumb">
-              <img src="/images/thumb-1.png" alt="" />
-            </div>
-            <h3 className="title">리버싱크대나무행주</h3>
-            <a href="#" className="inline-btn">자세히 보기</a>
-          </div>
-        </div>
 
-        <div className="more-btn">
-          <Link to="/courses" className="inline-option-btn">view all courses</Link>
-        </div>
-      </section>
     </>
   )
 }

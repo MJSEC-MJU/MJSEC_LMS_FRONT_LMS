@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, useCallback } from 'react';
+import { useEffect, useMemo, useState, useCallback, useContext } from 'react';
 import { AuthCtx } from '../contexts/auth-context.js';
 // cookie helpers
 function setCookie(name, value, days) {
@@ -29,6 +29,10 @@ function getCookie(name) {
   return null;
 }
 
+function eraseCookie(name) {
+  document.cookie = name + '=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+}
+
 function decodeJwt(token) {
   try {
     const base64Url = token.split('.')[1];
@@ -45,35 +49,41 @@ function decodeJwt(token) {
   }
 }
 
-// ✅ 컴포넌트만 export (default)
+/* eslint-disable react-refresh/only-export-components */
 export default function AuthProvider({ children }) {
   const [token, setToken_] = useState(() => getCookie('token') || '');
+  const [isInitialized, setIsInitialized] = useState(false);
 
   const setToken = useCallback((newToken) => {
     setToken_(newToken);
-    if (newToken) {
-      setCookie('token', newToken, 7);
-      const decoded = decodeJwt(newToken);
-      console.log("setUser called with:", decoded);
-    } else {
-      document.cookie = 'token=; Max-Age=0; path=/; SameSite=Lax';
-    }
+    if (newToken) setCookie('token', newToken, 7);
+    else eraseCookie('token');
   }, []);
 
   const user = useMemo(() => {
     if (!token) return null;
     const decoded = decodeJwt(token);
-    console.log("User computed from token (useMemo):", decoded);
     return decoded || null;
   }, [token]);
 
+  useEffect(() => { setIsInitialized(true); }, []);
+
+  // 토큰이 손상/만료되어 decode 실패하면 자동 로그아웃
   useEffect(() => {
-    if (token && !user) setToken('');
-  }, [token, user, setToken]);
+    if (isInitialized && token && !user) setToken('');
+  }, [isInitialized, token, user, setToken]);
 
   const logout = useCallback(() => { setToken(''); }, [setToken]);
 
-  const value = useMemo(() => ({ token, setToken, user, logout }), [token, setToken, user, logout]);
+  const value = useMemo(() => ({ token, setToken, user, logout, isInitialized }), [token, setToken, user, logout, isInitialized]);
 
   return <AuthCtx.Provider value={value}>{children}</AuthCtx.Provider>;
+}
+
+export { AuthProvider };
+
+export function useAuth(){
+  const ctx = useContext(AuthCtx);
+  if(!ctx) throw new Error('useAuth must be used within AuthProvider');
+  return ctx;
 }

@@ -38,8 +38,6 @@
   gap: 0.3rem;
   transition: all 0.3s ease;
   white-space: nowrap;
-  position: absolute;
-  right: 0;
 }
 
 .admin-btn:hover {
@@ -286,7 +284,7 @@
 }
 
 /* 모달 스타일 */
-.modal-overlay {
+.notification-modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -304,14 +302,14 @@
 /* 데스크톱에서 사이드바가 항상 열려있는 경우 */
 @media (min-width: 1200px) {
 /* 슬라이드바가 열려있을 때 (body.active) - 패딩 0 */
-body.active .modal-overlay {
+body.active .notification-modal-overlay {
   left: 0 !important;
   margin-right: 0 !important;
   width: 100% !important;
 }
 
 /* 슬라이드바가 닫혀있을 때 (body:not(.active)) - 패딩 30rem */
-body:not(.active) .modal-overlay {
+body:not(.active) .notification-modal-overlay {
   left: 0 !important;
   margin-right: 30rem !important;
   width: calc(100% - 30rem) !important;
@@ -319,7 +317,7 @@ body:not(.active) .modal-overlay {
 
 }
 
-.modal-content {
+.notification-modal-content {
   background: var(--white);
   border-radius: 1rem;
   width: 50%;
@@ -332,7 +330,7 @@ body:not(.active) .modal-overlay {
 }
 
 /* 삭제 모달은 작게 표시 */
-.modal-content.delete-modal {
+.notification-modal-content.delete-modal {
   width: 40%;
   height: auto;
   max-height: 30vh;
@@ -346,7 +344,7 @@ body:not(.active) .modal-overlay {
 }
 
 
-.modal-header {
+.notification-modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -356,13 +354,13 @@ body:not(.active) .modal-overlay {
   padding-bottom:0;
 }
 
-.modal-header h3 {
+.notification-modal-header h3 {
   margin: 0;
   font-size: 1.8rem;
   color: var(--black);
 }
 
-.modal-close {
+.notification-modal-close {
   background: none;
   border: none;
   font-size: 2rem;
@@ -373,19 +371,19 @@ body:not(.active) .modal-overlay {
   transition: all 0.3s ease;
 }
 
-.modal-close:hover {
+.notification-modal-close:hover {
   background: var(--light-bg);
   color: var(--black);
 }
 
-.modal-body {
+.notification-modal-body {
   padding: 2rem;
   flex: 1;
   overflow-y: auto;
   padding-top:0;
 }
 
-.modal-body p {
+.notification-modal-body p {
   margin-bottom: 1rem;
   color: var(--black);
   font-size: 1.4rem;
@@ -436,7 +434,7 @@ body:not(.active) .modal-overlay {
 
 
 
-.modal-footer {
+.notification-modal-footer {
   display: flex;
   justify-content: flex-end;
   gap: 1rem;
@@ -537,14 +535,14 @@ body:not(.active) .modal-overlay {
 
 /* 반응형 디자인 */
 @media (max-width: 768px) {
-  .modal-content {
+  .notification-modal-content {
     width: 95%;
     margin: 1rem;
   }
   
-  .modal-header,
-  .modal-body,
-  .modal-footer {
+  .notification-modal-header,
+  .notification-modal-body,
+  .notification-modal-footer {
     padding: 1.5rem;
   }
   
@@ -586,7 +584,9 @@ body:not(.active) .modal-overlay {
     left: auto;
     transform: none;
     justify-content: center;
+    width: 100%;
   }
+  
   
   .admin-btn {
     width: auto;
@@ -637,12 +637,12 @@ body:not(.active) .modal-overlay {
 }
 
 /* base.css의 전역 border:none 완전 오버라이드 */
-.modal-content .form-group input[type="text"],
-.modal-content .form-group input[type="password"],
-.modal-content .form-group input[type="email"],
-.modal-content .form-group input[type="number"],
-.modal-content .form-group textarea,
-.modal-content .form-group select {
+.notification-modal-content .form-group input[type="text"],
+.notification-modal-content .form-group input[type="password"],
+.notification-modal-content .form-group input[type="email"],
+.notification-modal-content .form-group input[type="number"],
+.notification-modal-content .form-group textarea,
+.notification-modal-content .form-group select {
   border: 2px solid var(--border) !important;
   border-style: solid !important;
   border-width: 2px !important;
@@ -650,22 +650,20 @@ body:not(.active) .modal-overlay {
 }
 
 /* 모달 폼 요소들의 border 강제 표시 - base.css의 border:none 오버라이드 */
-.modal-content .form-group input,
-.modal-content .form-group textarea,
-.modal-content .form-group select {
+.notification-modal-content .form-group input,
+.notification-modal-content .form-group textarea,
+.notification-modal-content .form-group select {
   width: 100% !important;
   padding: 1rem !important;
   border: 2px solid var(--border) !important;
   border-radius: 0.5rem !important;
   font-size: 1.4rem !important;
-  background: var(--white) !important;
-  color: var(--black) !important;
   transition: all 0.3s ease !important;
   box-sizing: border-box !important;
 }
 
 /* 추가적인 강제 오버라이드 */
-.modal-content .form-group textarea {
+.notification-modal-content .form-group textarea {
   border: 2px solid var(--border) !important;
   border-style: solid !important;
   border-width: 2px !important;
@@ -677,14 +675,14 @@ body:not(.active) .modal-overlay {
   line-height: 1.7 !important;
   padding: 2rem !important;
 }
-.modal-content .form-group input {
+.notification-modal-content .form-group input {
   font-size: 2rem !important;
 }
 @media (max-width: 480px) {
-  .modal-content .form-group input {
+  .notification-modal-content .form-group input {
     font-size: 1.8rem !important;
   }
-  .modal-content .form-group textarea {
+  .notification-modal-content .form-group textarea {
     font-size: 1.5rem !important;
   }
   .form-group textarea {
@@ -693,7 +691,7 @@ body:not(.active) .modal-overlay {
   }
 }
 
-.modal-content .form-group select {
+.notification-modal-content .form-group select {
   border: 2px solid var(--border) !important;
   border-style: solid !important;
   border-width: 2px !important;
@@ -702,23 +700,23 @@ body:not(.active) .modal-overlay {
 }
 
 /* 포커스, 호버, 플레이스홀더 스타일 */
-.modal-content .form-group input:focus,
-.modal-content .form-group textarea:focus,
-.modal-content .form-group select:focus {
+.notification-modal-content .form-group input:focus,
+.notification-modal-content .form-group textarea:focus,
+.notification-modal-content .form-group select:focus {
   outline: none !important;
   border-color: var(--main-color) !important;
   box-shadow: 0 0 0 3px rgba(66, 68, 146, 0.1) !important;
 }
 
-.modal-content .form-group input:hover,
-.modal-content .form-group textarea:hover,
-.modal-content .form-group select:hover {
+.notification-modal-content .form-group input:hover,
+.notification-modal-content .form-group textarea:hover,
+.notification-modal-content .form-group select:hover {
   border-color: var(--main-color) !important;
 }
 
-.modal-content .form-group input::placeholder,
-.modal-content .form-group textarea::placeholder {
-  color: var(--light-color) !important;
+.notification-modal-content .form-group input::placeholder,
+.notification-modal-content .form-group textarea::placeholder {
+  color: white !important;
 }
 
 /* TinyMCE 에디터 스타일 */
@@ -729,16 +727,11 @@ body:not(.active) .modal-overlay {
   overflow: hidden;
 }
 
-.tinymce-editor-container .tox-tinymce {
-  border: none !important;
-}
 
-/* 다크모드에서 TinyMCE 테마 조정 */
 body.dark .tinymce-editor-container .tox-tinymce {
   background-color: #000000 !important;
 }
 
-/* 상세보기 모달 스타일 */
 .notification-detail {
   padding: 1rem 0;
 }
@@ -803,12 +796,100 @@ body.dark .tinymce-editor-container .tox-tinymce {
 
 /* 다크모드에서 상세보기 스타일 */
 body.dark .detail-title {
-  color: var(--white);
+  color: #fff;
 }
 
 body.dark .detail-content {
   background-color: var(--light-bg);
-  color: var(--white);
+  color: #fff;
   border-color: var(--border);
 }
 
+/* 다크모드에서 공지사항 제목 색상 */
+.dark .notification-title {
+  color: #fff;
+}
+
+/* 다크모드에서 모달 헤더 제목 색상 */
+.dark .notification-modal-header h3 {
+  color: #fff;
+}
+
+/* 다크모드에서 모달 닫기 버튼 색상 */
+.dark .notification-modal-close {
+  color: var(--white);
+}
+
+.dark .notification-modal-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--white);
+}
+
+/* 다크모드에서 모달 배경 더 진하게 */
+.dark .notification-modal-overlay {
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(8px);
+}
+
+/* 공지사항이 없을 때 표시되는 메시지 스타일 */
+.empty-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+  background: var(--white);
+  border-radius: 1rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 2px dashed var(--border);
+  margin: 2rem 0;
+  transition: all 0.3s ease;
+}
+
+.empty-message:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+  border-color: var(--main-color);
+}
+
+.empty-message i {
+  font-size: 4rem;
+  color: var(--light-color);
+  margin-bottom: 1.5rem;
+  opacity: 0.7;
+  transition: all 0.3s ease;
+}
+
+.empty-message:hover i {
+  color: var(--main-color);
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.empty-message::after {
+  content: '';
+  font-size: 1.6rem;
+  color: var(--light-color);
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+/* 다크모드에서 빈 메시지 스타일 */
+body.dark .empty-message {
+  background: var(--light-bg);
+  border-color: var(--border);
+  color: var(--white);
+}
+
+body.dark .empty-message i {
+  color: var(--light-color);
+}
+
+body.dark .empty-message:hover {
+  border-color: var(--main-color);
+}
+
+body.dark .empty-message:hover i {
+  color: var(--main-color);
+}
