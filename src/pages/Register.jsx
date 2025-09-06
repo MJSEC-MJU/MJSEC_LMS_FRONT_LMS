@@ -1,6 +1,4 @@
-﻿
 import { useState } from 'react';
-
 import { api } from '../components/client'; // api 함수 임포트
 import { useNavigate } from 'react-router-dom';
 
@@ -18,11 +16,7 @@ export default function Register() {
 
   // 학번 및 이메일 중복 확인을 위한 상태 변수
   const [studentNoAvailability, setStudentNoAvailability] = useState('idle'); // 'idle', 'checking', 'available', 'taken', 'error'
-
-  const [studentNoMessage, setStudentNoMessage] = useState('');
   const [emailAvailability, setEmailAvailability] = useState('idle'); // 'idle', 'checking', 'available', 'taken', 'error'
-  const [emailMessage, setEmailMessage] = useState('');
-
 
   // 학번 중복 확인 함수
   const checkStudentNumberDuplication = async () => {
@@ -33,7 +27,6 @@ export default function Register() {
     }
     setStudentNoAvailability('checking');
     try {
-
       const response = await api('GET', `/auth/check-student-number?studentNumber=${parseInt(studentNo)}`);
       
       if (response.ok && response.status === 200) {
@@ -67,7 +60,6 @@ export default function Register() {
     setEmailAvailability('checking');
     // setEmailMessage('중복 확인 중...'); 
     try {
-
       const response = await api('GET', `/auth/check-email?email=${email}`);
       
       if (response.ok && response.status === 200) {
@@ -89,7 +81,6 @@ export default function Register() {
       setEmailAvailability('error');
       alert('이메일 확인 중 네트워크 오류 발생!');
       console.error("Email Check Network Error:", e);
-
     }
   };
 
@@ -117,9 +108,8 @@ export default function Register() {
       return;
     }
 
-
+    // 비밀번호 유효성 검사
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-={}[|'";:,.<>?]).*$/;    if (!passwordRegex.test(pass)) {
-
       alert('비밀번호는 대소문자, 숫자, 특수문자를 포함해야 합니다.');
       return;
     }
