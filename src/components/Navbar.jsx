@@ -7,6 +7,7 @@ export default function Navbar() {
   const [isProfileOpen, setIsProfileOpen] = useState(false)
   const [, setIsSearchOpen] = useState(false)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+  const [isAdminSubmenuOpen, setIsAdminSubmenuOpen] = useState(false)
   const location = useLocation()
   const { user, logout } = useAuth()
 
@@ -25,6 +26,7 @@ export default function Navbar() {
   useEffect(() => {
     setIsProfileOpen(false)
     setIsSearchOpen(false)
+    setIsAdminSubmenuOpen(false)
     if (window.innerWidth < 1200) setIsSidebarOpen(false)
   }, [location])
 
@@ -33,6 +35,7 @@ export default function Navbar() {
     const handleScroll = () => {
       setIsProfileOpen(false)
       setIsSearchOpen(false)
+      setIsAdminSubmenuOpen(false)
       if (window.innerWidth < 1200) setIsSidebarOpen(false)
     }
     window.addEventListener("scroll", handleScroll)
@@ -111,6 +114,9 @@ export default function Navbar() {
           <Link to="/" onClick={() => setIsSidebarOpen(false)}><i className="fas fa-home"></i><span>home</span></Link>
           <Link to="/notifications" onClick={() => setIsSidebarOpen(false)}><i className="fa-solid fa-bell"></i><span>notification</span></Link>
           <Link to="/groups" onClick={() => setIsSidebarOpen(false)}><i className="fas fa-graduation-cap"></i><span>groups</span></Link>
+          {user && user.role === 'ROLE_ADMIN' && (
+            <Link to="/admin" onClick={() => setIsSidebarOpen(false)}><i className="fas fa-cog"></i><span>admin</span></Link>
+          )}
         </nav>
       </div>
     </>
