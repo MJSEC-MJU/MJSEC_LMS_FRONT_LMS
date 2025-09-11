@@ -1,14 +1,16 @@
 ﻿import { useEffect, useState } from "react"
 import { Link, useLocation } from "react-router-dom"
 import { useAuth } from "./auth"
+import { api } from "../lib/api"
 
 export default function Navbar() {
   const [isDarkModeEnabled, setIsDarkModeEnabled] = useState(() => localStorage.getItem("dark-mode") === "enabled")
   const [isProfileOpen, setIsProfileOpen] = useState(false)
   const [, setIsSearchOpen] = useState(false)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+  const [profile, setProfile] = useState(null)
   const location = useLocation()
-  const { user, logout } = useAuth()
+  const { user, token, logout } = useAuth()
 
   // Sync body class and localStorage for dark mode
   useEffect(() => {
@@ -39,6 +41,25 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
 
+  useEffect(() => {
+    let isMounted = true
+    async function fetchUserPage() {
+      try {
+        if (!token) {
+          if (isMounted) setProfile(null)
+          return
+        }
+        const resp = await api('GET', '/user/user-page', undefined, token)
+        if (isMounted) setProfile(resp?.data || null)
+      } catch (e) {
+        console.error('Failed to load user page:', e)
+        if (isMounted) setProfile(null)
+      }
+    }
+    fetchUserPage()
+    return () => { isMounted = false }
+  }, [token])
+
   const handleLogout = () => {
     logout()
     setIsProfileOpen(false)
@@ -49,7 +70,10 @@ export default function Navbar() {
     <>
       <header className="header">
         <section className="flex">
-          <Link to="/" className="logo">MJSEC</Link>
+          <Link to="/" className="logo">
+            <img src="/images/mockup-logo2.png" alt="MJSEC Logo" style={{ height: '5rem', verticalAlign: 'middle' }} />
+            MJSEC
+          </Link>
 
           <div className="icons">
             <div id="menu-btn" className="fas fa-bars" onClick={() => setIsSidebarOpen(v => !v)} />
@@ -58,13 +82,13 @@ export default function Navbar() {
           </div>
 
           <div className={`profile ${isProfileOpen ? "active" : ""}`}>
-            <img src="/lms/images/default-study.jpg" className="image" alt="" onError={(e) => {
+            <img src={profile?.profileImage || "/lms/images/default-study.jpg"} className="image" alt="" onError={(e) => {
               e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='40' fill='%23ccc'/%3E%3Ctext x='50' y='55' text-anchor='middle' fill='%23666' font-size='12'%3E사용자%3C/text%3E%3C/svg%3E";
             }} />
             {user ? (
               <>
-                <h3 className="name">{user.name || user.username || '사용자'}</h3>
-                <p className="role">{user.studentNumber || user.studentNo || '학번'}</p>
+                <h3 className="name">{profile?.name || user.name || user.username || '사용자'}</h3>
+                <p className="role">{profile?.studentNumber || user.studentNumber || user.studentNo || '학번'}</p>
                 <Link to="/profile" className="btn">view profile</Link>
                 <div className="flex-btn">
                   <button onClick={handleLogout} className="option-btn">logout</button>
@@ -90,13 +114,13 @@ export default function Navbar() {
         </div>
 
         <div className="profile">
-          <img src="/lms/images/default-study.jpg" className="image" alt="" onError={(e) => {
+          <img src={profile?.profileImage || "/lms/images/default-study.jpg"} className="image" alt="" onError={(e) => {
             e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='40' fill='%23ccc'/%3E%3Ctext x='50' y='55' text-anchor='middle' fill='%23666' font-size='12'%3E사용자%3C/text%3E%3C/svg%3E";
           }} />
           {user ? (
             <>
-              <h3 className="name">{user.name || user.username || '사용자'}</h3>
-              <p className="role">{user.studentNumber || user.studentNo || '학번'}</p>
+              <h3 className="name">{profile?.name || user.name || user.username || '사용자'}</h3>
+              <p className="role">{profile?.studentNumber || user.studentNumber || user.studentNo || '학번'}</p>
               <Link to="/profile" className="btn" onClick={() => setIsSidebarOpen(false)}>view profile</Link>
             </>
           ) : (

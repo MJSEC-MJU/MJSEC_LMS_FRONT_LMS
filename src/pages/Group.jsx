@@ -1,5 +1,5 @@
 ﻿import React, { useState, useEffect } from 'react';
-import { Link, useParams, useNavigate } from "react-router-dom"
+import { Link, useParams, useNavigate, useSearchParams } from "react-router-dom"
 import { useAuth } from "../components/auth"
 import { api } from "../components/client"
 import DatePicker from 'react-datepicker'
@@ -13,7 +13,9 @@ registerLocale('ko', ko);
 
 export default function Group() {
   const { groupId: groupIdParam } = useParams();
-  const groupId = parseInt(groupIdParam, 10);
+  const [searchParams] = useSearchParams();
+  const groupIdQuery = searchParams.get('groupId');
+  const groupId = parseInt(groupIdParam ?? groupIdQuery, 10);
   const { user, token } = useAuth();
   const navigate = useNavigate();
   
@@ -23,19 +25,107 @@ export default function Group() {
   const [startDate, endDate] = dateRange;
   const [selectedDateTime, setSelectedDateTime] = useState(null);
   
-  // 수강중인 과목 데이터 (하드코딩 제거하고 샘플 1개만 유지)
-  const [myStudies, setMyStudies] = useState([
-    {
-      groupId: 1, // DB의 study_group.study_id와 일치
-      name: "샘플 그룹",
-      createdAt: new Date().toISOString(),
-      description: "샘플 스터디입니다.",
-      category: ["WEB"],
-      GroupImage: null,
-      createdById: 1,
-      members: []
+  // 내 스터디 목록 (API로 조회)
+  const [myStudies, setMyStudies] = useState([]);
+
+  // 그룹 멘티 목록 및 제출 상태(로컬)
+  const [mentees, setMentees] = useState([]);
+  const [menteesLoading, setMenteesLoading] = useState(false);
+  const [menteeSubmissions, setMenteeSubmissions] = useState({});
+  const [isMentor, setIsMentor] = useState(null); // 역할 미정 → 멘토 확인 후 true/false 설정
+  const [submissionForm, setSubmissionForm] = useState({ content: '', password: '' });
+  const [isSubmittingAssign, setIsSubmittingAssign] = useState(false);
+  const [submissionMsg, setSubmissionMsg] = useState('');
+  const [submissionErr, setSubmissionErr] = useState('');
+  const [submissionList, setSubmissionList] = useState([]);
+  const [submissionLoading, setSubmissionLoading] = useState(false);
+  const [selectedSubmission, setSelectedSubmission] = useState(null);
+
+  const initializeMenteeSubmissions = React.useCallback((list) => {
+    const next = {};
+    (list || []).forEach(m => { next[m.userId] = next[m.userId] || { status: '미제출', url: '' }; });
+    setMenteeSubmissions(next);
+  }, []);
+
+  const fetchMentees = React.useCallback(async () => {
+    try{
+      if (!token || !groupId || isNaN(groupId)) return;
+      setMenteesLoading(true);
+      const res = await api('GET', `/group/${groupId}/mentee`, null, token);
+      const data = (res && res.code === 'SUCCESS') ? (res.data || []) : (Array.isArray(res) ? res : []);
+      setMentees(data);
+      initializeMenteeSubmissions(data);
+      // 이 엔드포인트는 멘토 전용이 아닐 수 있으므로 역할 판단은 여기서 하지 않음
+    }catch{ setMentees([]); }
+    finally{ setMenteesLoading(false); }
+  }, [token, groupId, initializeMenteeSubmissions]);
+
+  const checkMentor = React.useCallback(async () => {
+    try {
+      if (!token || !groupId || isNaN(groupId)) return;
+      // 멘티 목록을 불러와 현재 사용자가 포함되어 있으면 멘티(false), 아니면 멘토(true)로 판단
+      const res = await api('GET', `/group/${groupId}/mentee`, null, token);
+      const data = (res && res.code === 'SUCCESS') ? (res.data || []) : (Array.isArray(res) ? res : []);
+      setMentees(data);
+      initializeMenteeSubmissions(data);
+      const myStudentNo = (user?.studentNumber ?? user?.studentNo ?? '').toString();
+      const myEmail = (user?.email ?? '').toLowerCase();
+      const amIMentee = Array.isArray(data) && data.some(m => {
+        const menteeStudent = (m?.studentNumber ?? '').toString();
+        const menteeEmail = (m?.email ?? '').toLowerCase();
+        return (!!myStudentNo && myStudentNo === menteeStudent) || (!!myEmail && !!menteeEmail && myEmail === menteeEmail);
+      });
+      setIsMentor(!amIMentee);
+    } catch {
+      // 조회 실패 시 보수적으로 멘티로 간주
+      setIsMentor(false);
     }
-  ]);
+  }, [token, groupId, user, initializeMenteeSubmissions]);
+
+  const fetchSubmissionList = React.useCallback(async (planId) => {
+    try {
+      if (!token || !groupId || isNaN(groupId) || !planId) return;
+      setSubmissionLoading(true);
+      const res = await api('GET', `/group/${groupId}/assignment/submit/${planId}`, null, token);
+      const list = res && res.code === 'SUCCESS' ? (res.data || []) : (Array.isArray(res) ? res : []);
+      setSubmissionList(list);
+    } catch { setSubmissionList([]); }
+    finally { setSubmissionLoading(false); }
+  }, [token, groupId]);
+
+  const fetchSubmissionDetail = React.useCallback(async (planId, submitId) => {
+    try {
+      if (!token || !groupId || isNaN(groupId) || !planId || !submitId) return;
+      const res = await api('GET', `/group/${groupId}/assignment/submit/${planId}/submission/${submitId}`, null, token);
+      setSelectedSubmission(res?.data || res || null);
+    } catch { setSelectedSubmission(null); }
+  }, [token, groupId]);
+
+  const submitAssignment = React.useCallback(async (planId) => {
+    setSubmissionErr(''); setSubmissionMsg('');
+    try {
+      if (!token || !groupId || isNaN(groupId) || !planId) return;
+      if (!submissionForm.content || !submissionForm.password) {
+        setSubmissionErr('과제 주소와 비밀번호를 입력하세요.');
+        return;
+      }
+      setIsSubmittingAssign(true);
+      const body = { content: submissionForm.content.trim(), password: submissionForm.password.trim() };
+      const res = await api('POST', `/group/${groupId}/assignment/submit/${planId}`, body, token);
+      if (res?.code === 'SUCCESS') {
+        setSubmissionMsg('제출이 완료되었습니다.');
+        setSubmissionForm({ content: '', password: '' });
+        // 멘토도 볼 수 있도록 목록 리로드(멘토가 아니어도 상관없음)
+        await fetchSubmissionList(planId);
+      } else {
+        setSubmissionErr(res?.message || '제출 실패');
+      }
+    } catch (e) {
+      setSubmissionErr(e.message || '제출 실패');
+    } finally {
+      setIsSubmittingAssign(false);
+    }
+  }, [token, groupId, submissionForm, fetchSubmissionList]);
 
 
 
@@ -49,20 +139,64 @@ export default function Group() {
     }
   }, [user, groupId]);
 
-  // 과제 목록 조회
+  // 유저 페이지에서 스터디 목록 불러오기
+  useEffect(() => {
+    let isMounted = true;
+    async function fetchUserGroups() {
+      try {
+        if (!token) {
+          if (isMounted) setMyStudies([]);
+          return;
+        }
+        const resp = await api('GET', '/user/user-page', null, token);
+        const groups = resp?.data?.studyGroups || [];
+        const mapped = groups.map(g => ({
+          groupId: g.studyGroupId,
+          name: g.name || g.category || '이름없음',
+          createdAt: new Date().toISOString(),
+          description: '',
+          category: g.category ? [g.category] : [],
+          GroupImage: g.studyImage || null,
+          createdById: resp?.data?.userId,
+          members: []
+        }));
+        if (isMounted) setMyStudies(mapped);
+      } catch (e) {
+        console.error('Failed to load user-page/studyGroups:', e);
+        if (isMounted) setMyStudies([]);
+      }
+    }
+    fetchUserGroups();
+    return () => { isMounted = false; };
+  }, [token]);
+
+  // 커리큘럼(계획) 목록 조회
+  const mapPlanToAssignment = React.useCallback((p) => ({
+    assignmentId: p.planId ?? p.assignmentId,
+    title: p.title,
+    content: p.content ?? p.description ?? '',
+    hasAssignment: p.hasAssignment,
+    startDate: p.startDate,
+    endDate: p.endDate,
+    createdAt: p.createdAt ?? null,
+    updatedAt: p.updatedAt ?? null,
+    creatorName: p.creatorName ?? null,
+  }), []);
+
   const fetchAssignmentsCb = React.useCallback(async () => {
     try {
       if (!token || !groupId || isNaN(groupId)) {
         return;
       }
-      const result = await api('GET', `/groups/${groupId}/assignments`, null, token);
-      if (result.code === 'SUCCESS') setAssignments(result.data);
-      else if (Array.isArray(result)) setAssignments(result);
-      else setAssignments([]);
+      const result = await api('GET', `/group/${groupId}/plan`, null, token);
+      let plans = [];
+      if (result && result.code === 'SUCCESS' && Array.isArray(result.data)) plans = result.data;
+      else if (Array.isArray(result)) plans = result;
+      setAssignments(plans.map(mapPlanToAssignment));
     } catch {
       setAssignments([]);
     }
-  }, [groupId, token]);
+  }, [groupId, token, mapPlanToAssignment]);
 
   useEffect(() => {
     if (groupId && token) fetchAssignmentsCb();
@@ -86,7 +220,7 @@ export default function Group() {
     return now > deadline;
   };
   
-  // 과제 목록 조회 함수
+  // 커리큘럼(계획) 목록 조회 함수
   const fetchAssignments = async () => {
     try {
       if (!token || !groupId || isNaN(groupId)) {
@@ -98,24 +232,25 @@ export default function Group() {
       console.log('GroupId:', groupId, '(타입:', typeof groupId, ')');
       console.log('Token available:', !!token);
       console.log('Token 길이:', token ? token.length : 0);
-             console.log('API endpoint:', `/groups/${groupId}/assignments`);
-       console.log('Full URL:', `http://localhost:8080/api/v1/groups/${groupId}/assignments`);
-       
-       const result = await api('GET', `/groups/${groupId}/assignments`, null, token);
+      console.log('API endpoint:', `/group/${groupId}/plan`);
+      console.log('Full URL:', `http://localhost:8080/api/v1/group/${groupId}/plan`);
+      
+      const result = await api('GET', `/group/${groupId}/plan`, null, token);
       console.log('Fetch assignments result:', result);
       console.log('Result type:', typeof result);
       console.log('Result structure:', Object.keys(result));
       
       // 백엔드 응답 구조에 따라 처리
-      if (result.code === 'SUCCESS') {
-        console.log('과제 목록 조회 성공, 데이터:', result.data);
-        setAssignments(result.data);
+      if (result && result.code === 'SUCCESS' && Array.isArray(result.data)) {
+        console.log('계획 목록 조회 성공, 데이터:', result.data);
+        const mapped = result.data.map(mapPlanToAssignment);
+        setAssignments(mapped);
       } else if (Array.isArray(result)) {
-        // 백엔드에서 직접 리스트를 반환하는 경우
         console.log('백엔드에서 직접 리스트 반환:', result);
-        setAssignments(result);
+        const mapped = result.map(mapPlanToAssignment);
+        setAssignments(mapped);
       } else {
-        console.error('과제 목록 조회 실패:', result.message || '알 수 없는 응답 구조');
+        console.error('계획 목록 조회 실패:', result?.message || '알 수 없는 응답 구조');
         setAssignments([]);
       }
     } catch (error) {
@@ -127,7 +262,6 @@ export default function Group() {
       console.error('Token preview:', token ? token.substring(0, 20) + '...' : 'No token');
       setAssignments([]);
       
-      // 사용자에게 더 명확한 에러 메시지 제공
       if (error.message.includes('500')) {
         console.error('백엔드 서버 오류가 발생했습니다. 백엔드 개발자에게 문의하세요.');
       }
@@ -153,6 +287,7 @@ export default function Group() {
   const [assignmentFormData, setAssignmentFormData] = useState({
     title: "",
     description: "",
+    hasAssignment: false,
     startDate: "",
     endDate: ""
   });
@@ -166,7 +301,7 @@ export default function Group() {
     language: 'ko_KR',
     menubar: false,
     plugins: 'advlist autolink lists link image charmap anchor searchreplace visualblocks code fullscreen insertdatetime media table help wordcount',
-    toolbar: 'undo redo | formatselect fontselect fontsizeselect | bold italic underline strikethrough | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image media table | removeformat code',
+    toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image media table | removeformat code',
     font_formats: 'Arial=arial,helvetica,sans-serif; Courier New=courier new,courier,monospace; Times New Roman=times new roman,times; Noto Sans KR=noto sans kr,sans-serif; Malgun Gothic=malgun gothic,sans-serif',
     fontsize_formats: '8pt 10pt 12pt 14pt 16pt 18pt 20pt 24pt 28pt 32pt 36pt',
     content_style: `body { 
@@ -188,7 +323,8 @@ export default function Group() {
       color: #0052a3;
       text-decoration: none;
     }`,
-    placeholder: '과제 설명을 입력하세요...',
+    toolbar_mode: 'wrap',
+    placeholder: '커리큘럼 설명을 입력하세요...',
     branding: false,
     elementpath: false,
     resize: false,
@@ -205,12 +341,51 @@ export default function Group() {
     link_default_target: '_blank'
   }
 
-  // 주차별 과제 확장/축소 토글 함수
-  const toggleWeekExpansion = (week) => {
-    setExpandedWeeks(prev => ({
-      ...prev,
-      [week]: !prev[week]
-    }));
+  // 계획 상세 조회 (creatorName, updatedAt, comments 등 확보)
+  const fetchPlanDetail = React.useCallback(async (planId) => {
+    try {
+      if (!token || !groupId || isNaN(groupId)) return;
+      const res = await api('GET', `/group/${groupId}/plan/${planId}`, null, token);
+      const d = res?.data || res;
+      if (!d) return;
+      setAssignments(prev => prev.map(a => a.assignmentId === (d.planId ?? d.assignmentId)
+        ? {
+            ...a,
+            title: d.title ?? a.title,
+            content: (d.content ?? d.description ?? a.content),
+            hasAssignment: d.hasAssignment ?? a.hasAssignment,
+            startDate: d.startDate ?? a.startDate,
+            endDate: d.endDate ?? a.endDate,
+            creatorName: d.creatorName ?? a.creatorName,
+            createdAt: d.createdAt ?? a.createdAt,
+            updatedAt: d.updatedAt ?? a.updatedAt,
+            commentCount: d.commentCount ?? a.commentCount,
+            commentList: d.commentList ?? a.commentList,
+          }
+        : a));
+    } catch {}
+  }, [groupId, token]);
+
+  // 페이지 진입 시 역할 판별 (groupId/token 준비되면 즉시)
+  useEffect(() => {
+    if (groupId && token && isMentor === null) {
+      checkMentor();
+    }
+  }, [groupId, token, isMentor, checkMentor]);
+
+  // 주차별 과제 확장/축소 토글 함수 (열릴 때 상세 조회)
+  const toggleWeekExpansion = (week, planId) => {
+    setExpandedWeeks(prev => {
+      const willOpen = !prev[week];
+      if (willOpen) {
+        if (planId) fetchPlanDetail(planId);
+        if (isMentor && mentees.length === 0) {
+          fetchMentees();
+        }
+        if (planId) fetchSubmissionList(planId);
+      }
+      return { ...prev, [week]: willOpen };
+    });
   };
 
   // 과제 생성 모달 열기 함수
@@ -219,6 +394,7 @@ export default function Group() {
       setAssignmentFormData({
         title: assignment.title,
         description: assignment.content, // API에서는 content로 오지만 프론트에서는 description으로 사용
+        hasAssignment: assignment.hasAssignment ?? false,
         startDate: assignment.startDate ? assignment.startDate.slice(0, 16) : '', // datetime-local 형식에 맞게 변환
         endDate: assignment.endDate ? assignment.endDate.slice(0, 16) : ''
       });
@@ -226,6 +402,7 @@ export default function Group() {
       setAssignmentFormData({
         title: "",
         description: "",
+        hasAssignment: false,
         startDate: "",
         endDate: ""
       });
@@ -248,6 +425,7 @@ export default function Group() {
     setAssignmentFormData({
       title: "",
       description: "",
+      hasAssignment: false,
       startDate: "",
       endDate: ""
     });
@@ -282,25 +460,26 @@ export default function Group() {
       
       const requestBody = {
         title: assignmentData.title,
-        content: assignmentData.description, // API에서는 content로 보내야 함
-        startDate: assignmentData.startDate,
-        endDate: assignmentData.endDate
+        content: assignmentData.description,
+        hasAssignment: !!assignmentData.hasAssignment,
+        startDate: assignmentData.startDate && assignmentData.startDate.length === 16 ? `${assignmentData.startDate}:00` : assignmentData.startDate,
+        endDate: assignmentData.endDate && assignmentData.endDate.length === 16 ? `${assignmentData.endDate}:00` : assignmentData.endDate
       };
       
-      console.log('Creating assignment with data:', requestBody);
-      console.log('API endpoint:', `/groups/${groupId}/create-assignment`);
+      console.log('Creating plan with data:', requestBody);
+      console.log('API endpoint:', `/mentor/group/${groupId}/create-plan`);
       
-      const result = await api('POST', `/groups/${groupId}/create-assignment`, requestBody, token);
-      console.log('Create assignment result:', result);
+      const result = await api('POST', `/mentor/group/${groupId}/create-plan`, requestBody, token);
+      console.log('Create plan result:', result);
       
       if (result.code === 'SUCCESS') {
         return { success: true, data: result.data };
       } else {
-        throw new Error(result.message || '과제 생성에 실패했습니다.');
+        throw new Error(result.message || '커리큘럼 생성에 실패했습니다.');
       }
     } catch (error) {
-      console.error('과제 생성 오류:', error);
-      return { success: false, error: { message: error.message || '과제 생성에 실패했습니다.' } };
+      console.error('커리큘럼 생성 오류:', error);
+      return { success: false, error: { message: error.message || '커리큘럼 생성에 실패했습니다.' } };
     }
   };
 
@@ -317,25 +496,26 @@ export default function Group() {
       
       const requestBody = {
         title: assignmentData.title,
-        content: assignmentData.description, // API에서는 content로 보내야 함
-        startDate: assignmentData.startDate,
-        endDate: assignmentData.endDate
+        description: assignmentData.description,
+        hasAssignment: !!assignmentData.hasAssignment,
+        startDate: assignmentData.startDate && assignmentData.startDate.length === 16 ? `${assignmentData.startDate}:00` : assignmentData.startDate,
+        endDate: assignmentData.endDate && assignmentData.endDate.length === 16 ? `${assignmentData.endDate}:00` : assignmentData.endDate
       };
       
-      console.log('Updating assignment with data:', requestBody);
-             console.log('API endpoint:', `/groups/${groupId}/assignments/${assignmentId}`);
-       
-       const result = await api('PUT', `/groups/${groupId}/assignments/${assignmentId}`, requestBody, token);
-      console.log('Update assignment result:', result);
+      console.log('Updating plan with data:', requestBody);
+      console.log('API endpoint:', `/mentor/group/${groupId}/plan/${assignmentId}`);
+      
+      const result = await api('PUT', `/mentor/group/${groupId}/plan/${assignmentId}`, requestBody, token);
+      console.log('Update plan result:', result);
       
       if (result.code === 'SUCCESS') {
         return { success: true, data: result.data };
       } else {
-        throw new Error(result.message || '과제 수정에 실패했습니다.');
+        throw new Error(result.message || '커리큘럼 수정에 실패했습니다.');
       }
     } catch (error) {
-      console.error('과제 수정 오류:', error);
-      return { success: false, error: { message: error.message || '과제 수정에 실패했습니다.' } };
+      console.error('커리큘럼 수정 오류:', error);
+      return { success: false, error: { message: error.message || '커리큘럼 수정에 실패했습니다.' } };
     }
   };
 
@@ -349,18 +529,18 @@ export default function Group() {
       if (!groupId || isNaN(groupId)) {
         throw new Error('유효하지 않은 그룹 ID입니다.');
       }
-             console.log('Deleting assignment with ID:', assignmentId);
-       const result = await api('DELETE', `/groups/${groupId}/assignments/${assignmentId}`, null, token);
-      console.log('Delete assignment result:', result);
+      console.log('Deleting plan with ID:', assignmentId);
+      const result = await api('DELETE', `/mentor/group/${groupId}/plan/${assignmentId}`, null, token);
+      console.log('Delete plan result:', result);
       
       if (result.code === 'SUCCESS') {
         return { success: true };
       } else {
-        throw new Error(result.message || '과제 삭제에 실패했습니다.');
+        throw new Error(result.message || '커리큘럼 삭제에 실패했습니다.');
       }
     } catch (error) {
-      console.error('과제 삭제 오류:', error);
-      return { success: false, error: { message: error.message || '과제 삭제에 실패했습니다.' } };
+      console.error('커리큘럼 삭제 오류:', error);
+      return { success: false, error: { message: error.message || '커리큘럼 삭제에 실패했습니다.' } };
     }
   };
 
@@ -403,7 +583,7 @@ export default function Group() {
       
       if (result.success) {
         closeAssignmentModal();
-        alert(assignmentModal.mode === 'create' ? '과제가 생성되었습니다.' : '과제가 수정되었습니다.');
+        alert(assignmentModal.mode === 'create' ? '커리큘럼이 생성되었습니다.' : '커리큘럼이 수정되었습니다.');
       } else {
         alert(result.error.message || '오류가 발생했습니다.');
       }
@@ -424,13 +604,13 @@ export default function Group() {
         try {
           await fetchAssignments();
           closeDeleteModal();
-          alert('과제가 삭제되었습니다.');
+          alert('커리큘럼이 삭제되었습니다.');
         } catch (fetchError) {
           console.error('과제 목록 새로고침 실패:', fetchError);
           alert('과제가 삭제되었지만 목록을 새로고침하는 중 오류가 발생했습니다. 페이지를 새로고침해주세요.');
         }
       } else {
-        alert(result.error.message || '과제 삭제에 실패했습니다.');
+        alert(result.error.message || '커리큘럼 삭제에 실패했습니다.');
       }
     } catch (error) {
       console.error('과제 삭제 오류:', error);
@@ -451,6 +631,70 @@ export default function Group() {
     isOpen: false,
     activeTab: 'add' // 'add' 또는 'remove'
   });
+
+  // 멘티 추가 모달 상태
+  const [addMenteeModal, setAddMenteeModal] = useState({
+    isOpen: false,
+    studentNumber: '',
+    submitting: false,
+    error: ''
+  });
+
+  // 멘티 추가 제출 핸들러 (모달 확인 버튼)
+  const handleAddMenteeSubmit = async () => {
+    if (!token) { setAddMenteeModal(prev => ({ ...prev, error: '로그인이 필요합니다.' })); return; }
+    if (!groupId || isNaN(groupId)) { setAddMenteeModal(prev => ({ ...prev, error: '유효하지 않은 그룹 ID입니다.' })); return; }
+    const sn = (addMenteeModal.studentNumber || '').trim();
+    if (!sn) { setAddMenteeModal(prev => ({ ...prev, error: '학번을 입력하세요.' })); return; }
+    setAddMenteeModal(prev => ({ ...prev, submitting: true, error: '' }));
+    try {
+      const res = await api('POST', `/mentor/group/${groupId}/add-member/${sn}`, null, token);
+      if (res?.code === 'SUCCESS') {
+        alert('멘티가 추가되었습니다.');
+        setAddMenteeModal({ isOpen: false, studentNumber: '', submitting: false, error: '' });
+      } else {
+        setAddMenteeModal(prev => ({ ...prev, error: res?.message || '추가에 실패했습니다.' }));
+      }
+    } catch (e) {
+      setAddMenteeModal(prev => ({ ...prev, error: e.message || '추가 중 오류가 발생했습니다.' }));
+    } finally {
+      setAddMenteeModal(prev => ({ ...prev, submitting: false }));
+    }
+  };
+ 
+  // 멘티 삭제 확인 모달 상태
+  const [confirmDeleteMentee, setConfirmDeleteMentee] = useState({ isOpen: false, studentNumber: '' });
+
+  // 삭제 버튼 클릭 → 확인 모달 열기
+  const handleDeleteMenteeSubmit = (studentNumber) => {
+    const sn = (studentNumber ?? addMenteeModal.studentNumber ?? '').trim();
+    if (!sn) { setAddMenteeModal(prev => ({ ...prev, error: '학번을 입력하세요.' })); return; }
+    setConfirmDeleteMentee({ isOpen: true, studentNumber: sn });
+  };
+
+  // 확인 모달에서 실제 삭제 수행
+  const handleConfirmDeleteMentee = async () => {
+    if (!token) { setAddMenteeModal(prev => ({ ...prev, error: '로그인이 필요합니다.' })); return; }
+    if (!groupId || isNaN(groupId)) { setAddMenteeModal(prev => ({ ...prev, error: '유효하지 않은 그룹 ID입니다.' })); return; }
+    const sn = confirmDeleteMentee.studentNumber;
+    setAddMenteeModal(prev => ({ ...prev, submitting: true, error: '' }));
+    try {
+      const res = await api('DELETE', `/mentor/group/${groupId}/delete-member/${sn}`, null, token);
+      if (res?.code === 'SUCCESS') {
+        alert('멘티가 삭제되었습니다.');
+        setConfirmDeleteMentee({ isOpen: false, studentNumber: '' });
+        // 팝오버 유지 + 목록 새로고침
+        setAddMenteeModal(prev => ({ ...prev, isOpen: true, submitting: false, error: '', studentNumber: '' }));
+        try { await fetchMentees(); } catch {}
+      } else {
+        setAddMenteeModal(prev => ({ ...prev, error: res?.message || '삭제에 실패했습니다.' }));
+      }
+    } catch (e) {
+      setAddMenteeModal(prev => ({ ...prev, error: e.message || '삭제 중 오류가 발생했습니다.' }));
+    } finally {
+      setAddMenteeModal(prev => ({ ...prev, submitting: false }));
+    }
+  };
 
   // 동아리 전체 부원 목록 (하드코딩 제거)
   const [clubMembers] = useState([]);
@@ -641,7 +885,7 @@ export default function Group() {
           <h1 className="heading">Study Not Found</h1>
           <div className="studies-container">
                          <p>해당 스터디를 찾을 수 없습니다.</p>
-                                                       <Link to="/groups" className="btn">Back to Groups</Link>
+                                                       <Link to="/groups" className="btn">Back</Link>
           </div>
         </section>
       );
@@ -653,10 +897,62 @@ export default function Group() {
           <div className="group-detail">
                                        {/* 스터디 제목과 뒤로가기 버튼 */}
               <div className="group-detail-title">
-                <Link to="/groups" className="group-back-btn">
-                  <i className="fas fa-arrow-left"></i> Back to Groups
-                </Link>
-                <h1 className="heading">{selectedStudy.name}</h1>
+                <div className="gdt-left">
+                  <Link to="/groups" className="group-back-btn">
+                    <i className="fas fa-arrow-left"></i> Back
+                  </Link>
+                </div>
+                <div className="gdt-center">
+                  <h1 className="heading" style={{ margin: 0 }}>{selectedStudy.name}</h1>
+                  {import.meta.env?.DEV && isMentor !== null && (
+                    <span className={`dev-role-badge ${isMentor ? 'mentor' : 'mentee'}`}>{isMentor ? '멘토' : '멘티'}</span>
+                  )}
+                </div>
+                <div className="gdt-right">
+                  {isMentor && (
+                    <div className="mentee-action">
+                      <button
+                        className="btn btn-secondary btn-sm btn-mentee"
+                        onClick={() => setAddMenteeModal(prev => { const willOpen = !prev.isOpen; if (willOpen && mentees.length === 0) fetchMentees(); return { ...prev, isOpen: willOpen }; })}
+                      >
+                        멘티 관리
+                      </button>
+                      {addMenteeModal?.isOpen && (
+                        <div className="mentee-popover" onClick={(e)=>e.stopPropagation()}>
+                          <div className="form-group" style={{ marginBottom: '1rem' }}>
+                            <label>학번</label>
+                            <input
+                              type="text"
+                              value={addMenteeModal.studentNumber || ''}
+                              onChange={(e) => setAddMenteeModal(prev => ({ ...prev, studentNumber: e.target.value }))}
+                              placeholder="학번을 입력하세요"
+                            />
+                          </div>
+                          {addMenteeModal.error && (
+                            <p style={{ color: '#dc3545', fontSize: '1.4rem', marginBottom: '1rem' }}>{addMenteeModal.error}</p>
+                          )}
+                          <div style={{ maxHeight: '180px', overflowY: 'auto', marginBottom: '8px' }}>
+                            {menteesLoading ? (
+                              <p style={{ fontSize: '1.3rem', color: 'var(--light-color)' }}>로딩 중...</p>
+                            ) : (mentees.length ? mentees.map(m => (
+                              <div key={m.userId} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:'8px', padding:'6px 4px', borderBottom:'1px solid rgba(0,0,0,.06)' }}>
+                                <div style={{ display:'flex', flexDirection:'column' }}>
+                                  <span style={{ fontSize:'1.3rem' }}>{m.name} <span style={{ color:'var(--light-color)' }}>({m.studentNumber})</span></span>
+                                  <span style={{ fontSize:'1.2rem', color:'var(--light-color)' }}>{m.email}</span>
+                                </div>
+                                <button className="inline-delete-btn btn-sm" title="삭제" onClick={() => handleDeleteMenteeSubmit(String(m.studentNumber))}>삭제</button>
+                              </div>
+                            )) : <p style={{ fontSize:'1.3rem', color:'var(--light-color)' }}>멘티가 없습니다.</p>)}
+                          </div>
+                          <div className="mentee-actions-row">
+                            <button className="inline-btn btn-sm" onClick={() => setAddMenteeModal({ isOpen: false, studentNumber: '', submitting: false, error: '' })}>취소</button>
+                            <button className="inline-btn btn-sm" disabled={!!addMenteeModal.submitting} onClick={handleAddMenteeSubmit}>추가</button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
             
             
@@ -664,27 +960,29 @@ export default function Group() {
                          
 
                            {/* 주차별 과제 제출 테이블 */}
-              <div className="group-assignments">
+              <div className="group-assignments curriculum-list">
                 <div className="group-assignments-header">
                   <h2 className="group-assignments-title">
-                    과제
+                    커리큘럼
 
-                    <button 
-                      className="btn assignment-create-btn"
-                      onClick={() => openAssignmentModal('create')}
-                    >
-                      <i className="fas fa-plus"></i> 과제 생성
-                    </button>
+                    {isMentor && (
+                      <button 
+                        className="btn assignment-create-btn"
+                        onClick={() => openAssignmentModal('create')}
+                      >
+                        <i className="fas fa-plus"></i> 커리큘럼 생성
+                      </button>
+                    )}
                   </h2>
                 </div>
                
-                                                               {/* 과제 목록 */}
+                                                               {/* 커리큘럼 목록 */}
                 {assignments.length > 0 ? (
                   assignments.map((assignment) => (
-                    <div key={assignment.assignmentId} className="week-assignment">
+                    <div key={assignment.assignmentId} className="week-assignment week-curriculum">
                       <button 
                         className={`week-button ${expandedWeeks[`assignment-${assignment.assignmentId}`] ? 'expanded' : ''}`}
-                        onClick={() => toggleWeekExpansion(`assignment-${assignment.assignmentId}`)}
+                        onClick={() => toggleWeekExpansion(`assignment-${assignment.assignmentId}`, assignment.assignmentId)}
                       >
                         <div className="week-button-content">
                           <div className="week-title-container">
@@ -704,11 +1002,15 @@ export default function Group() {
                       </button>
                       
                       <div className={`week-content ${expandedWeeks[`assignment-${assignment.assignmentId}`] ? 'expanded' : ''}`}>
-                        {/* 과제 설명 섹션 */}
-                        <div className="assignment-description">
-                          <div className="assignment-description-header">
-                            <h4 className="assignment-description-title">과제 설명</h4>
-                            <div className="assignment-actions">
+                        {/* 커리큘럼 상세 섹션 */}
+                        <div className="curriculum-detail">
+                          <div className="curriculum-detail-header">
+                            <div className="curriculum-meta">
+                              <span className="meta-item"><i className="fas fa-user"></i> {assignment.creatorName || '작성자 미표기'}</span>
+                              <span className="meta-item"><i className="fas fa-calendar-plus"></i> {assignment.createdAt ? new Date(assignment.createdAt).toLocaleString('ko-KR') : '생성일 미상'}</span>
+                              <span className="meta-item"><i className="fas fa-pen"></i> {assignment.updatedAt ? new Date(assignment.updatedAt).toLocaleString('ko-KR') : '수정 이력 없음'}</span>
+                            </div>
+                            <div className="curriculum-actions">
                               <button 
                                 className="btn btn-small btn-secondary"
                                 onClick={() => openAssignmentModal('edit', assignment)}
@@ -723,71 +1025,78 @@ export default function Group() {
                               </button>
                             </div>
                           </div>
-                          <p className="assignment-description-text">
-                            <div dangerouslySetInnerHTML={{ __html: assignment.content }}></div>
-                          </p>
-                          <div className="assignment-dates">
-                            <span className="assignment-date">
-                              <i className="fas fa-calendar-alt"></i>
-                              시작: {assignment.startDate ? 
-                                new Date(assignment.startDate).toLocaleString('ko-KR') : '미정'}
-                            </span>
-                            <span className="assignment-date">
-                              <i className="fas fa-calendar-check"></i>
-                              마감: {assignment.endDate ? 
-                                new Date(assignment.endDate).toLocaleString('ko-KR') : '미정'}
-                            </span>
+                          <div className="curriculum-content" dangerouslySetInnerHTML={{ __html: assignment.content }}></div>
+                          <div className="curriculum-dates">
+                            <span className="curriculum-date"><i className="fas fa-calendar-alt"></i> 시작: {assignment.startDate ? new Date(assignment.startDate).toLocaleString('ko-KR') : '미정'}</span>
+                            <span className="curriculum-date"><i className="fas fa-calendar-check"></i> 마감: {assignment.endDate ? new Date(assignment.endDate).toLocaleString('ko-KR') : '미정'}</span>
                           </div>
                         </div>
                         
-                        {/* 멤버 제출 현황 섹션 */}
-                        <div className="assignment-submissions">
-                          <h4 className="assignment-submissions-title">멤버 제출 현황</h4>
-                          <div className="group-members-table-container">
-                            <table className="group-members-table">
-                              <thead>
-                                <tr>
-                                  <th>이름</th>
-                                  <th>과제상태</th>
-                                  <th>과제주소</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {selectedStudy.members.map((member) => (
-                                  <tr key={member.id} className="group-member-row">
-                                    <td className="group-member-name">{member.name}</td>
-                                    <td className="member-assignment">
-                                      <select 
-                                        className="assignment-select"
-                                        value={member.assignments.week1.status}
-                                        onChange={(e) => handleAssignmentChange(selectedStudy.groupId, member.id, 'week1', e.target.value)}
-                                      >
-                                        <option value="미제출">미제출</option>
-                                        <option value="제출완료">제출완료</option>
-                                      </select>
-                                    </td>
-                                    <td className="member-assignment-url">
-                                      <input
-                                        type="text"
-                                        className="assignment-url-input"
-                                        placeholder="과제 주소 입력"
-                                        value={member.assignments.week1.url || ""}
-                                        onChange={(e) => handleAssignmentUrlChange(selectedStudy.groupId, member.id, 'week1', e.target.value)}
-                                      />
-                                    </td>
+                        {/* 제출 섹션 - 멘토/멘티 분기 */}
+                        {isMentor ? (
+                          <div className="assignment-submissions curriculum-submissions">
+                            <h4 className="assignment-submissions-title curriculum-submissions-title">제출 현황</h4>
+                            <div className="group-members-table-container">
+                              <table className="group-members-table">
+                                <thead>
+                                  <tr>
+                                    <th>이름</th>
+                                    <th>제출주소</th>
+                                    <th>제출일</th>
                                   </tr>
-                                ))}
-                              </tbody>
-                            </table>
+                                </thead>
+                                <tbody>
+                                  {submissionLoading ? (
+                                    <tr><td colSpan={3}>로딩 중...</td></tr>
+                                  ) : (submissionList.length ? submissionList.map((s) => (
+                                    <tr key={s.submissionId || `${s.creatorName}-${s.content}` } className="group-member-row" onClick={() => fetchSubmissionDetail(assignment.assignmentId, s.submissionId)} style={{ cursor:'pointer' }}>
+                                      <td className="group-member-name">{s.creatorName || '익명'}</td>
+                                      <td className="member-assignment-url"><a href={s.content} target="_blank" rel="noreferrer">{s.content}</a></td>
+                                      <td>{s.createdAt ? new Date(s.createdAt).toLocaleString('ko-KR') : '-'}</td>
+                                    </tr>
+                                  )) : (
+                                    <tr><td colSpan={3}>제출 내역이 없습니다.</td></tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                              {selectedSubmission && (
+                                <div className="curriculum-detail" style={{ marginTop: '12px' }}>
+                                  <div className="curriculum-meta">
+                                    <span className="meta-item"><i className="fas fa-user"></i> {selectedSubmission.creatorName}</span>
+                                    <span className="meta-item"><i className="fas fa-calendar-plus"></i> {new Date(selectedSubmission.createdAt).toLocaleString('ko-KR')}</span>
+                                  </div>
+                                  <div className="curriculum-content">{selectedSubmission.content}</div>
+                                </div>
+                              )}
+                            </div>
                           </div>
-                        </div>
+                        ) : (
+                          <div className="assignment-submissions curriculum-submissions">
+                            <h4 className="assignment-submissions-title curriculum-submissions-title">과제 제출</h4>
+                            <div className="curriculum-detail" style={{ padding:'16px' }}>
+                              <div className="form-group" style={{ marginBottom:'10px' }}>
+                                <label>과제 주소</label>
+                                <input type="text" value={submissionForm.content} onChange={(e)=>setSubmissionForm(f=>({...f, content:e.target.value}))} placeholder="https://..." />
+                              </div>
+                              <div className="form-group" style={{ marginBottom:'10px' }}>
+                                <label>비밀번호</label>
+                                <input type="password" value={submissionForm.password} onChange={(e)=>setSubmissionForm(f=>({...f, password:e.target.value}))} placeholder="티스토리 글 비밀번호" />
+                              </div>
+                              {submissionErr && <p style={{ color:'#dc3545', fontSize:'1.4rem' }}>{submissionErr}</p>}
+                              {submissionMsg && <p style={{ color:'var(--main-color)', fontSize:'1.4rem' }}>{submissionMsg}</p>}
+                              <div className="mentee-actions-row">
+                                <button className="inline-btn btn-sm" disabled={isSubmittingAssign} onClick={()=>submitAssignment(assignment.assignmentId)}>제출</button>
+                              </div>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))
                 ) : (
-                  <div className="no-assignments">
-                    <p className="no-assignments-text">아직 등록된 과제가 없습니다.</p>
-                    <p className="no-assignments-hint">과제 생성 버튼을 클릭하여 첫 번째 과제를 등록해보세요.</p>
+                  <div className="no-assignments no-curriculum">
+                    <p className="no-assignments-text no-curriculum-text">아직 등록된 커리큘럼이 없습니다.</p>
+                    <p className="no-assignments-hint no-curriculum-hint">커리큘럼 생성 버튼을 클릭하여 첫 번째 커리큘럼을 등록해보세요.</p>
                   </div>
                 )}
 
@@ -918,7 +1227,7 @@ export default function Group() {
              <div className="assignment-modal-content" onClick={(e) => e.stopPropagation()}>
                <div className="assignment-modal-header">
                  <h3 className="assignment-modal-title">
-                   {assignmentModal.mode === 'create' ? '과제 생성' : '과제 수정'}
+                   {assignmentModal.mode === 'create' ? '커리큘럼 생성' : '커리큘럼 수정'}
                  </h3>
                  <button className="assignment-modal-close" onClick={closeAssignmentModal}>
                    <i className="fas fa-times"></i>
@@ -934,7 +1243,7 @@ export default function Group() {
                      onChange={(e) => setAssignmentFormData({...assignmentFormData, title: e.target.value})}
                      required
                      maxLength={200}
-                     placeholder="과제 제목을 입력하세요"
+                     placeholder="커리큘럼 제목을 입력하세요"
                    />
                  </div>
                  
@@ -951,6 +1260,18 @@ export default function Group() {
                    </div>
                  </div>
                  
+                 <div className="form-group checkbox-row">
+                   <span className="checkbox-label">과제 포함</span>
+                   <label className="custom-checkbox">
+                     <input
+                       type="checkbox"
+                       checked={!!assignmentFormData.hasAssignment}
+                       onChange={(e) => setAssignmentFormData({ ...assignmentFormData, hasAssignment: e.target.checked })}
+                     />
+                     <span className="box" aria-hidden="true"></span>
+                   </label>
+                 </div>
+                 
                  <div className="form-row">
                    <div className="form-group">
                      <label>시작 날짜</label>
@@ -963,7 +1284,7 @@ export default function Group() {
                             const day = String(date.getDate()).padStart(2, '0');
                             const hours = String(date.getHours()).padStart(2, '0');
                             const minutes = String(date.getMinutes()).padStart(2, '0');
-                            const formattedDate = `${year}-${month}-${day}T${hours}:${minutes}`;
+                            const formattedDate = `${year}-${month}-${day}T${hours}:${minutes}:00`;
                             setAssignmentFormData({...assignmentFormData, startDate: formattedDate});
                           } else {
                             setAssignmentFormData({...assignmentFormData, startDate: ''});
@@ -992,7 +1313,7 @@ export default function Group() {
                             const day = String(date.getDate()).padStart(2, '0');
                             const hours = String(date.getHours()).padStart(2, '0');
                             const minutes = String(date.getMinutes()).padStart(2, '0');
-                            const formattedDate = `${year}-${month}-${day}T${hours}:${minutes}`;
+                            const formattedDate = `${year}-${month}-${day}T${hours}:${minutes}:00`;
                             setAssignmentFormData({...assignmentFormData, endDate: formattedDate});
                           } else {
                             setAssignmentFormData({...assignmentFormData, endDate: ''});
@@ -1029,14 +1350,14 @@ export default function Group() {
             <div className="assignment-modal-overlay">
               <div className="assignment-modal-content delete-modal" onClick={(e) => e.stopPropagation()}>
                 <div className="assignment-modal-header">
-                  <h3 className="assignment-modal-title">과제 삭제</h3>
+                  <h3 className="assignment-modal-title">커리큘럼 삭제</h3>
                   <button className="assignment-modal-close" onClick={closeDeleteModal}>
                     <i className="fas fa-times"></i>
                   </button>
                 </div>
                 
                 <div className="assignment-modal-body">
-                  <p>정말로 "{deleteModal.assignment?.title}" 과제를 삭제하시겠습니까?</p>
+                  <p>정말로 "{deleteModal.assignment?.title}" 커리큘럼을 삭제하시겠습니까?</p>
                   <p>이 작업은 되돌릴 수 없습니다.</p>
                 </div>
                 
@@ -1051,6 +1372,29 @@ export default function Group() {
               </div>
             </div>
           )}
+
+          {/* 멘티 삭제 전용 확인 모달 (커리큘럼 삭제 모달 스타일 재사용) */}
+          {confirmDeleteMentee.isOpen && (
+            <div className="assignment-modal-overlay" onClick={() => setConfirmDeleteMentee({ isOpen: false, studentNumber: '' })}>
+              <div className="assignment-modal-content delete-modal" onClick={(e) => e.stopPropagation()}>
+                <div className="assignment-modal-header">
+                  <h3 className="assignment-modal-title">스터디원 삭제</h3>
+                  <button className="assignment-modal-close" onClick={() => setConfirmDeleteMentee({ isOpen: false, studentNumber: '' })}>
+                    <i className="fas fa-times"></i>
+                  </button>
+                </div>
+                <div className="assignment-modal-body">
+                  <p>정말로 학번 "{confirmDeleteMentee.studentNumber}" 스터디원을 삭제하시겠습니까?</p>
+                </div>
+                <div className="assignment-modal-footer">
+                  <button className="btn btn-secondary" onClick={() => setConfirmDeleteMentee({ isOpen: false, studentNumber: '' })}>취소</button>
+                  <button className="btn btn-danger" onClick={handleConfirmDeleteMentee}>삭제</button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* (삭제됨) 멘티 추가 전체 화면 모달 → 상단 우측 버튼 하위 팝오버로 변경 */}
         </section>
       );
     }
@@ -1223,7 +1567,7 @@ export default function Group() {
               
               <div className="group-footer">
                 <Link 
-                  to={`/groups/${study.groupId}`} 
+                  to={`/groups?groupId=${study.groupId}`} 
                   className="btn group-more-btn"
                 >
                   More
