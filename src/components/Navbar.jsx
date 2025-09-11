@@ -7,7 +7,6 @@ export default function Navbar() {
   const [isProfileOpen, setIsProfileOpen] = useState(false)
   const [, setIsSearchOpen] = useState(false)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
-  const [isAdminSubmenuOpen, setIsAdminSubmenuOpen] = useState(false)
   const location = useLocation()
   const { user, logout } = useAuth()
 
