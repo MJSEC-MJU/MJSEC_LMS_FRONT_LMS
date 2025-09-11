@@ -31,7 +31,7 @@ export default function Group() {
   // 그룹 멘티 목록 및 제출 상태(로컬)
   const [mentees, setMentees] = useState([]);
   const [menteesLoading, setMenteesLoading] = useState(false);
-  const [menteeSubmissions, setMenteeSubmissions] = useState({});
+  const [_menteeSubmissions, setMenteeSubmissions] = useState({});
   const [isMentor, setIsMentor] = useState(null); // 역할 미정 → 멘토 확인 후 true/false 설정
   const [submissionForm, setSubmissionForm] = useState({ content: '', password: '' });
   const [isSubmittingAssign, setIsSubmittingAssign] = useState(false);
@@ -363,7 +363,9 @@ export default function Group() {
             commentList: d.commentList ?? a.commentList,
           }
         : a));
-    } catch {}
+    } catch (e) {
+      console.error('Error fetching assignments:', e);
+    }
   }, [groupId, token]);
 
   // 페이지 진입 시 역할 판별 (groupId/token 준비되면 즉시)
@@ -685,7 +687,9 @@ export default function Group() {
         setConfirmDeleteMentee({ isOpen: false, studentNumber: '' });
         // 팝오버 유지 + 목록 새로고침
         setAddMenteeModal(prev => ({ ...prev, isOpen: true, submitting: false, error: '', studentNumber: '' }));
-        try { await fetchMentees(); } catch {}
+        try { await fetchMentees(); } catch (e) {
+          console.error('Error refreshing mentees:', e);
+        }
       } else {
         setAddMenteeModal(prev => ({ ...prev, error: res?.message || '삭제에 실패했습니다.' }));
       }
@@ -813,7 +817,7 @@ export default function Group() {
   };
 
   // 과제 상태 변경 함수
-  const handleAssignmentChange = (studyId, memberId, week, newStatus) => {
+  const _handleAssignmentChange = (studyId, memberId, week, newStatus) => {
     setMyStudies(prevStudies => 
       prevStudies.map(study => 
         study.groupId === studyId 
@@ -837,7 +841,7 @@ export default function Group() {
   };
 
   // 과제 URL 변경 함수
-  const handleAssignmentUrlChange = (studyId, memberId, week, newUrl) => {
+  const _handleAssignmentUrlChange = (studyId, memberId, week, newUrl) => {
     setMyStudies(prevStudies => 
       prevStudies.map(study => 
         study.groupId === studyId 
