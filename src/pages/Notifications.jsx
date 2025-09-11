@@ -1,10 +1,18 @@
 ﻿import React, { useState, useEffect } from "react"
-import { Link } from "react-router-dom"
+import { Link, useSearchParams, useNavigate, useLocation } from "react-router-dom"
 import { useAuth } from "../hooks/useAuth.js";
 import { Editor } from '@tinymce/tinymce-react'
 import { api } from "../components/client"
 
 export default function Notifications() {
+  const [searchParams, setSearchParams] = React.useState(null)
+  const sp = useSearchParams()
+  const navigate = useNavigate()
+  const location = useLocation()
+  useEffect(() => {
+    const [params] = sp
+    setSearchParams(params)
+  }, [sp])
   const { user, token, isInitialized } = useAuth();
   
   // 실제 사용자 권한 기반으로 어드민 여부 확인
@@ -121,7 +129,6 @@ export default function Notifications() {
   const updateAnnouncement = async (announcementId, announcementData) => {
     try {
       const token = getAuthToken()
-      // API 명세서에 맞는 body 구조
       const requestBody = {
         title: announcementData.title.trim(),
         content: announcementData.content.trim(),
@@ -238,6 +245,20 @@ export default function Notifications() {
     loadAnnouncements()
   }, [isInitialized, fetchAnnouncements])
 
+  // 쿼리스트링 announcementId가 있으면 자동으로 해당 공지 모달 열기
+  useEffect(() => {
+    if (!searchParams || notifications.length === 0) return
+    const idRaw = searchParams.get('announcementId')
+    if (!idRaw) return
+    const id = Number(idRaw)
+    if (!Number.isFinite(id)) return
+    const found = notifications.find(n => (n.announcementId || n.id || n.noticeId) === id)
+    if (!found) return
+    setModalType("view")
+    setSelectedNotification(found)
+    setShowModal(true)
+  }, [searchParams, notifications])
+
 
   //공지사항 정렬 
   const filteredNotifications = notifications
@@ -273,6 +294,10 @@ export default function Notifications() {
 
   // 공지사항 클릭 핸들러
   const handleNotificationClick = (notification) => {
+    const id = notification.announcementId || notification.id || notification.noticeId
+    if (id) {
+      navigate({ pathname: location.pathname, search: `?announcementId=${id}` })
+    }
     setModalType("view")
     setSelectedNotification(notification)
     setShowModal(true)
@@ -313,6 +338,8 @@ export default function Notifications() {
     setModalType("")
     setSelectedNotification(null)
     setFormData({ title: "", content: "", type: "NOTICE" })
+    // URL의 announcementId 쿼리 제거
+    navigate({ pathname: location.pathname }, { replace: true })
   }
 
   const handleFormSubmit = async (e) => {
