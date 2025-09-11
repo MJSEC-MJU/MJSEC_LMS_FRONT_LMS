@@ -7,7 +7,8 @@ export default function Navbar() {
   const [isProfileOpen, setIsProfileOpen] = useState(false)
   const [, setIsSearchOpen] = useState(false)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
-  const location = useLocation()
+  const [, setIsAdminSubmenuOpen] = useState(false)
+  const routerLocation = useLocation()
   const { user, logout } = useAuth()
 
   // Sync body class and localStorage for dark mode
@@ -27,7 +28,7 @@ export default function Navbar() {
     setIsSearchOpen(false)
     setIsAdminSubmenuOpen(false)
     if (window.innerWidth < 1200) setIsSidebarOpen(false)
-  }, [location])
+  }, [routerLocation])
 
   // Close overlays on scroll (mimics original behavior)
   useEffect(() => {
