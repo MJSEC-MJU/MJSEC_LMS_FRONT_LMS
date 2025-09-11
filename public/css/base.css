@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@200;300;400;500;600;700&display=swap');
 
 :root{
-   --main-color:#424492;
+   --main-color:#007bff;
    --red:#e74c3c;
    --orange:#f39c12;
    --light-color:#888;
@@ -145,6 +145,30 @@ section{
    background-color: var(--black);
    color: var(--white);
    transition: all 0.3s ease;
+}
+
+/* 더 보기(View more) 등 인라인 버튼 강화 스타일 */
+.inline-btn{
+   background: linear-gradient(135deg, var(--main-color) 0%, #6a6cc4 100%);
+   border: none;
+   border-radius: 9999px;
+   padding: .9rem 2rem;
+   display: inline-flex;
+   align-items: center;
+   gap: .8rem;
+   box-shadow: 0 .6rem 1.2rem rgba(0,0,0,.08);
+}
+
+.inline-btn:hover{
+   background: linear-gradient(135deg, var(--main-color) 0%, #5a5cc0 100%);
+   color: #fff;
+   transform: translateY(-.5px);
+   box-shadow: 0 .8rem 1.6rem rgba(0,0,0,.12);
+}
+
+/* 홈 화면의 현재 강좌 섹션 내 버튼 사이 간격 정돈 */
+.current-course-item .inline-btn{
+   margin-top: .6rem;
 }
 
 .flex-btn{

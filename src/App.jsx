@@ -1,7 +1,6 @@
 import { Routes, Route, Navigate } from "react-router-dom"
 import Navbar from "./components/Navbar.jsx"
 import Home from "./pages/Home.jsx"
-import Courses from "./pages/Courses.jsx"
 import Profile from "./pages/Profile.jsx"
 import Login from "./pages/Login.jsx"
 import Register from "./pages/Register.jsx"
@@ -25,7 +24,6 @@ export default function App() {
           ) : <div>Loading...</div>
           } />
         <Route path="/home" element={<Home />} />
-        <Route path="/courses" element={<Courses />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />

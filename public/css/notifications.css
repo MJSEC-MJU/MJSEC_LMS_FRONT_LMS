@@ -320,20 +320,46 @@ body:not(.active) .notification-modal-overlay {
 .notification-modal-content {
   background: var(--white);
   border-radius: 1rem;
-  width: 50%;
+  width: 80%;
   height: auto;
   max-height: 90vh;
   overflow-y: auto;
+  overflow-x: hidden; /* 가로 스크롤 방지 */
   box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.3);
   display: flex;
   flex-direction: column;
+}
+.notification-modal-content::-webkit-scrollbar {
+  background: none;
+  width: 1.2rem;
+}
+
+.notification-modal-content::-webkit-scrollbar-thumb {
+  background: rgb(125, 125, 125);
+  border-radius: 10px;
+  padding-bottom: 40px;
+}
+
+/* 실제 스크롤이 발생하는 컨테이너는 body이므로 body에도 동일 스타일 적용 */
+.notification-modal-body::-webkit-scrollbar {
+  background: none;
+  width: 1.2rem;
+}
+.notification-modal-body::-webkit-scrollbar-thumb {
+  background: rgb(125, 125, 125);
+  border-radius: 10px;
+}
+/* Firefox 지원 */
+.notification-modal-body {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(125, 125, 125) transparent;
 }
 
 /* 삭제 모달은 작게 표시 */
 .notification-modal-content.delete-modal {
   width: 40%;
   height: auto;
-  max-height: 30vh;
+  max-height: 60vh;
 }
 @media (max-width: 480px) {
   .modal-content.delete-modal {
@@ -380,6 +406,7 @@ body:not(.active) .notification-modal-overlay {
   padding: 2rem;
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden; /* 가로 스크롤 방지 */
   padding-top:0;
 }
 
@@ -792,6 +819,39 @@ body.dark .tinymce-editor-container .tox-tinymce {
   border-radius: 0.5rem;
   border: 1px solid var(--border);
   min-height: 20rem;
+  overflow-wrap: anywhere; /* 긴 단어/URL 자동 줄바꿈 */
+  word-break: break-word;
+  white-space: normal;
+}
+
+/* 상세 내용 안의 미디어 요소가 모달 폭을 넘지 않도록 처리 */
+.detail-content img,
+.detail-content video,
+.detail-content iframe {
+  max-width: 100%;
+  height: auto;
+}
+
+/* 코드/프리 텍스트가 넘치지 않도록 줄바꿈 */
+.detail-content pre,
+.detail-content code {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* 긴 URL이 들어간 링크 줄바꿈 */
+.detail-content a {
+  word-break: break-all;
+}
+
+/* 표가 폭을 넘길 때, 셀 내에서 줄바꿈 + 레이아웃 고정 */
+.detail-content table {
+  table-layout: fixed;
+  width: 100%;
+}
+.detail-content th,
+.detail-content td {
+  word-break: break-word;
 }
 
 /* 다크모드에서 상세보기 스타일 */

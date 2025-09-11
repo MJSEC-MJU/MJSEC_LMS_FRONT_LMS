@@ -71,6 +71,34 @@
    color:var(--main-color);
 }
 
+
+.current-course-item{
+   display: flex;
+   align-items: center;
+   justify-content: space-between;
+   gap: 1rem;
+   padding: .6rem 0;
+}
+.current-course-name{
+   font-size: 1.6rem;
+   color: var(--black);
+   font-weight: 600;
+}
+
+/* 네브바의 view profile과 유사한 캡슐형 스타일 적용 */
+.btn--profile{
+   background: linear-gradient(135deg, var(--main-color) 0%, #6a6cc4 100%);
+   border: none !important;
+   border-radius: 9999px !important;
+   padding: .6rem 1.4rem !important;
+   line-height: 1.2;
+   font-size: 1.4rem !important;
+   box-shadow: 0 .4rem .8rem rgba(0,0,0,.12);
+}
+.btn--profile:hover{
+   background: linear-gradient(135deg, var(--main-color) 0%, #5a5cc0 100%);
+}
+
 .quick-profile{
    width: 100%;
    text-align: center;
@@ -83,7 +111,7 @@
 }
 .notice-box a {
    color: #838383;
-   text-decoration: underline;
+   text-decoration: none;
    background: none;
    border-radius: 0;
    font-weight: normal;
@@ -96,8 +124,7 @@
  }
  
  .notice-box a:hover {
-   color: #b34700;
-   text-decoration: underline;
+   color: var(--black);
  }
 
  .notice-box .loading-notice,
@@ -113,7 +140,7 @@
  .notice-box .loading-notice {
    color: var(--main-color);
  }
- }
+ 
 /* 반응형 디자인 */
 @media (max-width:450px){
    .home-grid .box-container{
