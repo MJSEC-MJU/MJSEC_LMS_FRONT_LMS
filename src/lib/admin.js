@@ -7,12 +7,7 @@
    return api('GET', '/admin/users', null, token);
  }
 
-/**
-+ * 관리자: 사용자 삭제
-+ * @param {number|string} userId 사용자 ID (PathVariable)
-+ * @param {string} token JWT 액세스 토큰
-+ * @returns {Promise<{code:string,message:string}>}
- */
+
 export async function deleteAdminUser(userId, token) {
   if (!token) throw new Error('토큰이 필요합니다');
   if (userId === undefined || userId === null || userId === '') {
@@ -20,9 +15,7 @@ export async function deleteAdminUser(userId, token) {
   }
   return api('DELETE', `/admin/users/${userId}`, null, token);
 }
-/*** End Patchen JWT 액세스 토큰
- * @returns {Promise<{code:string,message:string}>}
- */
+
 export async function deleteAdminUser(userId, token) {
   if (!token) throw new Error('토큰이 필요합니다');
   if (userId === undefined || userId === null || userId === '') {
