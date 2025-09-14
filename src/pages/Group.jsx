@@ -55,7 +55,7 @@ export default function Group() {
       if (!token || !groupId || isNaN(groupId)) {
         return;
       }
-      const result = await api('GET', `/groups/${groupId}/assignments`, null, token);
+      const result = await api('GET', `/group/${groupId}/assignments`, null, token);
       if (result.code === 'SUCCESS') setAssignments(result.data);
       else if (Array.isArray(result)) setAssignments(result);
       else setAssignments([]);
@@ -98,10 +98,10 @@ export default function Group() {
       console.log('GroupId:', groupId, '(타입:', typeof groupId, ')');
       console.log('Token available:', !!token);
       console.log('Token 길이:', token ? token.length : 0);
-             console.log('API endpoint:', `/groups/${groupId}/assignments`);
-       console.log('Full URL:', `http://localhost:8080/api/v1/groups/${groupId}/assignments`);
+             console.log('API endpoint:', `/group/${groupId}/assignments`);
+       console.log('Full URL:', `http://localhost:8080/api/v1/group/${groupId}/assignments`);
        
-       const result = await api('GET', `/groups/${groupId}/assignments`, null, token);
+       const result = await api('GET', `/group/${groupId}/assignments`, null, token);
       console.log('Fetch assignments result:', result);
       console.log('Result type:', typeof result);
       console.log('Result structure:', Object.keys(result));
@@ -288,9 +288,9 @@ export default function Group() {
       };
       
       console.log('Creating assignment with data:', requestBody);
-      console.log('API endpoint:', `/groups/${groupId}/create-assignment`);
+      console.log('API endpoint:', `/group/${groupId}/create-assignment`);
       
-      const result = await api('POST', `/groups/${groupId}/create-assignment`, requestBody, token);
+      const result = await api('POST', `/group/${groupId}/create-assignment`, requestBody, token);
       console.log('Create assignment result:', result);
       
       if (result.code === 'SUCCESS') {
@@ -323,9 +323,9 @@ export default function Group() {
       };
       
       console.log('Updating assignment with data:', requestBody);
-             console.log('API endpoint:', `/groups/${groupId}/assignments/${assignmentId}`);
+             console.log('API endpoint:', `/group/${groupId}/assignments/${assignmentId}`);
        
-       const result = await api('PUT', `/groups/${groupId}/assignments/${assignmentId}`, requestBody, token);
+       const result = await api('PUT', `/group/${groupId}/assignments/${assignmentId}`, requestBody, token);
       console.log('Update assignment result:', result);
       
       if (result.code === 'SUCCESS') {
@@ -350,7 +350,7 @@ export default function Group() {
         throw new Error('유효하지 않은 그룹 ID입니다.');
       }
              console.log('Deleting assignment with ID:', assignmentId);
-       const result = await api('DELETE', `/groups/${groupId}/assignments/${assignmentId}`, null, token);
+       const result = await api('DELETE', `/group/${groupId}/assignments/${assignmentId}`, null, token);
       console.log('Delete assignment result:', result);
       
       if (result.code === 'SUCCESS') {
@@ -641,7 +641,7 @@ export default function Group() {
           <h1 className="heading">Study Not Found</h1>
           <div className="studies-container">
                          <p>해당 스터디를 찾을 수 없습니다.</p>
-                                                       <Link to="/groups" className="btn">Back to Groups</Link>
+                                                       <Link to="/group" className="btn">Back to Group</Link>
           </div>
         </section>
       );
@@ -649,12 +649,12 @@ export default function Group() {
 
     return (
       <section className="contact">
-        <div className="groups-container">
+        <div className="group-container">
           <div className="group-detail">
                                        {/* 스터디 제목과 뒤로가기 버튼 */}
               <div className="group-detail-title">
-                <Link to="/groups" className="group-back-btn">
-                  <i className="fas fa-arrow-left"></i> Back to Groups
+                <Link to="/group" className="group-back-btn">
+                  <i className="fas fa-arrow-left"></i> Back to Group
                 </Link>
                 <h1 className="heading">{selectedStudy.name}</h1>
               </div>
@@ -1063,7 +1063,7 @@ export default function Group() {
       return (
         <section className="contact">
           <h1 className="heading">그룹을 찾을 수 없습니다</h1>
-          <button onClick={() => navigate('/groups')} className="btn btn-primary">
+          <button onClick={() => navigate('/group')} className="btn btn-primary">
             목록으로 돌아가기
           </button>
         </section>
@@ -1073,7 +1073,7 @@ export default function Group() {
     return (
       <section className="contact">
         <div className="group-detail-header">
-          <button onClick={() => navigate('/groups')} className="btn btn-secondary">
+          <button onClick={() => navigate('/group')} className="btn btn-secondary">
             ← 목록으로 돌아가기
           </button>
           <h1 className="heading">{currentGroup.name} - 상세보기</h1>
@@ -1189,7 +1189,7 @@ export default function Group() {
   // 전체 Groups 페이지
   return (
     <section className="contact">
-      <h1 className="heading">Groups</h1>
+      <h1 className="heading">Group</h1>
       
       <div className="groups-container">
         <div className="groups-grid">
@@ -1223,7 +1223,7 @@ export default function Group() {
               
               <div className="group-footer">
                 <Link 
-                  to={`/groups/${study.groupId}`} 
+                  to={`/group/${study.groupId}`} 
                   className="btn group-more-btn"
                 >
                   More
