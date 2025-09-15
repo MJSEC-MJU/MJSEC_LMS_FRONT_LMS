@@ -46,7 +46,7 @@ export async function api(method, path, body, token) {
   if (!res.ok) {
     if (!import.meta.env.PROD) {
       // API 에러 응답 처리
-      const msgDev = (data && (data.message || data.error)) || `HTTP ${res.status}`;
+      // const msgDev = (data && (data.message || data.error)) || `HTTP ${res.status}`;
       // API 에러 메시지 처리
     }
     const msg = (data && (data.message || data.error)) || `HTTP ${res.status}`;

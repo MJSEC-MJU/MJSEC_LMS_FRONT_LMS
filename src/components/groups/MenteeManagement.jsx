@@ -15,7 +15,7 @@ export default function MenteeManagement({ groupId, isMentor, mentees, menteesLo
     isOpen: false, 
     studentNumber: '' 
   });
-  const [clubMembers] = useState([]);
+  // const [clubMembers] = useState([]);
 
   // 멘토 관리 모달 열기 함수
   const openMentorModal = () => {

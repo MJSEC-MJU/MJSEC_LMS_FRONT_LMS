@@ -111,13 +111,13 @@ export default function Profile() {
                 }
               }
             }
-          } catch (error) {
+          } catch {
             // 개별 스터디 출석률 가져오기 실패 시 무시
           }
         }
 
         if (isMounted) {
-          setAttendanceRates(rates)
+          // setAttendanceRates(rates)
           // 랜덤으로 하나 선택
           if (rates.length > 0) {
             const randomIndex = Math.floor(Math.random() * rates.length)
@@ -131,7 +131,7 @@ export default function Profile() {
             setSelectedStudyGroup(null)
           }
         }
-      } catch (error) {
+      } catch {
         // 출석률 가져오기 실패 시 무시
       }
     }
@@ -152,7 +152,7 @@ export default function Profile() {
       <h1 className="heading">your profile</h1>
       <div className="info">
         <div className="user">
-          <img src={imageSrc} alt="" onError={(e) => { e.currentTarget.src = "/images/logo.png" }} />
+          <img src={imageSrc} alt="" onError={(event) => { event.currentTarget.src = "/images/logo.png" }} />
           <h3>{displayName}</h3>
           <p>{`${displayStudentNumber} | ${displayEmail} | ${displayPhone}`}</p>
           <Link to="/update" className="inline-btn">update profile</Link>
