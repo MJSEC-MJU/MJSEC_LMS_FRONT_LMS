@@ -2,9 +2,25 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { api } from '../components/client'; // api 함수
-import { fetchAdminUsers } from '../lib/admin';
-import { deleteAdminUser } from '../lib/admin';
 
+const fetchAdminUsers = (token) => adminUsers(token).list();
+const deleteAdminUser = (userId, token) => adminUsers(token).remove(userId);
+const ensureToken = (token) => {
+  if (!token) throw new Error('토큰이 필요합니다');
+};
+
+const adminUsers = (token) => {
+  ensureToken(token);
+  return {
+    list: () => api('GET', '/admin/users', null, token),
+    remove: (userId) => {
+      if (userId === undefined || userId === null || userId === '') {
+        throw new Error('userId가 필요합니다');
+      }
+      return api('DELETE', `/admin/users/${userId}`, null, token);
+    },
+  };
+};
 const CATEGORIES = [
   'WEB','PWNABLE','REVERSING','FORENSICS','CRYPTOGRAPHY',
   'MOBILE','NETWORK','HARDWARE','SYSTEM','MISC','DEV','ALGORITHM'
@@ -38,6 +54,7 @@ export default function Admin() {
   const [editGroupDescription, setEditGroupDescription] = useState(''); // ← content로 전송
   const [editGroupCategory, setEditGroupCategory] = useState('WEB');
   const [editGroupMentor, setEditGroupMentor] = useState('');
+  const [editGroupImage, setEditGroupImage] = useState(null); // 이미지 파일 추가
   const [updatingGroup, setUpdatingGroup] = useState(false);
 
   // 회원가입 대기 명단 불러오기
@@ -159,14 +176,26 @@ export default function Admin() {
 
     setUpdatingGroup(true);
     try {
-      const payload = {
+
+      const formData = new FormData();
+      // 이미지가 있으면 추가
+      if (editGroupImage) {
+        formData.append('studyImage', editGroupImage);
+      }
+
+      const groupDto = {
         id: editGroupId,
         name: editGroupName,
         content: editGroupDescription,       // ← description을 content로 보냄
         category: editGroupCategory,
         mentorStudentNumber: mentorNum,
       };
-      const res = await api('PUT', '/admin/group/update', payload, token);
+      formData.append(
+        'studyGroupUpdateDto',
+        new Blob([JSON.stringify(groupDto)], { type: 'application/json' })
+      );
+
+      const res = await api('PUT', `/admin/group/${editGroupName}`, formData,  token, { 'Content-Type': 'multipart/form-data' });
       if (res?.code === 'SUCCESS') {
         alert('스터디 그룹 수정 성공!');
         setEditGroupId('');
@@ -450,6 +479,15 @@ export default function Admin() {
         <div className="box" style={{ flex: '1 1 400px', backgroundColor: '#ffffff', padding: '30px', borderRadius: '15px', boxShadow: '0 10px 20px rgba(0,0,0,0.15)', border: '1px solid #eee' }}>
           <h3 style={{ color: '#007bff', marginBottom: '20px', fontSize: '2.2em', fontWeight: '600' }}>스터디 그룹 수정</h3>
           <form onSubmit={handleUpdateGroup} className="form-group-update">
+            
+            <p style={{ marginBottom: '10px', color: '#555', fontSize: '1.1em' }}>그룹 대표 이미지</p>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={e => setEditGroupImage(e.target.files[0] || null)}
+              style={{ marginBottom: '20px' }}
+            />
+            
             <p style={{ marginBottom: '10px', color: '#555', fontSize: '1.1em' }}>그룹 ID <span>*</span></p>
             <input
               type="text"

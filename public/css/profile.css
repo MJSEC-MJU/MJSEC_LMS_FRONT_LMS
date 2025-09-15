@@ -69,4 +69,203 @@
 .user-profile .info .box-container .box .flex p{
    color: var(--light-color);
    font-size: 1.7rem;
+}
+
+/* 프로필 수정 페이지 스타일 */
+.form-container {
+   min-height: 100vh;
+   background-color: var(--light-bg);
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   padding: 2rem;
+}
+
+/* 다크 모드 배경 수정 */
+.dark .form-container {
+   background-color: #333;
+   color: var(--dark);
+}
+
+.form-container form {
+   background-color: var(--white);
+   border-radius: .5rem;
+   padding: 2rem;
+   width: 100%;
+   max-width: 50rem;
+   box-shadow: var(--box-shadow);
+}
+
+.form-container form h3 {
+   text-align: center;
+   margin-bottom: 2rem;
+   color: var(--black);
+   font-size: 2.5rem;
+}
+
+.form-container form p {
+   font-size: 1.7rem;
+   color: var(--black);
+   margin-bottom: .5rem;
+}
+
+.form-container form .box {
+   width: 100%;
+   padding: 1.2rem 1.4rem;
+   font-size: 1.6rem;
+   color: var(--black);
+   background-color: var(--light-bg);
+   border: var(--border);
+   border-radius: .5rem;
+   margin-bottom: 1.5rem;
+}
+
+.form-container form .box:focus {
+   background-color: var(--white);
+   border-color: var(--main-color);
+}
+
+.form-container form .box:disabled {
+   background-color: var(--light-bg) !important;
+   color: var(--black) !important;
+   cursor: not-allowed;
+   border: var(--border) !important;
+}
+
+/* 더 구체적인 선택자로 강제 적용 */
+.form-container form input[type="text"]:disabled {
+   background-color: var(--light-bg) !important;
+   color: var(--black) !important;
+   border-color: var(--border) !important;
+}
+
+.dark .form-container form input[type="text"]:disabled {
+   background-color: #444 !important;
+   color: var(--black) !important;
+   border-color: #555 !important;
+}
+
+.profile-image-section {
+   margin-bottom: 1.5rem;
+}
+
+.current-image {
+   background-color: var(--light-bg);
+   padding: 1rem;
+   border-radius: .5rem;
+   margin-bottom: 1rem;
+   border: var(--border);
+}
+
+.current-image p {
+   margin: 0;
+   font-size: 1.4rem;
+   color: var(--light-color);
+}
+
+.success-message {
+   background-color: #d4edda;
+   color: #155724;
+   padding: 1rem;
+   border-radius: .5rem;
+   margin-bottom: 1rem;
+   border: 1px solid #c3e6cb;
+}
+
+.error-message {
+   background-color: #f8d7da;
+   color: #721c24;
+   padding: 1rem;
+   border-radius: .5rem;
+   margin-bottom: 1rem;
+   border: 1px solid #f5c6cb;
+}
+
+.loading {
+   text-align: center;
+   font-size: 1.8rem;
+   color: var(--light-color);
+   padding: 2rem;
+}
+
+/* 다크 모드 */
+.dark .form-container form {
+   background-color: var(--white);
+   color: var(--black);
+}
+
+.dark .form-container form h3 {
+   color: var(--black);
+}
+
+.dark .form-container form p {
+   color: var(--black);
+}
+
+.dark .form-container form .box {
+   background-color: #444;
+   color: var(--black);
+   border-color: #555;
+}
+
+.dark .form-container form .box:focus {
+   background-color: #555;
+   border-color: var(--main-color);
+}
+
+.dark .form-container form .box:disabled {
+   background-color: #444 !important;
+   color: var(--black) !important;
+   border-color: #555 !important;
+}
+
+.dark .current-image {
+   background-color: #444;
+   border-color: #555;
+}
+
+.dark .current-image p {
+   color: #ccc;
+}
+
+/* 전화번호 입력란 스타일 */
+.phone-input-container {
+   display: flex;
+   gap: 0.5rem;
+   align-items: center;
+}
+
+.phone-input-container .phone-part {
+   flex: 1;
+   text-align: center;
+   font-size: 1.6rem;
+   font-weight: 600;
+   color: var(--black);
+}
+
+.phone-input-container .phone-box {
+   width: 100%;
+   padding: 1.2rem 1.4rem;
+   font-size: 1.6rem;
+   color: var(--black);
+   background-color: var(--light-bg);
+   border: var(--border);
+   border-radius: .5rem;
+   text-align: center;
+}
+
+.phone-input-container .phone-box:focus {
+   background-color: var(--white);
+   border-color: var(--main-color);
+}
+
+.dark .phone-input-container .phone-box {
+   background-color: #444;
+   color: var(--black);
+   border-color: #555;
+}
+
+.dark .phone-input-container .phone-box:focus {
+   background-color: #555;
+   border-color: var(--main-color);
 } 

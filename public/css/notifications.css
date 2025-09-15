@@ -388,18 +388,55 @@ body:not(.active) .notification-modal-overlay {
 
 .notification-modal-close {
   background: none;
-  border: none;
-  font-size: 2rem;
+  border: 2px solid transparent;
+  font-size: 1.8rem;
   cursor: pointer;
   color: var(--light-color);
-  padding: 0.5rem;
-  border-radius: 0.3rem;
-  transition: all 0.3s ease;
+  padding: 0.8rem;
+  border-radius: 50%;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 4rem;
+  height: 4rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.notification-modal-close::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(220, 53, 69, 0.1), rgba(255, 107, 122, 0.1));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  border-radius: 50%;
 }
 
 .notification-modal-close:hover {
-  background: var(--light-bg);
-  color: var(--black);
+  color: #dc3545;
+  transform: scale(1.1) rotate(90deg);
+  box-shadow: 0 6px 20px rgba(220, 53, 69, 0.25);
+  border-color: rgba(220, 53, 69, 0.3);
+}
+
+.notification-modal-close:hover::before {
+  opacity: 1;
+}
+
+.notification-modal-close:active {
+  transform: scale(0.95) rotate(90deg);
+  box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
+}
+
+.notification-modal-close i {
+  position: relative;
+  z-index: 1;
+  transition: all 0.3s ease;
 }
 
 .notification-modal-body {
@@ -490,12 +527,17 @@ body:not(.active) .notification-modal-overlay {
 }
 
 .btn-secondary {
-  background: var(--light-color);
-  color: var(--white);
+  background: var(--light-bg);
+  color: var(--black);
+  border: 2px solid var(--border);
+  transition: all 0.3s ease;
 }
 
 .btn-secondary:hover {
   background: var(--black);
+  color: var(--white);
+  border-color: var(--black);
+  transform: translateY(-2px);
 }
 
 .btn-danger {
@@ -743,7 +785,33 @@ body:not(.active) .notification-modal-overlay {
 
 .notification-modal-content .form-group input::placeholder,
 .notification-modal-content .form-group textarea::placeholder {
-  color: white !important;
+  color: #999 !important;
+}
+
+/* 다크모드에서 input 요소들 스타일 */
+.dark .notification-modal-content .form-group input,
+.dark .notification-modal-content .form-group textarea {
+  background: #2a2a2a !important;
+  color: #ffffff !important;
+  border-color: #555 !important;
+}
+
+.dark .notification-modal-content .form-group input::placeholder,
+.dark .notification-modal-content .form-group textarea::placeholder {
+  color: #888 !important;
+}
+
+.dark .notification-modal-content .form-group input:hover,
+.dark .notification-modal-content .form-group textarea:hover {
+  border-color: var(--main-color) !important;
+  background: #333 !important;
+}
+
+.dark .notification-modal-content .form-group input:focus,
+.dark .notification-modal-content .form-group textarea:focus {
+  border-color: var(--main-color) !important;
+  background: #333 !important;
+  box-shadow: 0 0 0 3px rgba(12, 90, 166, 0.2) !important;
 }
 
 /* TinyMCE 에디터 스타일 */
@@ -757,6 +825,29 @@ body:not(.active) .notification-modal-overlay {
 
 body.dark .tinymce-editor-container .tox-tinymce {
   background-color: #000000 !important;
+}
+
+/* 다크모드에서 select 요소 스타일 */
+.dark .notification-modal-content .form-group select {
+  background: #2a2a2a !important;
+  color: #ffffff !important;
+  border-color: #555 !important;
+}
+
+.dark .notification-modal-content .form-group select option {
+  background: #2a2a2a !important;
+  color: #ffffff !important;
+}
+
+.dark .notification-modal-content .form-group select:hover {
+  border-color: var(--main-color) !important;
+  background: #333 !important;
+}
+
+.dark .notification-modal-content .form-group select:focus {
+  border-color: var(--main-color) !important;
+  background: #333 !important;
+  box-shadow: 0 0 0 3px rgba(12, 90, 166, 0.2) !important;
 }
 
 .notification-detail {
@@ -814,7 +905,7 @@ body.dark .tinymce-editor-container .tox-tinymce {
   font-size: 1.4rem;
   line-height: 1.7;
   color: var(--black);
-  background-color: var(--white);
+  background-color: rgb(245, 245, 245);
   padding: 2rem;
   border-radius: 0.5rem;
   border: 1px solid var(--border);
@@ -877,12 +968,22 @@ body.dark .detail-content {
 
 /* 다크모드에서 모달 닫기 버튼 색상 */
 .dark .notification-modal-close {
-  color: var(--white);
+  color: #ffffff;
+}
+
+.dark .notification-modal-close::before {
+  background: linear-gradient(135deg, rgba(255, 107, 122, 0.15), rgba(220, 53, 69, 0.15));
 }
 
 .dark .notification-modal-close:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: var(--white);
+  color: #ff6b7a;
+  transform: scale(1.1) rotate(90deg);
+  box-shadow: 0 6px 20px rgba(255, 107, 122, 0.3);
+  border-color: rgba(255, 107, 122, 0.4);
+}
+
+.dark .notification-modal-close:hover::before {
+  opacity: 1;
 }
 
 /* 다크모드에서 모달 배경 더 진하게 */
@@ -952,4 +1053,18 @@ body.dark .empty-message:hover {
 
 body.dark .empty-message:hover i {
   color: var(--main-color);
+}
+
+/* 다크모드 버튼 스타일 */
+.dark .btn-secondary {
+  background: var(--light-bg);
+  color: var(--black);
+  border-color: var(--border);
+}
+
+.dark .btn-secondary:hover {
+  background: red;
+  color: var(--black);
+  border-color: var(--white);
+  transform: translateY(-2px);
 }

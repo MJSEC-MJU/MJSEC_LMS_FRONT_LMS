@@ -9,6 +9,7 @@ import Group from "./pages/Group.jsx"
 import Notifications from "./pages/Notifications.jsx"
 import Admin from "./pages/Admin.jsx" // Admin 컴포넌트 임포트
 import Unauthorized from "./pages/Unauthorized.jsx";
+import PasswordEmailVerify from "./pages/PasswordEmailVerify.jsx";
 import { useAuth } from "./components/auth.jsx"
 
 export default function App() {
@@ -35,6 +36,7 @@ export default function App() {
         <Route path="/notifications/:notificationId" element={<Notifications />} />
         <Route path="/admin" element={<Admin />} />
         <Route path="/unauthorized" element={<Unauthorized />} />
+        <Route path="/forgot-password" element={<PasswordEmailVerify />} />
       </Routes>
     </>
   )

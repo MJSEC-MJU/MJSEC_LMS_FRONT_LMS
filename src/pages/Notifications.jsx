@@ -106,8 +106,9 @@ export default function Notifications() {
       }
       const result = await api('POST', '/user/create-announcement', requestBody, token)
       return { success: true, data: result.data }
-    } catch {
-      return { success: false, error: { message: '네트워크 오류가 발생했습니다.' } }
+    } catch (error) {
+      console.error('공지사항 생성 에러:', error)
+      return { success: false, error: { message: '공지사항 생성에 실패했습니다.' } }
     }
   }
 
@@ -158,7 +159,7 @@ export default function Notifications() {
     language: 'ko_KR',
     menubar: false,
     plugins: 'advlist autolink lists link image charmap anchor searchreplace visualblocks code fullscreen insertdatetime media table help wordcount',
-    toolbar: 'undo redo | formatselect fontselect fontsizeselect | bold italic underline strikethrough | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image media table | removeformat code',
+    toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image media table | removeformat code',
     font_formats: 'Arial=arial,helvetica,sans-serif; Courier New=courier new,courier,monospace; Times New Roman=times new roman,times; Noto Sans KR=noto sans kr,sans-serif; Malgun Gothic=malgun gothic,sans-serif',
     fontsize_formats: '8pt 10pt 12pt 14pt 16pt 18pt 20pt 24pt 28pt 32pt 36pt',
     content_style: `body { 
@@ -180,13 +181,13 @@ export default function Notifications() {
       color: #0052a3;
       text-decoration: none;
     }`,
+    toolbar_mode: 'wrap',
     placeholder: '공지사항 내용을 입력하세요...',
     branding: false,
     elementpath: false,
     resize: false,
     statusbar: false,
     content_css: isDarkMode ? 'dark' : 'default',
-    // 링크 관련 설정
     link_list: [
       {title: 'My page 1', value: 'https://www.tiny.cloud'},
       {title: 'My page 2', value: 'https://about.tiny.cloud'}
