@@ -356,12 +356,6 @@ export default function CurriculumSection({ groupId, isMentor, token }) {
       }
 
       // API 호출
-      console.log('활동 생성 요청:', {
-        groupId,
-        studyActivityDto,
-        hasImage: !!activityFormData.image
-      });
-      
       const response = await fetch(`/api/v1/group/${groupId}/create-activity`, {
         method: 'POST',
         headers: {
@@ -370,8 +364,6 @@ export default function CurriculumSection({ groupId, isMentor, token }) {
         },
         body: formData
       });
-      
-      console.log('활동 생성 응답 상태:', response.status);
       
       let result;
       const responseText = await response.text();
