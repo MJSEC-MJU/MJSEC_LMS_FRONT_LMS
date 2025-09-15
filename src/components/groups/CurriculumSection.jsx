@@ -1277,6 +1277,18 @@ export default function CurriculumSection({ groupId, isMentor, token }) {
       alert(assignmentModal.mode === 'create' ? '커리큘럼 생성에 실패했습니다.' : '커리큘럼 수정에 실패했습니다.');
     }
   };
+  // 모달 닫기 (정의 누락으로 no-undef 발생하던 부분)
+  const closeAssignmentModal = React.useCallback(() => {
+    setAssignmentModal({ isOpen: false, mode: 'create', assignment: null });
+    setAssignmentFormData({
+      title: "",
+      description: "",
+      hasAssignment: false,
+      startDate: "",
+      endDate: ""
+    });
+  }, []);
+
 
   // 주차별 과제 확장/축소 토글 함수
   const toggleWeekExpansion = (week) => {
