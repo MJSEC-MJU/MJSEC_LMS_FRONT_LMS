@@ -17,11 +17,10 @@ export default function Group() {
 
   // 사용자 그룹 목록 조회
   useEffect(() => {
-    
-        if (!token) {
+    if (!token) {
       setLoading(false);
-          return;
-        }
+      return;
+    }
 
     const fetchUserGroups = async () => {
       try {
@@ -37,7 +36,7 @@ export default function Group() {
           members: g.members || []
         }));
         setMyStudies(mapped);
-    } catch (error) {
+      } catch (error) {
         // 사용자 그룹 목록 조회 오류 처리
         // 403 오류인 경우 로그인 페이지로 리다이렉트하거나 에러 메시지 표시
         if (error.message.includes('403')) {
@@ -45,7 +44,7 @@ export default function Group() {
           // 임시로 빈 배열로 설정하여 빈 목록 표시
           setMyStudies([]);
         }
-    } finally {
+      } finally {
         setLoading(false);
       }
     };
@@ -54,16 +53,16 @@ export default function Group() {
   }, [token, user]);
 
   if (loading) {
-      return (
-        <section className="contact">
+    return (
+      <section className="contact">
         <h1 className="heading">Loading...</h1>
         <div style={{ textAlign: 'center', padding: '2rem' }}>
           <i className="fas fa-spinner fa-spin" style={{ fontSize: '2rem' }}></i>
           <p>그룹 정보를 불러오는 중...</p>
-          </div>
-        </section>
-      );
-    }
+        </div>
+      </section>
+    );
+  }
 
   // groupId가 있으면 상세 페이지, 없으면 목록 페이지
   if (groupId && !isNaN(groupId)) {
