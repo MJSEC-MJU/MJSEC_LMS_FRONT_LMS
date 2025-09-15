@@ -45,14 +45,9 @@ export async function api(method, path, body, token) {
 
   if (!res.ok) {
     if (!import.meta.env.PROD) {
-      console.error('Full error response:', {
-        status: res.status,
-        statusText: res.statusText,
-        data: data,
-        headers: Object.fromEntries(res.headers.entries())
-      });
+      // API 에러 응답 처리
       const msgDev = (data && (data.message || data.error)) || `HTTP ${res.status}`;
-      console.error('API Error:', msgDev);
+      // API 에러 메시지 처리
     }
     const msg = (data && (data.message || data.error)) || `HTTP ${res.status}`;
     throw new Error(msg);

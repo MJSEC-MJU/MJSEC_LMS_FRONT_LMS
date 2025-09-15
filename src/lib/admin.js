@@ -10,7 +10,7 @@ export async function fetchAdminUsers(token) {
     const response = await api('GET', '/admin/users', null, token);
     return response;
   } catch (error) {
-    console.error('Error fetching admin users:', error);
+    // 관리자 사용자 조회 오류 처리
     throw error;
   }
 }
@@ -26,7 +26,7 @@ export async function deleteAdminUser(userId, token) {
     const response = await api('DELETE', `/admin/users/${userId}`, null, token);
     return response;
   } catch (error) {
-    console.error('Error deleting admin user:', error);
+    // 관리자 사용자 삭제 오류 처리
     throw error;
   }
 }

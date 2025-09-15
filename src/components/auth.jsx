@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState, useCallback, useContext } from 'react';
 import { AuthCtx } from '../contexts/auth-context.js';
 // cookie helpers
 function setCookie(name, value, days) {
-  console.log(`Attempting to set cookie: ${name}=${value}`);
   let expires = "";
   if (days) {
     const date = new Date();
@@ -10,7 +9,6 @@ function setCookie(name, value, days) {
     expires = "; expires=" + date.toUTCString();
   }
   document.cookie = name + "=" + (value || "") + expires + "; path=/; SameSite=Lax";
-  console.log("Document cookies after set:", document.cookie);
 }
 
 function getCookie(name) {
@@ -21,11 +19,9 @@ function getCookie(name) {
     while (c.charAt(0) === ' ') c = c.substring(1);
     if (c.indexOf(nameEQ) === 0) {
       const cookieValue = c.substring(nameEQ.length);
-      console.log(`getCookie('${name}') returning:`, cookieValue);
       return cookieValue;
     }
   }
-  console.log(`getCookie('${name}') returning: null`);
   return null;
 }
 
@@ -41,10 +37,9 @@ function decodeJwt(token) {
       atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('')
     );
     const decoded = JSON.parse(jsonPayload);
-    console.log("JWT Decoded Payload:", decoded);
     return decoded;
   } catch (e) {
-    console.error("Error decoding JWT:", e);
+    // JWT 디코딩 오류 처리
     return null;
   }
 }

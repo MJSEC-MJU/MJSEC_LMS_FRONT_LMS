@@ -186,7 +186,7 @@ export default function Register() {
 
       const data = await api('POST', '/auth/register', requestBody);
 
-      if (data?.ok && data?.status === 200) {
+      if ((data?.ok && data?.status === 200)|| data?.code === 'SUCCESS') {
         alert('회원가입 성공! 승인을 기다려 주세요.');
         nav('/login', { replace: true });
       } else {

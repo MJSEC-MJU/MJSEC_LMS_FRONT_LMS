@@ -52,7 +52,7 @@ export default function Navbar() {
         const resp = await api('GET', '/user/user-page', undefined, token)
         if (isMounted) setProfile(resp?.data || null)
       } catch (e) {
-        console.error('Failed to load user page:', e)
+        // 사용자 페이지 로드 실패 처리
         if (isMounted) setProfile(null)
       }
     }
@@ -82,9 +82,7 @@ export default function Navbar() {
           </div>
 
           <div className={`profile ${isProfileOpen ? "active" : ""}`}>
-            <img src={profile?.profileImage || "/lms/images/default-study.jpg"} className="image" alt="" onError={(e) => {
-              e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='40' fill='%23ccc'/%3E%3Ctext x='50' y='55' text-anchor='middle' fill='%23666' font-size='12'%3E사용자%3C/text%3E%3C/svg%3E";
-            }} />
+            <img src={profile?.profileImage || "/images/logo.png"} className="image" alt="" onError={(e) => { e.currentTarget.src = "/images/logo.png" }} />
             {user ? (
               <>
                 <h3 className="name">{profile?.name || user.name || user.username || '사용자'}</h3>
@@ -114,9 +112,7 @@ export default function Navbar() {
         </div>
 
         <div className="profile">
-          <img src={profile?.profileImage || "/lms/images/default-study.jpg"} className="image" alt="" onError={(e) => {
-            e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='40' fill='%23ccc'/%3E%3Ctext x='50' y='55' text-anchor='middle' fill='%23666' font-size='12'%3E사용자%3C/text%3E%3C/svg%3E";
-          }} />
+          <img src={profile?.profileImage || "/images/logo.png"} className="image" alt="" onError={(e) => { e.currentTarget.src = "/images/logo.png" }} />
           {user ? (
             <>
               <h3 className="name">{profile?.name || user.name || user.username || '사용자'}</h3>
@@ -135,6 +131,9 @@ export default function Navbar() {
           <Link to="/" onClick={() => setIsSidebarOpen(false)}><i className="fas fa-home"></i><span>home</span></Link>
           <Link to="/notifications" onClick={() => setIsSidebarOpen(false)}><i className="fa-solid fa-bell"></i><span>notification</span></Link>
           <Link to="/groups" onClick={() => setIsSidebarOpen(false)}><i className="fas fa-graduation-cap"></i><span>groups</span></Link>
+          {user && user.role === 'ROLE_ADMIN' && (
+            <Link to="/admin" onClick={() => setIsSidebarOpen(false)}><i className="fas fa-cog"></i><span>admin</span></Link>
+          )}
         </nav>
       </div>
     </>
