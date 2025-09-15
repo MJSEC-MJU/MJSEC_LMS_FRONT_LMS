@@ -1,7 +1,6 @@
 import { Routes, Route, Navigate } from "react-router-dom"
 import Navbar from "./components/Navbar.jsx"
 import Home from "./pages/Home.jsx"
-import Courses from "./pages/Courses.jsx"
 import Profile from "./pages/Profile.jsx"
 import Login from "./pages/Login.jsx"
 import Register from "./pages/Register.jsx"
@@ -10,6 +9,7 @@ import Group from "./pages/Group.jsx"
 import Notifications from "./pages/Notifications.jsx"
 import Admin from "./pages/Admin.jsx" // Admin 컴포넌트 임포트
 import Unauthorized from "./pages/Unauthorized.jsx";
+import PasswordEmailVerify from "./pages/PasswordEmailVerify.jsx";
 import { useAuth } from "./components/auth.jsx"
 
 export default function App() {
@@ -25,7 +25,6 @@ export default function App() {
           ) : <div>Loading...</div>
           } />
         <Route path="/home" element={<Home />} />
-        <Route path="/courses" element={<Courses />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
@@ -37,6 +36,7 @@ export default function App() {
         <Route path="/notifications/:notificationId" element={<Notifications />} />
         <Route path="/admin" element={<Admin />} />
         <Route path="/unauthorized" element={<Unauthorized />} />
+        <Route path="/forgot-password" element={<PasswordEmailVerify />} />
       </Routes>
     </>
   )

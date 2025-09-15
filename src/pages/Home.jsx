@@ -7,6 +7,8 @@ export default function Home() {
   const { token } = useAuth();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [studies, setStudies] = useState([]);
+  const [studiesLoading, setStudiesLoading] = useState(true);
 
   // 공지사항 가져오기
   const fetchNotifications = useCallback(async () => {
@@ -42,6 +44,33 @@ export default function Home() {
   useEffect(() => {
     fetchNotifications();
   }, [fetchNotifications]);
+
+  // 현재 수강중인 강좌(스터디) 가져오기
+  const fetchStudies = useCallback(async () => {
+    try {
+      if (!token) {
+        setStudies([]);
+        setStudiesLoading(false);
+        return;
+      }
+      const resp = await api('GET', '/user/user-page', null, token);
+      const groups = resp?.data?.studyGroups || [];
+      const mapped = groups.map(g => ({
+        id: g.studyGroupId,
+        name: (g.name && g.name.trim() !== '') ? g.name : (g.category || '이름없음')
+      }));
+      setStudies(mapped);
+    } catch (e) {
+      console.error('수강중인 강좌 가져오기 오류:', e);
+      setStudies([]);
+    } finally {
+      setStudiesLoading(false);
+    }
+  }, [token]);
+
+  useEffect(() => {
+    fetchStudies();
+  }, [fetchStudies]);
   return (
     <>
       <section className="home-grid">
@@ -49,10 +78,20 @@ export default function Home() {
         <div className="box-container">
           <div className="box">
             <h3 className="title">현재 수강중인 강좌</h3>
-            <p className="likes"><span>리버싱싱</span></p>
-            <a href="#" className="inline-btn">view more</a>
-            <p className="likes"><span>웹심</span></p>
-            <a href="#" className="inline-btn">view more</a>
+            <div className="notice-box">
+              {studiesLoading ? (
+                <div className="loading-notice">로딩 중...</div>
+              ) : studies.length > 0 ? (
+                studies.map((s) => (
+                  <div key={s.id} className="current-course-item">
+                    <span className="current-course-name">{s.name}</span>
+                    <Link to={`/groups?groupId=${s.id}`} className="inline-btn btn--profile">view more</Link>
+                  </div>
+                ))
+              ) : (
+                <div className="no-notice">현재 수강중인 강좌가 없습니다.</div>
+              )}
+            </div>
           </div>
 
           <div className="box">
@@ -62,7 +101,10 @@ export default function Home() {
                 <div className="loading-notice">로딩 중...</div>
               ) : notifications.length > 0 ? (
                 notifications.map((notification) => (
-                  <Link key={notification.announcementId} to="/notifications">
+                  <Link
+                    key={notification.announcementId}
+                    to={`/notifications?announcementId=${notification.announcementId}`}
+                  >
                     <span>•{notification.title}</span>
                   </Link>
                 ))

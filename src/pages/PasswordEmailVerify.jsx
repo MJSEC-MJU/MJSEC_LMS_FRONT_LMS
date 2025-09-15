@@ -41,7 +41,9 @@ export default function PasswordEmailVerify() {
 
     try {
       setSending(true);
-      const res = await api('POST', '/user/password/send-code', { email });
+
+      const res = await api('POST', '/user/password/send-code', { 'email' : email });
+
       if (res?.code === 'SUCCESS') {
         setInfo('인증 코드가 이메일로 전송되었습니다.');
         setCooldown(COOLDOWN_SEC);
