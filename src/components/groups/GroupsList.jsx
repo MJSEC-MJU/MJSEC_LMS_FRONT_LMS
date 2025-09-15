@@ -26,7 +26,7 @@ export default function GroupsList({ myStudies }) {
               if (mentor) {
                 mentorData[study.groupId] = mentor.name;
               }
-            } catch (error) {
+            } catch {
               // 멘토 정보 조회 오류 처리
             }
           })

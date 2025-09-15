@@ -33,6 +33,8 @@ export default function GroupDetail({ groupId, myStudies }) {
   });
   const [warnings, setWarnings] = useState({});
   const [mentorInfo, setMentorInfo] = useState(null);
+  const [_menteeSubmissions, setMenteeSubmissions] = useState({});
+  const [_menteesLoading, setMenteesLoading] = useState(false);
 
   const initializeMenteeSubmissions = React.useCallback((list) => {
     const next = {};
@@ -76,7 +78,7 @@ export default function GroupDetail({ groupId, myStudies }) {
       } else {
         alert(response.message || '멘티 추가에 실패했습니다.');
       }
-    } catch (error) {
+    } catch {
       // 멘티 추가 오류 처리
       alert('멘티 추가 중 오류가 발생했습니다.');
     } finally {
@@ -102,7 +104,7 @@ export default function GroupDetail({ groupId, myStudies }) {
       } else {
         alert(response.message || '멘티 삭제에 실패했습니다.');
       }
-    } catch (error) {
+    } catch {
       // 멘티 삭제 오류 처리
       alert('멘티 삭제 중 오류가 발생했습니다.');
     }
@@ -148,7 +150,7 @@ export default function GroupDetail({ groupId, myStudies }) {
       } else {
         alert(response.message || '경고 부여에 실패했습니다.');
       }
-    } catch (error) {
+    } catch {
       alert('경고 부여 중 오류가 발생했습니다.');
     }
   };
@@ -168,7 +170,7 @@ export default function GroupDetail({ groupId, myStudies }) {
         setWarnings(warningData);
         localStorage.setItem(`warnings_${groupId}`, JSON.stringify(warningData));
       }
-    } catch (error) {
+    } catch {
       // 오류 시 모든 멤버의 경고를 0으로 설정
       const warningData = {};
       mentees.forEach(mentee => {
@@ -215,7 +217,7 @@ export default function GroupDetail({ groupId, myStudies }) {
       const mentor = members.find(member => member.role === 'MENTOR');
       setMentorInfo(mentor);
       
-    } catch (error) {
+    } catch {
       // 멘토 권한 확인 오류 처리
       // 에러 발생 시 사용자 role로 판단
       if (user?.role === 'ROLE_ADMIN' || user?.role === 'ROLE_MENTOR') {
@@ -236,7 +238,7 @@ export default function GroupDetail({ groupId, myStudies }) {
       const members = (res && res.code === 'SUCCESS') ? (res.data || []) : (Array.isArray(res) ? res : []);
       setMentees(members);
       initializeMenteeSubmissions(members);
-    } catch (error) {
+    } catch {
       // 멘티 목록 조회 오류 처리
     } finally {
       setMenteesLoading(false);
@@ -247,7 +249,7 @@ export default function GroupDetail({ groupId, myStudies }) {
   const isDarkMode = document.body.classList.contains('dark');
   
   // TinyMCE 설정
-  const tinymceConfig = {
+  const _tinymceConfig = {
     height: 400,
     language: 'ko_KR',
     menubar: false,

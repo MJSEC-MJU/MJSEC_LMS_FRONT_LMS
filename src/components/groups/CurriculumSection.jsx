@@ -370,7 +370,7 @@ export default function CurriculumSection({ groupId, isMentor, token }) {
       
       try {
         result = JSON.parse(responseText);
-      } catch (jsonError) {
+      } catch {
         alert(`서버에서 예상치 못한 응답을 받았습니다.\n상태: ${response.status}\n응답: ${responseText}`);
         return;
       }
@@ -403,7 +403,7 @@ export default function CurriculumSection({ groupId, isMentor, token }) {
           alert(result.message || '활동 기록 저장에 실패했습니다.');
         }
       }
-    } catch (error) {
+    } catch {
       alert('활동 기록 저장에 실패했습니다.');
     }
   };
@@ -555,8 +555,8 @@ export default function CurriculumSection({ groupId, isMentor, token }) {
       try {
         result = JSON.parse(responseText);
         console.log('활동 삭제 응답 JSON:', result);
-      } catch (jsonError) {
-        console.error('JSON 파싱 에러:', jsonError);
+      } catch {
+        console.error('JSON 파싱 에러');
         console.error('응답 텍스트:', responseText);
         
         if (responseText.includes('내부 서버 오류가 발생했습니다.')) {
@@ -572,7 +572,7 @@ export default function CurriculumSection({ groupId, isMentor, token }) {
       } else {
         return { success: false, error: result.message || '활동 삭제에 실패했습니다.' };
       }
-    } catch (error) {
+    } catch {
       return { success: false, error: '활동 삭제 중 오류가 발생했습니다.' };
     }
   };
@@ -621,8 +621,8 @@ export default function CurriculumSection({ groupId, isMentor, token }) {
       try {
         result = JSON.parse(responseText);
         console.log('활동 수정 응답 JSON:', result);
-      } catch (jsonError) {
-        console.error('JSON 파싱 에러:', jsonError);
+      } catch {
+        console.error('JSON 파싱 에러');
         console.error('응답 텍스트:', responseText);
         alert('서버 응답을 처리하는 중 오류가 발생했습니다.');
         return { success: false, error: 'JSON 파싱 오류' };
@@ -788,12 +788,7 @@ export default function CurriculumSection({ groupId, isMentor, token }) {
         return;
       }
 
-      // 출석체크 데이터 생성
-      const studyAttendanceDtoList = menteeList.map(mentee => ({
-        studentNumber: mentee.studentNumber,
-        name: mentee.name,
-        type: activityEditFormData.attendance[mentee.studentNumber]?.type || 'ATTEND'
-      }));
+      // 출석체크 데이터 생성 (사용되지 않음 - 제거)
 
       // 수정할 데이터 준비
       const formData = {
@@ -830,7 +825,7 @@ export default function CurriculumSection({ groupId, isMentor, token }) {
       } else {
         alert(result.error);
       }
-    } catch (error) {
+    } catch {
       alert('활동 수정에 실패했습니다.');
     }
   };
@@ -858,7 +853,7 @@ export default function CurriculumSection({ groupId, isMentor, token }) {
       } else {
         alert(result.error);
       }
-    } catch (error) {
+    } catch {
       alert('활동 삭제에 실패했습니다.');
     }
   };
@@ -888,7 +883,7 @@ export default function CurriculumSection({ groupId, isMentor, token }) {
       let result;
       try {
         result = await response.json();
-      } catch (jsonError) {
+      } catch {
         return;
       }
 
@@ -898,7 +893,7 @@ export default function CurriculumSection({ groupId, isMentor, token }) {
       } else {
         setMenteeList([]);
       }
-    } catch (error) {
+    } catch {
       setMenteeList([]);
     }
   };
@@ -917,7 +912,7 @@ export default function CurriculumSection({ groupId, isMentor, token }) {
       let result;
       try {
         result = await response.json();
-      } catch (jsonError) {
+      } catch {
         return [];
       }
 
@@ -926,7 +921,7 @@ export default function CurriculumSection({ groupId, isMentor, token }) {
       } else {
         return [];
       }
-    } catch (error) {
+    } catch {
       return [];
     }
   };
@@ -947,7 +942,7 @@ export default function CurriculumSection({ groupId, isMentor, token }) {
       let result;
       try {
         result = await response.json();
-      } catch (jsonError) {
+      } catch {
         return;
       }
       
@@ -982,7 +977,7 @@ export default function CurriculumSection({ groupId, isMentor, token }) {
           try {
             const payload = JSON.parse(atob(token.split('.')[1]));
             myStudentNumber = parseInt(payload.studentNumber || payload.sub || payload.userId || payload.id);
-          } catch (e) {
+          } catch {
             // JWT 토큰에서 학번 추출 실패
           }
         }
@@ -1019,7 +1014,7 @@ export default function CurriculumSection({ groupId, isMentor, token }) {
         const rate = totalWeeks > 0 ? Math.round((attendedWeeks / totalWeeks) * 100) : 0;
         setAttendanceRate(rate);
       }
-    } catch (error) {
+    } catch {
       // 출석 데이터 가져오기 실패 시 무시
     }
   };
@@ -1040,7 +1035,7 @@ export default function CurriculumSection({ groupId, isMentor, token }) {
       } else {
         return null;
       }
-    } catch (error) {
+    } catch {
       return null;
     }
   };
@@ -1061,7 +1056,7 @@ export default function CurriculumSection({ groupId, isMentor, token }) {
       let result;
       try {
         result = await response.json();
-      } catch (jsonError) {
+      } catch {
         alert('서버에서 예상치 못한 응답을 받았습니다.');
         return;
       }
@@ -1089,7 +1084,7 @@ export default function CurriculumSection({ groupId, isMentor, token }) {
         alert(result.message || '활동 사진을 불러오는데 실패했습니다.');
         setActivityPhotos([]);
       }
-    } catch (error) {
+    } catch {
       alert('활동 사진을 불러오는데 실패했습니다.');
       setActivityPhotos([]);
     } finally {
@@ -1127,7 +1122,7 @@ export default function CurriculumSection({ groupId, isMentor, token }) {
       } else {
         alert(result.error.message);
       }
-    } catch (error) {
+    } catch {
       alert('커리큘럼 삭제에 실패했습니다.');
     }
   };
@@ -1186,13 +1181,13 @@ export default function CurriculumSection({ groupId, isMentor, token }) {
       } else {
         alert(result.error.message);
       }
-    } catch (error) {
+    } catch {
       alert(assignmentModal.mode === 'create' ? '커리큘럼 생성에 실패했습니다.' : '커리큘럼 수정에 실패했습니다.');
     }
   };
 
   // 주차별 과제 확장/축소 토글 함수
-  const toggleWeekExpansion = (week, planId) => {
+  const toggleWeekExpansion = (week) => {
     setExpandedWeeks(prev => {
       const willOpen = !prev[week];
       return { ...prev, [week]: willOpen };
@@ -1283,7 +1278,7 @@ export default function CurriculumSection({ groupId, isMentor, token }) {
       try {
         const tokenPayload = JSON.parse(atob(token.split('.')[1]));
         myStudentNumber = parseInt(tokenPayload.studentNumber || tokenPayload.sub || tokenPayload.userId || tokenPayload.id);
-      } catch (e) {
+      } catch {
         setMenteeWarnings(0);
         return;
       }
@@ -1300,7 +1295,7 @@ export default function CurriculumSection({ groupId, isMentor, token }) {
       } else {
         setMenteeWarnings(0);
       }
-    } catch (error) {
+    } catch {
       // 경고 조회 실패 시 0으로 설정
       setMenteeWarnings(0);
     }
@@ -1387,7 +1382,7 @@ export default function CurriculumSection({ groupId, isMentor, token }) {
             <div key={assignment.assignmentId} className="week-assignment week-curriculum">
               <button 
                 className={`week-button ${expandedWeeks[`assignment-${assignment.assignmentId}`] ? 'expanded' : ''}`}
-                onClick={() => toggleWeekExpansion(`assignment-${assignment.assignmentId}`, assignment.assignmentId)}
+                onClick={() => toggleWeekExpansion(`assignment-${assignment.assignmentId}`)}
               >
                 <div className="week-button-content">
                   <div className="week-title-container">

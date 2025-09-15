@@ -6,7 +6,7 @@ import { api } from "../lib/api"
 export default function Profile() {
   const { token, user } = useAuth()
   const [profile, setProfile] = useState(null)
-  // const [attendanceRates, setAttendanceRates] = useState([])
+  const [_attendanceRates, setAttendanceRates] = useState([])
   const [randomAttendanceRate, setRandomAttendanceRate] = useState(0)
   const [selectedStudyGroup, setSelectedStudyGroup] = useState(null)
 
@@ -57,7 +57,7 @@ export default function Profile() {
                 try {
                   const tokenPayload = JSON.parse(atob(token.split('.')[1]))
                   myStudentNumber = parseInt(tokenPayload.studentNumber || tokenPayload.sub || tokenPayload.userId || tokenPayload.id)
-                } catch (e) {
+                } catch {
                   // JWT에서 학번 추출 실패
                 }
 
@@ -111,7 +111,7 @@ export default function Profile() {
                 }
               }
             }
-          } catch (error) {
+          } catch {
             // 개별 스터디 출석률 가져오기 실패 시 무시
           }
         }
@@ -131,7 +131,7 @@ export default function Profile() {
             setSelectedStudyGroup(null)
           }
         }
-      } catch (error) {
+      } catch {
         // 출석률 가져오기 실패 시 무시
       }
     }
