@@ -1,7 +1,7 @@
 ﻿import { useEffect, useState } from "react"
 import { Link, useLocation } from "react-router-dom"
 import { useAuth } from "./auth"
-import { api } from "client"
+import { api } from "./client"
 
 export default function Navbar() {
   const [isDarkModeEnabled, setIsDarkModeEnabled] = useState(() => localStorage.getItem("dark-mode") === "enabled")
