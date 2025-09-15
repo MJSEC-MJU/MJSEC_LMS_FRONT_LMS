@@ -139,12 +139,28 @@ export default function Profile() {
     fetchAttendanceRates()
     return () => { isMounted = false }
   }, [token, profile])
-
+  
+  const withBase = (p) => {
+    const base = (import.meta.env.BASE_URL || '/'); // dev: '/', prod: '/lms/'
+    if (!p) return new URL('images/logo.png', base).href;
+    if (/^(https?:)?\/\//.test(p) || p.startsWith('data:')) return p; // 절대 URL/data URI는 그대로
+    return new URL(p.replace(/^\//, ''), base).href;
+  };
+  
   const displayName = profile?.name || user?.name || user?.username || '이름없음'
   const displayStudentNumber = profile?.studentNumber || user?.studentNumber || user?.studentNo || '학번없음'
   const displayEmail = profile?.email || user?.email || '이메일없음'
   const displayPhone = profile?.phoneNumber || user?.phoneNumber || '전화번호없음'
-  const imageSrc = profile?.profileImage || "/images/logo.png"
+
+  // ✅ 로고 처리만 수정 (나머지 그대로)
+  const base = (import.meta.env.BASE_URL || '/')
+  const logoFallback = `${base}images/logo.png`
+  const imageSrc = profile?.profileImage
+    ? (/^(https?:)?\/\//.test(profile.profileImage) || profile.profileImage.startsWith('data:')
+        ? profile.profileImage
+        : `${base}${profile.profileImage.replace(/^\//, '')}`)
+    : logoFallback
+
   const studiesCount = Array.isArray(profile?.studyGroups) ? profile.studyGroups.length : 0
 
   return (
@@ -152,7 +168,7 @@ export default function Profile() {
       <h1 className="heading">your profile</h1>
       <div className="info">
         <div className="user">
-          <img src={imageSrc} alt="" onError={(e) => { e.currentTarget.src = "/images/logo.png" }} />
+          <img src={imageSrc} alt="" onError={(e) => { e.currentTarget.src = logoFallback }} />
           <h3>{displayName}</h3>
           <p>{`${displayStudentNumber} | ${displayEmail} | ${displayPhone}`}</p>
           <Link to="/update" className="inline-btn">update profile</Link>
