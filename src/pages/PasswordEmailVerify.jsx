@@ -74,8 +74,11 @@ export default function PasswordEmailVerify() {
 
     try {
       setVerifying(true);
-      const res = await api('POST', '/user/password/verify-code', { email, code });
-      if (res?.code === 'SUCCESS') {
+const res = await api(
+      'POST',
+      `/user/password/verify-code?email=${encodeURIComponent(email)}`,
+      { code }
+    );      if (res?.code === 'SUCCESS') {
         setInfo('인증이 완료되었습니다. 비밀번호 변경 페이지로 이동합니다.');
         // 실제 라우트에 맞게 조정하세요. 예: /password/update
         setTimeout(() => nav('/password/update', { replace: true, state: { email } }), 600);
