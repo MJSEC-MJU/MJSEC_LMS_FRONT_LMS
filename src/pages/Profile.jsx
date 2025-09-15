@@ -139,20 +139,13 @@ export default function Profile() {
     fetchAttendanceRates()
     return () => { isMounted = false }
   }, [token, profile])
-  
-  const withBase = (p) => {
-    const base = (import.meta.env.BASE_URL || '/'); // dev: '/', prod: '/lms/'
-    if (!p) return new URL('images/logo.png', base).href;
-    if (/^(https?:)?\/\//.test(p) || p.startsWith('data:')) return p; // 절대 URL/data URI는 그대로
-    return new URL(p.replace(/^\//, ''), base).href;
-  };
-  
+
   const displayName = profile?.name || user?.name || user?.username || '이름없음'
   const displayStudentNumber = profile?.studentNumber || user?.studentNumber || user?.studentNo || '학번없음'
   const displayEmail = profile?.email || user?.email || '이메일없음'
   const displayPhone = profile?.phoneNumber || user?.phoneNumber || '전화번호없음'
 
-  // ✅ 로고 처리만 수정 (나머지 그대로)
+  // 로고만 수정 (BASE_URL 적용)
   const base = (import.meta.env.BASE_URL || '/')
   const logoFallback = `${base}images/logo.png`
   const imageSrc = profile?.profileImage
