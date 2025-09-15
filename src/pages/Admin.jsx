@@ -3,6 +3,24 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { api } from '../components/client'; // api 함수
 
+const fetchAdminUsers = (token) => adminUsers(token).list();
+const deleteAdminUser = (userId, token) => adminUsers(token).remove(userId);
+const ensureToken = (token) => {
+  if (!token) throw new Error('토큰이 필요합니다');
+};
+
+const adminUsers = (token) => {
+  ensureToken(token);
+  return {
+    list: () => api('GET', '/admin/users', null, token),
+    remove: (userId) => {
+      if (userId === undefined || userId === null || userId === '') {
+        throw new Error('userId가 필요합니다');
+      }
+      return api('DELETE', `/admin/users/${userId}`, null, token);
+    },
+  };
+};
 const CATEGORIES = [
   'WEB','PWNABLE','REVERSING','FORENSICS','CRYPTOGRAPHY',
   'MOBILE','NETWORK','HARDWARE','SYSTEM','MISC','DEV','ALGORITHM'
@@ -14,6 +32,14 @@ export default function Admin() {
   const [pendingMembers, setPendingMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // 전체 사용자 목록
+  const [users, setUsers] = useState([]);
+  const [usersLoading, setUsersLoading] = useState(false);
+  const [usersError, setUsersError] = useState(null);
+  const [deletingUserId, setDeletingUserId] = useState(null);
+  // 탭 상태: 'users' | 'approvals' | 'groups'
+  const [activeTab, setActiveTab] = useState('users');
 
   // 스터디 그룹 생성 폼 상태
   const [newGroupName, setNewGroupName] = useState('');
@@ -28,6 +54,7 @@ export default function Admin() {
   const [editGroupDescription, setEditGroupDescription] = useState(''); // ← content로 전송
   const [editGroupCategory, setEditGroupCategory] = useState('WEB');
   const [editGroupMentor, setEditGroupMentor] = useState('');
+  const [editGroupImage, setEditGroupImage] = useState(null); // 이미지 파일 추가
   const [updatingGroup, setUpdatingGroup] = useState(false);
 
   // 회원가입 대기 명단 불러오기
@@ -61,6 +88,22 @@ export default function Admin() {
       }
     } catch (e) {
       alert(`회원 승인 중 오류 발생: ${e.message}`);
+      console.error(e);
+    }
+  }, [token, fetchPendingMembers]);
+
+  // 회원가입 승인 요청 반려
+  const handleRejectMember = useCallback(async (memberStudentNumber) => {
+    try {
+      const res = await api('POST', `/admin/member-refusal/${memberStudentNumber}`, null, token);
+      if (res?.code === 'SUCCESS') {
+        alert('회원 승인 반려되었습니다!');
+        fetchPendingMembers();
+      } else {
+        alert(res?.message || '회원 거부 실패');
+      }
+    } catch (e) {
+      alert(`회원 거부 중 오류 발생: ${e.message}`);
       console.error(e);
     }
   }, [token, fetchPendingMembers]);
@@ -133,14 +176,26 @@ export default function Admin() {
 
     setUpdatingGroup(true);
     try {
-      const payload = {
+
+      const formData = new FormData();
+      // 이미지가 있으면 추가
+      if (editGroupImage) {
+        formData.append('studyImage', editGroupImage);
+      }
+
+      const groupDto = {
         id: editGroupId,
         name: editGroupName,
         content: editGroupDescription,       // ← description을 content로 보냄
         category: editGroupCategory,
         mentorStudentNumber: mentorNum,
       };
-      const res = await api('PUT', '/admin/group/update', payload, token);
+      formData.append(
+        'studyGroupUpdateDto',
+        new Blob([JSON.stringify(groupDto)], { type: 'application/json' })
+      );
+
+      const res = await api('PUT', `/admin/group/${editGroupName}`, formData,  token, { 'Content-Type': 'multipart/form-data' });
       if (res?.code === 'SUCCESS') {
         alert('스터디 그룹 수정 성공!');
         setEditGroupId('');
@@ -158,6 +213,50 @@ export default function Admin() {
       setUpdatingGroup(false);
     }
   }, [token, editGroupId, editGroupName, editGroupDescription, editGroupCategory, editGroupMentor, updatingGroup]);
+
+  // 전체 사용자 목록 불러오기
+  const fetchAllUsers = useCallback(async () => {
+    if (!token) return;
+    try {
+      setUsersLoading(true);
+      setUsersError(null);
+      const res = await fetchAdminUsers(token);
+      if (res?.code === 'SUCCESS') {
+        setUsers(res.data || []);
+      } else {
+        setUsersError(res?.message || '사용자 목록을 불러오지 못했습니다.');
+      }
+    } catch (e) {
+      setUsersError(`사용자 목록 조회 오류: ${e.message}`);
+      console.error(e);
+    } finally {
+      setUsersLoading(false);
+    }
+  }, [token]);
+
+  // 초기 로드 시 사용자 목록도 함께 불러오기 (권한 체크는 주석 유지)
+  useEffect(() => {
+    fetchAllUsers();
+  }, [fetchAllUsers]);
+  
+  // 사용자 삭제
+  const handleDeleteUser = useCallback(async (userId) => {
+    if (!window.confirm('해당 사용자를 삭제하시겠습니까?')) return;
+    try {
+      setDeletingUserId(userId);
+      const res = await deleteAdminUser(userId, token);
+      if (res?.code === 'SUCCESS') {
+        setUsers(prev => prev.filter(u => u.userId !== userId));
+      } else {
+        alert(res?.message || '삭제에 실패했습니다.');
+      }
+    } catch (e) {
+      alert(`사용자 삭제 오류: ${e.message}`);
+      console.error(e);
+    } finally {
+      setDeletingUserId(null);
+    }
+  }, [token]);
 
   useEffect(() => {
     if (!token || !user || user.role !== 'ROLE_ADMIN') {
@@ -188,10 +287,83 @@ export default function Admin() {
       >
         관리자 대시보드
       </h1>
+      {/* 탭 네비게이션 */}
+      <div style={{ display: 'flex', gap: 10, justifyContent: 'center', marginBottom: 20 }}>
+        {[
+          { key: 'users', label: '전체 사용자' },
+          { key: 'approvals', label: '회원가입 승인 대기' },
+          { key: 'groups', label: '스터디 그룹' },
+        ].map(t => (
+          <button
+            key={t.key}
+            className="btn"
+            onClick={() => setActiveTab(t.key)}
+            style={{
+              background: activeTab === t.key ? 'linear-gradient(to right, #6f42c1, #59359a)' : 'linear-gradient(to right, #adb5bd, #868e96)',
+              color: '#fff', border: 'none', borderRadius: '20px', padding: '8px 18px', cursor: 'pointer'
+            }}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
 
       <div className="box-container" style={{ display: 'flex', flexWrap: 'wrap', gap: '30px', justifyContent: 'center' }}>
-        {/* 회원가입 승인 대기 명단 */}
-        <div className="box" style={{ flex: '1 1 400px', backgroundColor: '#ffffff', padding: '30px', borderRadius: '15px', boxShadow: '0 10px 20px rgba(0,0,0,0.15)', border: '1px solid #eee' }}>
+        {activeTab === 'users' && (
+        <div className="box" style={{ flex: '1 1 600px', backgroundColor: '#ffffff', padding: '30px', borderRadius: '15px', boxShadow: '0 10px 20px rgba(0,0,0,0.15)', border: '1px solid #eee' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+            <h3 style={{ color: '#343a40', fontSize: '2.0em', fontWeight: '600', margin: 0 }}>전체 사용자 목록</h3>
+            <button
+              className="btn"
+              onClick={fetchAllUsers}
+              style={{ background: 'linear-gradient(to right, #17a2b8, #117a8b)', color: '#fff', border: 'none', borderRadius: '5px', padding: '8px 16px', fontSize: '1em', cursor: 'pointer' }}
+            >
+              새로고침
+            </button>
+          </div>
+          {usersLoading && <p>사용자 목록을 불러오는 중...</p>}
+          {usersError && <p className="error-message">{usersError}</p>}
+          {!usersLoading && !usersError && (
+            users.length === 0 ? (
+              <p>사용자가 없습니다.</p>
+            ) : (
+              <table className="dashboard-table" style={{ width: '100%', borderCollapse: 'collapse', marginTop: '15px' }}>
+                <thead>
+                  <tr>
+                    <th style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'left', backgroundColor: '#343a40', color: '#ffffff' }}>ID</th>
+                    <th style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'left', backgroundColor: '#343a40', color: '#ffffff' }}>학번</th>
+                    <th style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'left', backgroundColor: '#343a40', color: '#ffffff' }}>이름</th>
+                    <th style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'left', backgroundColor: '#343a40', color: '#ffffff' }}>이메일</th>
+                    <th style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'left', backgroundColor: '#343a40', color: '#ffffff' }}>액션</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {users.map(u => (
+                    <tr key={`${u.userId}-${u.studentNumber}`} style={{ borderBottom: '1px solid #eee' }}>
+                      <td style={{ padding: '10px 12px', border: '1px solid #ddd' }}>{u.userId}</td>
+                      <td style={{ padding: '10px 12px', border: '1px solid #ddd' }}>{u.studentNumber}</td>
+                      <td style={{ padding: '10px 12px', border: '1px solid #ddd' }}>{u.name}</td>
+                      <td style={{ padding: '10px 12px', border: '1px solid #ddd' }}>{u.email}</td>
+                      <td style={{ padding: '10px 12px', border: '1px solid #ddd' }}>
+                        <button
+                          className="btn"
+                          onClick={() => handleDeleteUser(u.userId)}
+                          disabled={deletingUserId === u.userId}
+                          style={{ background: 'linear-gradient(to right, #dc3545, #c82333)', color: '#fff', border: 'none', borderRadius: '5px', padding: '6px 12px', fontSize: '0.95em', cursor: 'pointer' }}
+                        >
+                          {deletingUserId === u.userId ? '삭제 중...' : '삭제'}
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )
+          )}
+        </div>
+        )}
+        {activeTab === 'approvals' && (
+        <div className="box" style={{ flex: '1 1 800px', backgroundColor: '#ffffff', padding: '30px', borderRadius: '15px', boxShadow: '0 10px 20px rgba(0,0,0,0.15)', border: '1px solid #eee' }}>
           <h3 style={{ color: '#007bff', marginBottom: '20px', fontSize: '2.2em', fontWeight: '600' }}>회원가입 승인 대기 명단</h3>
           {loading && <p>회원가입 대기 명단을 불러오는 중...</p>}
           {error && <p className="error-message">{error}</p>}
@@ -218,13 +390,22 @@ export default function Admin() {
                     <td style={{ padding: '12px 15px', border: '1px solid #ddd', fontSize: '1em' }}>{member.phoneNumber}</td>
                     <td style={{ padding: '12px 15px', border: '1px solid #ddd', fontSize: '1em' }}>{new Date(member.createdAt).toLocaleDateString()}</td>
                     <td style={{ padding: '12px 15px', border: '1px solid #ddd' }}>
-                      <button
-                        className="btn"
-                        style={{ background: 'linear-gradient(to right, #28a745, #218838)', color: '#fff', border: 'none', borderRadius: '5px', padding: '10px 18px', fontSize: '1.05em', cursor: 'pointer', boxShadow: '0 2px 5px rgba(0,0,0,0.2)' }}
-                        onClick={() => handleApproveMember(member.studentNumber)}
-                      >
-                        승인
-                      </button>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <button
+                          className="btn"
+                          style={{ background: 'linear-gradient(to right, #28a745, #218838)', color: '#fff', border: 'none', borderRadius: '5px', padding: '10px 18px', fontSize: '1.05em', cursor: 'pointer', boxShadow: '0 2px 5px rgba(0,0,0,0.2)' }}
+                          onClick={() => handleApproveMember(member.studentNumber)}
+                        >
+                          승인
+                        </button>
+                        <button
+                          className="btn"
+                          style={{ background: 'linear-gradient(to right, #dc3545, #c82333)', color: '#fff', border: 'none', borderRadius: '5px', padding: '10px 18px', fontSize: '1.05em', cursor: 'pointer', boxShadow: '0 2px 5px rgba(0,0,0,0.2)' }}
+                          onClick={() => handleRejectMember(member.studentNumber)}
+                        >
+                          거절
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -232,8 +413,10 @@ export default function Admin() {
             </table>
           ))}
         </div>
+        )}
 
-        {/* 스터디 그룹 생성 */}
+        {activeTab === 'groups' && (
+          <>
         <div className="box" style={{ flex: '1 1 400px', backgroundColor: '#ffffff', padding: '30px', borderRadius: '15px', boxShadow: '0 10px 20px rgba(0,0,0,0.15)', border: '1px solid #eee' }}>
           <h3 style={{ color: '#007bff', marginBottom: '20px', fontSize: '2.2em', fontWeight: '600' }}>스터디 그룹 생성</h3>
           <form onSubmit={handleCreateGroup} className="form-group-create">
@@ -296,6 +479,15 @@ export default function Admin() {
         <div className="box" style={{ flex: '1 1 400px', backgroundColor: '#ffffff', padding: '30px', borderRadius: '15px', boxShadow: '0 10px 20px rgba(0,0,0,0.15)', border: '1px solid #eee' }}>
           <h3 style={{ color: '#007bff', marginBottom: '20px', fontSize: '2.2em', fontWeight: '600' }}>스터디 그룹 수정</h3>
           <form onSubmit={handleUpdateGroup} className="form-group-update">
+            
+            <p style={{ marginBottom: '10px', color: '#555', fontSize: '1.1em' }}>그룹 대표 이미지</p>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={e => setEditGroupImage(e.target.files[0] || null)}
+              style={{ marginBottom: '20px' }}
+            />
+            
             <p style={{ marginBottom: '10px', color: '#555', fontSize: '1.1em' }}>그룹 ID <span>*</span></p>
             <input
               type="text"
@@ -362,6 +554,8 @@ export default function Admin() {
             </button>
           </form>
         </div>
+          </>
+        )}
       </div>
     </section>
   );

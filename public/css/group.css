@@ -1,2380 +1,442 @@
-/* Groups 페이지 스타일 */
-.groups-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem;
+/* Group 공통 스타일 - 분리된 컴포넌트별 CSS 파일들을 import하세요 */
+
+/* Group 공통 스타일 - base.css의 변수를 사용합니다 */
+
+/* 공통 버튼 스타일 */
+.btn {
+  display: inline-block;
+  padding: 1rem 2rem;
+  border: none;
+  border-radius: 0.8rem;
+  font-size: 1.4rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
 }
 
-.groups-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 3rem;
-  justify-content: center;
+.btn-primary {
+  background: var(--main-color);
+  color: var(--white);
 }
 
-.group-card {
-  background: var(--white);
-  border-radius: 1.5rem;
-  box-shadow: 0 0.8rem 1.5rem rgba(0, 0, 0, 0.15);
-  padding: 3rem;
-  width: 450px;
-  min-height: 350px;
-  display: flex;
-  flex-direction: column;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+.btn-primary:hover {
+  background: var(--black);
+  transform: translateY(-2px);
+}
+
+.btn-secondary {
+    background: var(--light-bg);
+  color: var(--black);
   border: 2px solid var(--border);
 }
 
-.group-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.15);
-}
-
-.group-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 2rem;
-  flex-wrap: wrap;
-  gap: 1.5rem;
-}
-
-.group-title {
-  font-size: 2.2rem;
-  font-weight: 700;
-  color: var(--main-color);
-  margin: 0;
-  line-height: 1.3;
-}
-
-.group-date {
-  font-size: 1.3rem;
-  color: var(--light-color);
-  background: var(--light-bg);
-  padding: 0.5rem 1.2rem;
-  border-radius: 0.8rem;
-  white-space: nowrap;
-}
-
- .group-content {
-   flex: 1;
-   display: flex;
-   flex-direction: column;
-   gap: 1.5rem;
- }
-
- .group-image {
-   width: 100%;
-   height: 200px;
-   border-radius: 0.8rem;
-   overflow: hidden;
-   margin-bottom: 1.5rem;
- }
-
- .group-image img {
-   width: 100%;
-   height: 100%;
-   object-fit: cover;
-   transition: transform 0.3s ease;
- }
-
- .group-card:hover .group-image img {
-   transform: scale(1.05);
- }
-
-.group-description {
-  color: var(--light-color);
-  line-height: 1.8;
-  margin: 0;
-  flex: 1;
-  font-size: 1.2rem;
-}
-
-.group-categories {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.8rem;
-  margin-top: auto;
-}
-
-.group-category-tag {
-  background: var(--main-color);
-  color: var(--white);
-  padding: 0.5rem 1.2rem;
-  border-radius: 0.8rem;
-  font-size: 1.1rem;
-  font-weight: 600;
-}
-
-.group-footer {
-  margin-top: 1.5rem;
-  display: flex;
-  justify-content: flex-end;
-}
-
-.group-more-btn {
-  background: var(--main-color);
-  color: var(--white);
-  padding: 1.2rem 2rem;
-  border-radius: 0.8rem;
-  text-decoration: none;
-  font-weight: 600;
-  transition: background 0.3s ease;
-  border: none;
-  cursor: pointer;
-  font-size: 1.3rem;
-}
-
-.group-more-btn:hover {
-  background: var(--main-color-dark);
-  color: var(--white);
-}
-
-/* 다크모드 스타일 */
-.dark .group-card {
-  background: #2a2a2a;
-  border-color: rgba(255, 255, 255, 0.2);
-  box-shadow: 0 0.8rem 1.5rem rgba(0, 0, 0, 0.3);
-}
-
-.dark .group-card:hover {
-  box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.4);
-  border-color: var(--main-color);
-}
-
-.dark .group-title {
-  color: #fff;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-}
-
-.dark .group-description {
-  color: #ccc;
-  line-height: 1.8;
-}
-
-.dark .group-date {
-  background: #444;
-  color: #aaa;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.dark .group-category-tag {
-  background: var(--main-color);
-  color: #fff;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-.dark .group-more-btn {
-  background: var(--main-color);
-  color: #fff;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-.dark .group-more-btn:hover {
-  background: #4a4a8a;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-}
-
-   /* 상세 페이지 스타일 */
-  .group-detail {
-    max-width: 1000px;
-    margin: 0 auto;
-  }
-
-     .group-detail-back {
-     margin-bottom: 1rem;
-     width: auto;
-   }
-
-     .group-detail-title {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    margin-bottom: 3rem;
-    padding: 2rem 0;
-    border-bottom: 2px solid var(--border);
-    z-index: 6;
-  }
-
-  .group-detail-title .group-back-btn {
-    position: absolute;
-    left: 0;
-    top: 50%;
-    transform: translateY(-50%);
-    background-color: none;
-    z-index: 3;
-  }
-@media(max-width: 900px) {
-  .group-detail-title .group-back-btn{
-    top:110%
-  }
-}
-   .group-detail-title .heading {
-     font-size: 2.5rem;
-     font-weight: 700;
-     color: var(--main-color);
-     margin: 0;
-     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-   }
-
-  .group-back-btn {
-
-    align-items: center;
-    gap: 0.5rem;
-    color: var(--main-color);
-    text-decoration: none;
-    font-weight: 500;
-    padding: 0.75rem 1.5rem;
-    border-radius: 0.5rem;
-    background: var(--light-bg);
-    transition: background 0.3s ease;
-
-    font-size: 2rem;
-    width: auto;
-    padding-right: 1.5rem;
-  }
-
- .group-back-btn:hover {
-   background: var(--main-color);
+.btn-secondary:hover {
+  background: var(--black);
    color: var(--white);
- }
-
-.group-detail-content {
-  background: var(--white);
-  border-radius: 1rem;
-  padding: 2rem;
-  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
-  border: 1px solid var(--border);
+  border-color: var(--black);
 }
 
- .group-info {
-   display: flex;
-   flex-direction: column;
-   gap: 1.5rem;
- }
-
- .group-detail-image {
-   width: 100%;
-   height: 250px;
-   border-radius: 0.5rem;
-   overflow: hidden;
-   margin-bottom: 1rem;
- }
-
- .group-detail-image img {
-   width: 100%;
-   height: 100%;
-   object-fit: cover;
- }
-
-.group-info .group-description {
-  font-size: 1.1rem;
-  line-height: 1.8;
+.btn-warning {
+  background: #ffc107;
+  color: #212529;
+  border: 2px solid #ffc107;
 }
 
-.group-info .group-categories {
-  justify-content: flex-start;
-}
-
-.group-info .group-date {
-  font-size: 1rem;
-  padding: 0.5rem 1rem;
-  background: var(--light-bg);
-  border-radius: 0.5rem;
-  display: inline-block;
-  width: fit-content;
-}
-
-/* 다크모드 상세 페이지 */
-.dark .group-detail-content {
-  background: #2a2a2a;
-  border-color: rgba(255, 255, 255, 0.2);
-  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.3);
-}
-
-.dark .group-back-btn {
-  background: #444;
-  color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.dark .group-back-btn:hover {
-  background: var(--main-color);
-  color: #fff;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-}
-
-.dark .group-detail-title .heading {
-  color: #fff;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-}
-
-.dark .group-detail-title {
-  border-bottom-color: rgba(255, 255, 255, 0.2);
-}
-
-       /* 멤버 관리 테이블 스타일 - Notion 스타일 */
-   .group-members {
-     margin-top: 3rem;
-   }
-
-               .group-members-title {
-       font-size: 2.5rem;
-       font-weight: 700;
-       color: rgba(0, 0, 0, 0.9);
-       margin: 0 0 2rem 0;
-     }
-
-   .group-members-table-container {
-     background: var(--white);
-     border-radius: 0.75rem;
-     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
-     border: 1px solid rgba(0, 0, 0, 0.08);
-     overflow: hidden;
-   }
-
-   .group-members-table {
-     width: 100%;
-     border-collapse: collapse;
-   }
-
-                               .group-members-table th {
-        background: rgba(0, 0, 0, 0.02);
-        padding: 1.75rem;
-        text-align: left;
-        font-weight: 600;
-        color: rgba(0, 0, 0, 0.8);
-        font-size: 1.25rem;
-        border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-      }
-
-      .group-members-table td {
-        padding: 1.75rem;
-        border-bottom: 1px solid rgba(0, 0, 0, 0.04);
-        font-size: 1.25rem;
-      }
-
-   .group-member-row:hover {
-     background: rgba(0, 0, 0, 0.02);
-   }
-
-   .group-member-name {
-     font-weight: 600;
-     color: rgba(0, 0, 0, 0.9);
-   }
-
-                               .status-badge {
-        padding: 0.625rem 1.5rem;
-        border-radius: 1rem;
-        font-size: 1.125rem;
-        font-weight: 500;
-      }
-
-   .status-badge.present {
-     background: rgba(34, 197, 94, 0.1);
-     color: rgba(34, 197, 94, 0.8);
-   }
-
-   .status-badge.absent {
-     background: rgba(239, 68, 68, 0.1);
-     color: rgba(239, 68, 68, 0.8);
-   }
-
-   .status-badge.submitted {
-     background: rgba(59, 130, 246, 0.1);
-     color: rgba(59, 130, 246, 0.8);
-   }
-
-       .status-badge.not-submitted {
-      background: rgba(245, 158, 11, 0.1);
-      color: rgba(245, 158, 11, 0.8);
-    }
-
-    .status-badge.reviewing {
-      background: rgba(168, 85, 247, 0.1);
-      color: rgba(168, 85, 247, 0.8);
-    }
-
-    .status-badge.revision {
-      background: rgba(251, 146, 60, 0.1);
-      color: rgba(251, 146, 60, 0.8);
-    }
-
-    .status-badge.completed {
-      background: rgba(34, 197, 94, 0.1);
-      color: rgba(34, 197, 94, 0.8);
-    }
-
-                                       .assignment-select {
-         padding: 0.625rem 1.25rem;
-         border: 1px solid rgba(0, 0, 0, 0.1);
-         border-radius: 0.375rem;
-         font-size: 1.125rem;
-         background: var(--white);
-         color: rgba(0, 0, 0, 0.8);
-         cursor: pointer;
-         transition: border-color 0.2s ease;
-       }
-
-    .assignment-select:focus {
-      outline: none;
-      border-color: var(--main-color);
-    }
-
-                   .assignment-url-input {
-        padding: 0.625rem 1rem;
-        border: 1px solid rgba(0, 0, 0, 0.1);
-        border-radius: 0.375rem;
-        font-size: 1.125rem;
-        background: var(--white);
-        color: rgba(0, 0, 0, 0.8);
-        width: 100%;
-        transition: border-color 0.2s ease;
-      }
-
-    .assignment-url-input:focus {
-      outline: none;
-      border-color: var(--main-color);
-    }
-
-         .assignment-link {
-       color: var(--main-color);
-       text-decoration: none;
-       font-size: 1rem;
-       display: flex;
-       align-items: center;
-       gap: 0.25rem;
-       transition: color 0.2s ease;
-     }
-
-    .assignment-link:hover {
-      color: var(--main-color-dark);
-    }
-
-         .no-url {
-       color: rgba(0, 0, 0, 0.4);
-       font-size: 1rem;
-       font-style: italic;
-     }
-
-    .warning-count {
-      font-weight: 600;
-    }
-
-    .warning-count.no-warning {
-      color: rgba(34, 197, 94, 0.8);
-    }
-
-    .warning-count.has-warning {
-      color: rgba(239, 68, 68, 0.8);
-    }
-
-   .action-buttons {
-     display: flex;
-     gap: 0.5rem;
-   }
-
-   .action-btn {
-     background: transparent;
-     border: none;
-     padding: 0.5rem;
-     border-radius: 0.375rem;
-     cursor: pointer;
-     transition: all 0.2s ease;
-     color: rgba(0, 0, 0, 0.5);
-   }
-
-   .action-btn:hover {
-     background: rgba(0, 0, 0, 0.06);
-     color: rgba(0, 0, 0, 0.8);
-   }
-
-   .action-btn.attendance-btn:hover {
-     color: rgba(34, 197, 94, 0.8);
-   }
-
-   .action-btn.assignment-btn:hover {
-     color: rgba(59, 130, 246, 0.8);
-   }
-
-       .action-btn.warning-btn:hover {
-      color: rgba(239, 68, 68, 0.8);
-    }
-
-    .action-btn.warning-remove-btn {
-      color: rgba(34, 197, 94, 0.5);
-    }
-
-    .action-btn.warning-remove-btn:hover {
-      color: rgba(34, 197, 94, 0.8);
-    }
-
-       /* 다크모드 멤버 테이블 - Notion 스타일 */
-   .dark .group-members-title {
-     color: rgba(255, 255, 255, 0.9);
-   }
-
-   .dark .group-members-table-container {
-     background: rgba(255, 255, 255, 0.05);
-     border-color: rgba(255, 255, 255, 0.1);
-   }
-
-   .dark .group-members-table th {
-     background: rgba(255, 255, 255, 0.05);
-     color: rgba(255, 255, 255, 0.8);
-     border-bottom-color: rgba(255, 255, 255, 0.1);
-   }
-
-   .dark .group-members-table td {
-     border-bottom-color: rgba(255, 255, 255, 0.05);
-     color: rgba(255, 255, 255, 0.7);
-   }
-
-   .dark .group-member-row:hover {
-     background: rgba(255, 255, 255, 0.05);
-   }
-
-   .dark .group-member-name {
-     color: rgba(255, 255, 255, 0.9);
-   }
-
-   .dark .action-btn {
-     color: rgba(255, 255, 255, 0.5);
-   }
-
-            .dark .action-btn:hover {
-       background: rgba(255, 255, 255, 0.1);
-       color: rgba(255, 255, 255, 0.8);
-     }
-
-     .dark .action-btn.warning-remove-btn {
-       color: rgba(34, 197, 94, 0.5);
-     }
-
-     .dark .action-btn.warning-remove-btn:hover {
-       color: rgba(34, 197, 94, 0.8);
-     }
-
-    .dark .assignment-select {
-      background: rgba(255, 255, 255, 0.05);
-      border-color: rgba(255, 255, 255, 0.1);
-      color: rgba(255, 255, 255, 0.8);
-    }
-
-    .dark .assignment-select:focus {
-      border-color: var(--main-color);
-    }
-
-    .dark .assignment-url-input {
-      background: rgba(255, 255, 255, 0.05);
-      border-color: rgba(255, 255, 255, 0.1);
-      color: rgba(255, 255, 255, 0.8);
-    }
-
-    .dark .assignment-url-input:focus {
-      border-color: var(--main-color);
-    }
-
-    .dark .assignment-link {
-      color: rgba(255, 255, 255, 0.8);
-    }
-
-    .dark .assignment-link:hover {
-      color: var(--main-color);
-    }
-
-         .dark .no-url {
-       color: rgba(255, 255, 255, 0.4);
-     }
-
-           /* 주차별 과제 제출 테이블 스타일 - 아코디언 */
-      .group-assignments {
-        margin-top: 3rem;
-      }
-
-      .group-assignments-title {
-        font-size: 2.5rem;
-        font-weight: 700;
-        color: rgba(0, 0, 0, 0.9);
-        margin: 0 0 2rem 0;
-        display: flex;
-        align-items: center;
-        gap: 1.5rem;
-      }
-
-      .assignment-create-btn {
-        font-size: 1.2rem;
-        padding: 0.8rem 1.5rem;
-        background: var(--main-color);
-        color: var(--white);
-        border: none;
-        border-radius: 0.5rem;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        white-space: nowrap;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        width:auto;
-      }
-
-      .assignment-create-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-      }
-
-      .week-assignment {
-        margin-bottom: 1.5rem;
-      }
-
-      .week-button {
-        width: 100%;
-        background: var(--white);
-        border: 1px solid rgba(0, 0, 0, 0.08);
-        border-radius: 0.75rem;
-        padding: 0;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
-        overflow: hidden;
-      }
-
-      .week-button:hover {
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
-        transform: translateY(-1px);
-      }
-
-      .week-button.expanded {
-        border-color: var(--main-color);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-      }
-
-      .week-button-content {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 1.5rem 2rem;
-        width: 100%;
-      }
-
-      .week-title {
-        font-size: 1.5rem;
-        font-weight: 600;
-        color: rgba(0, 0, 0, 0.8);
-        margin: 0;
-        text-align: left;
-      }
-
-      .week-summary {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        width: 100%;
-        position: relative;
-      }
-
-      .week-title {
-        font-size: 1.5rem;
-        font-weight: 600;
-        color: rgba(0, 0, 0, 0.8);
-        margin: 0;
-        text-align: left;
-        flex: 1;
-        padding-right: 120px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-      }
-
-      .week-status {
-        font-size: 1rem;
-        color: rgba(0, 0, 0, 0.6);
-        font-weight: 500;
-        position: absolute;
-        right: 50px;
-        top: 50%;
-        transform: translateY(-50%);
-        min-width: 80px;
-        text-align: center;
-        white-space: nowrap;
-      }
-
-      .week-icon {
-        font-size: 1.25rem;
-        color: rgba(0, 0, 0, 0.5);
-        transition: transform 0.3s ease;
-      }
-
-      .week-button.expanded .week-icon {
-        transform: rotate(180deg);
-      }
-
-      .week-content {
-        max-height: 0;
-        overflow: hidden;
-        transition: max-height 0.3s ease, padding 0.3s ease;
-        background: rgba(0, 0, 0, 0.02);
-        border-radius: 0 0 0.75rem 0.75rem;
-      }
-
-      .week-content.expanded {
-        max-height: 1000px;
-        padding: 2rem;
-      }
-
-      /* 다크모드 주차별 과제 제출 테이블 */
-      .dark .group-assignments-title {
-        color: rgba(255, 255, 255, 0.9);
-      }
-
-      .dark .week-button {
-        background: #2a2a2a;
-        border-color: rgba(255, 255, 255, 0.1);
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
-      }
-
-      .dark .week-button:hover {
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4), 0 2px 4px rgba(0, 0, 0, 0.3);
-        border-color: rgba(255, 255, 255, 0.2);
-      }
-
-      .dark .week-button.expanded {
-        border-color: var(--main-color);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-      }
-
-      .dark .week-title {
-        color: rgba(255, 255, 255, 0.9);
-      }
-
-      .dark .week-status {
-        color: rgba(255, 255, 255, 0.6);
-      }
-
-      .dark .week-icon {
-        color: rgba(255, 255, 255, 0.5);
-      }
-
-      .dark .week-content {
-        background: rgba(255, 255, 255, 0.05);
-      }
-
-      .dark .week-content.expanded {
-        background: rgba(255, 255, 255, 0.05);
-        border-top: 1px solid rgba(255, 255, 255, 0.1);
-      }
-
-
-
-      /* 경고 모달 스타일 */
-      .group-modal-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 1000;
-        background: rgba(0, 0, 0, 0.8);
-        backdrop-filter: blur(8px);
-      }
-
-      .group-modal-content {
-        background: var(--white);
-        border-radius: 1rem;
-        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-        max-width: 500px;
-        width: 90%;
-        max-height: 90vh;
-        overflow: hidden;
-        animation: modalSlideIn 0.3s ease-out;
-      }
-
-      @keyframes modalSlideIn {
-        from {
-          opacity: 0;
-          transform: translateY(-20px) scale(0.95);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0) scale(1);
-        }
-      }
-
-      .group-modal-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 1.5rem 2rem;
-        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-      }
-
-      .group-modal-title {
-        font-size: 1.5rem;
-        font-weight: 600;
-        color: rgba(0, 0, 0, 0.9);
-        margin: 0;
-      }
-
-      .group-modal-close {
-        background: transparent;
-        border: none;
-        font-size: 1.25rem;
-        color: rgba(0, 0, 0, 0.5);
-        cursor: pointer;
-        padding: 0.5rem;
-        border-radius: 0.375rem;
-        transition: all 0.2s ease;
-      }
-
-      .group-modal-close:hover {
-        background: rgba(0, 0, 0, 0.05);
-        color: rgba(0, 0, 0, 0.8);
-      }
-
-      .group-modal-body {
-        padding: 2rem;
-      }
-
-      .group-modal-message {
-        font-size: 1.125rem;
-        color: rgba(0, 0, 0, 0.8);
-        line-height: 1.6;
-        margin: 0 0 2rem 0;
-      }
-
-      .group-modal-actions {
-        display: flex;
-        gap: 1rem;
-        justify-content: flex-end;
-      }
-
-      .group-modal-btn {
-        padding: 0.75rem 1.5rem;
-        border-radius: 0.5rem;
-        font-size: 1rem;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        border: none;
-      }
-
-      .group-modal-btn-cancel {
-        background: rgba(0, 0, 0, 0.05);
-        color: rgba(0, 0, 0, 0.7);
-      }
-
-      .group-modal-btn-cancel:hover {
-        background: rgba(0, 0, 0, 0.1);
-        color: rgba(0, 0, 0, 0.9);
-      }
-
-      .group-modal-btn-warning {
-        background: rgba(239, 68, 68, 0.1);
-        color: rgba(239, 68, 68, 0.8);
-      }
-
-      .group-modal-btn-warning:hover {
-        background: rgba(239, 68, 68, 0.2);
-        color: rgba(239, 68, 68, 1);
-      }
-
-      .group-modal-btn-success {
-        background: rgba(34, 197, 94, 0.1);
-        color: rgba(34, 197, 94, 0.8);
-      }
-
-      .group-modal-btn-success:hover {
-        background: rgba(34, 197, 94, 0.2);
-        color: rgba(34, 197, 94, 1);
-      }
-
-      /* 다크모드 모달 */
-      .dark .group-modal-content {
-        background: #2a2a2a;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.5);
-      }
-
-      .dark .group-modal-header {
-        border-bottom-color: rgba(255, 255, 255, 0.2);
-      }
-
-      .dark .group-modal-title {
-        color: #fff;
-        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-      }
-
-      .dark .group-modal-close {
-        color: rgba(255, 255, 255, 0.6);
-      }
-
-      .dark .group-modal-close:hover {
-        background: rgba(255, 255, 255, 0.1);
-        color: #fff;
-      }
-
-      .dark .group-modal-message {
-        color: #ccc;
-        line-height: 1.6;
-      }
-
-      .dark .group-modal-btn-cancel {
-        background: #444;
-        color: #fff;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-      }
-
-      .dark .group-modal-btn-cancel:hover {
-        background: #555;
-        color: #fff;
-        transform: translateY(-1px);
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-      }
-
-      .dark .group-modal-btn-confirm {
-        background: var(--main-color);
-        color: #fff;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-      }
-
-      .dark .group-modal-btn-confirm:hover {
-        background: #4a4a8a;
-        transform: translateY(-1px);
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-      }
-
- /* 반응형 디자인 */
-@media (max-width: 768px) {
-  .groups-container {
-    padding: 1rem;
-  }
-  
-  .groups-grid {
-    gap: 1rem;
-  }
-  
-  .group-card {
-    width: 100%;
-    max-width: 400px;
-  }
-  
-  .group-header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  
-     .group-title {
-     font-size: 1.3rem;
-   }
-   
-       .group-detail-back {
-      text-align: center;
-      margin-bottom: 0.5rem;
-    }
-
-    
-    .group-detail-title .heading {
-      font-size: 2rem;
-    }
-   
-                               .group-members-table-container {
-       overflow-x: auto;
-     }
-     
-           .group-members-table {
-        min-width: 800px;
-      }
-      
-      .group-members-table th,
-      .group-members-table td {
-        padding: 0.75rem 0.5rem;
-        font-size: 0.8rem;
-      }
-      
-      .assignment-select,
-      .assignment-url-input {
-        font-size: 0.7rem;
-        padding: 0.2rem 0.4rem;
-      }
-      
-      .action-buttons {
-        gap: 0.25rem;
-      }
-      
-             .action-btn {
-         padding: 0.375rem;
-       }
-       
-               .group-assignments-title {
-          font-size: 2rem;
-        }
-        
-        .week-button-content {
-          padding: 1rem 1.5rem;
-        }
-        
-        .week-title {
-          font-size: 1.25rem;
-        }
-        
-        .week-status {
-          font-size: 0.875rem;
-        }
-        
-                 .week-icon {
-           font-size: 2rem;
-         }
-
-         /* 모바일 과제 상세보기 */
-         .assignment-description {
-           padding: 1rem;
-           margin-bottom: 1rem;
-         }
-         
-         .assignment-description-title {
-           font-size: 1rem;
-         }
-         
-         .assignment-description-text {
-           font-size: 0.9rem;
-           padding: 0.5rem;
-         }
-         
-         .assignment-dates {
-           flex-direction: column;
-           gap: 0.5rem;
-         }
-         
-         .assignment-date {
-           font-size: 0.85rem;
-           padding: 0.375rem 0.5rem;
-         }
-         
-         .assignment-actions {
-           gap: 0.375rem;
-         }
-         
-         .assignment-actions .btn-small {
-           padding: 0.25rem 0.5rem;
-           font-size: 0.75rem;
-         }
-
-         /* 모바일 모달 */
-         .group-modal-content {
-           width: 95%;
-           margin: 1rem;
-         }
-
-         .group-modal-header {
-           padding: 1rem 1.5rem;
-         }
-
-         .group-modal-title {
-           font-size: 1.25rem;
-         }
-
-         .group-modal-body {
-           padding: 1.5rem;
-         }
-
-         .group-modal-message {
-           font-size: 1rem;
-         }
-
-         .group-modal-actions {
-           flex-direction: column;
-         }
-
-         .group-modal-btn {
-           width: 100%;
-           padding: 0.875rem 1rem;
-         }
- }
-
-/* 멘토 관리 스타일 */
-.group-members-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
-}
-
-.group-mentor-manage-btn {
-  background: var(--main-color);
-  color: var(--white);
-  padding: 0.8rem 1.5rem;
-  border: none;
-  border-radius: 0.5rem;
-  cursor: pointer;
-  font-size: 1.2rem;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  transition: all 0.3s ease;
-}
-
-.group-mentor-manage-btn:hover {
-  background: var(--main-color-dark);
+.btn-warning:hover {
+  background: #e0a800;
+  border-color: #d39e00;
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-/* 멘토 관리 모달 스타일 */
-.group-mentor-modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.8);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  backdrop-filter: blur(8px);
-}
-
- .group-mentor-modal-content {
-   background: var(--white);
-   border-radius: 1rem;
-   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-   max-width: 800px;
-   width: 95%;
-   max-height: 85vh;
-   overflow: hidden;
-   animation: modalSlideIn 0.3s ease-out;
-   margin-top: 60px; /* 네브바 높이만큼 상단 여백 추가 */
- }
-
-.group-mentor-modal-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1.5rem 2rem;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-}
-
- .group-mentor-modal-title {
-   font-size: 2rem;
-   font-weight: 600;
-   color: rgba(0, 0, 0, 0.9);
-   margin: 0;
- }
-
-.group-mentor-modal-close {
-  background: transparent;
-  border: none;
-  font-size: 1.25rem;
-  color: rgba(0, 0, 0, 0.5);
-  cursor: pointer;
-  padding: 0.5rem;
-  border-radius: 0.375rem;
-  transition: all 0.2s ease;
-}
-
-.group-mentor-modal-close:hover {
-  background: rgba(0, 0, 0, 0.05);
-  color: rgba(0, 0, 0, 0.8);
-}
-
-.group-mentor-modal-tabs {
-  display: flex;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-}
-
- .group-mentor-tab {
-   flex: 1;
-   background: transparent;
-   border: none;
-   padding: 1.5rem 2rem;
-   font-size: 1.3rem;
-   font-weight: 500;
-   color: rgba(0, 0, 0, 0.6);
-   cursor: pointer;
-   transition: all 0.2s ease;
-   display: flex;
-   align-items: center;
-   justify-content: center;
-   gap: 0.5rem;
- }
-
-.group-mentor-tab:hover {
-  background: rgba(0, 0, 0, 0.05);
-  color: rgba(0, 0, 0, 0.8);
-}
-
-.group-mentor-tab.active {
-  background: var(--main-color);
-  color: var(--white);
-}
-
- .group-mentor-modal-body {
-   padding: 2.5rem;
-   max-height: 500px;
-   overflow-y: auto;
- }
-
- .group-mentor-section-title {
-   font-size: 1.6rem;
-   font-weight: 600;
-   color: rgba(0, 0, 0, 0.8);
-   margin: 0 0 2rem 0;
- }
-
-.group-mentor-member-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
- .group-mentor-member-item {
-   display: flex;
-   align-items: center;
-   justify-content: space-between;
-   padding: 1.5rem;
-   background: rgba(0, 0, 0, 0.02);
-   border-radius: 0.5rem;
-   border: 1px solid rgba(0, 0, 0, 0.05);
-   transition: all 0.2s ease;
- }
-
-.group-mentor-member-item:hover {
-  background: rgba(0, 0, 0, 0.05);
-  border-color: rgba(0, 0, 0, 0.1);
-}
-
-.group-mentor-member-info {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
- .group-mentor-member-name {
-   font-weight: 600;
-   color: rgba(0, 0, 0, 0.9);
-   font-size: 1.4rem;
- }
-
- .group-mentor-member-email {
-   color: rgba(0, 0, 0, 0.6);
-   font-size: 1.1rem;
- }
-
- .group-mentor-member-status {
-   color: rgba(0, 0, 0, 0.6);
-   font-size: 1.1rem;
- }
-
- .group-mentor-add-btn,
- .group-mentor-remove-btn {
-   background: transparent;
-   border: none;
-   width: 3rem;
-   height: 3rem;
-   border-radius: 50%;
-   cursor: pointer;
-   display: flex;
-   align-items: center;
-   justify-content: center;
-   transition: all 0.2s ease;
-   font-size: 1.3rem;
- }
-
-.group-mentor-add-btn {
-  color: var(--main-color);
-  border: 2px solid var(--main-color);
-}
-
-.group-mentor-add-btn:hover {
-  background: var(--main-color);
-  color: var(--white);
-  transform: scale(1.1);
-}
-
-.group-mentor-remove-btn {
-  color: #dc3545;
+.btn-danger {
+  background: #dc3545;
+        color: var(--white);
   border: 2px solid #dc3545;
 }
 
-.group-mentor-remove-btn:hover {
+.btn-danger:hover {
+  background: #c82333;
+  border-color: #bd2130;
+        transform: translateY(-2px);
+}
+
+/* 다크 모드 버튼 스타일 */
+.dark .btn-warning {
+  background: #ffc107;
+  color: #000;
+  border-color: #ffc107;
+}
+
+.dark .btn-warning:hover {
+  background: #e0a800;
+  border-color: #d39e00;
+}
+
+.dark .btn-danger {
   background: #dc3545;
   color: var(--white);
-  transform: scale(1.1);
+  border-color: #dc3545;
 }
 
- .group-mentor-no-members {
-   text-align: center;
-   color: rgba(0, 0, 0, 0.5);
-   font-style: italic;
-   padding: 2rem;
-   font-size: 1.2rem;
- }
-
-/* 다크모드 멘토 관리 스타일 */
-.dark .group-mentor-manage-btn {
-  background: var(--main-color);
-  color: #fff;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+.dark .btn-danger:hover {
+  background: #c82333;
+  border-color: #bd2130;
 }
 
-.dark .group-mentor-manage-btn:hover {
-  background: #4a4a8a;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+/* 멤버 경고 횟수 표시 */
+.group-mentor-member-warnings {
+  font-size: 12px;
+  color: #dc3545 !important;
+        font-weight: 600;
+  background: #f8d7da;
+  padding: 2px 8px;
+  border-radius: 12px;
+  border: 1px solid #f5c6cb;
 }
 
-.dark .group-mentor-modal-content {
-  background: #2a2a2a;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.5);
+.dark .group-mentor-member-warnings {
+  color: #ff6b6b !important;
+  background: #4d1e1e;
+  border-color: #5a2d2d;
 }
 
-.dark .group-mentor-modal-header {
-  border-bottom-color: rgba(255, 255, 255, 0.2);
-}
-
-.dark .group-mentor-modal-title {
-  color: #fff;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-}
-
-.dark .group-mentor-modal-close {
-  color: rgba(255, 255, 255, 0.6);
-}
-
-.dark .group-mentor-modal-close:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
-}
-
-.dark .group-mentor-modal-tabs {
-  border-bottom-color: rgba(255, 255, 255, 0.2);
-}
-
-.dark .group-mentor-tab {
-  color: rgba(255, 255, 255, 0.6);
-}
-
-.dark .group-mentor-tab:hover {
-  background: rgba(255, 255, 255, 0.05);
-  color: rgba(255, 255, 255, 0.8);
-}
-
-.dark .group-mentor-tab.active {
-  background: var(--main-color);
-  color: #fff;
-}
-body.active .group-mentor-modal-overlay{
-  left: 0 !important;
-  margin-right: 0 !important;
-  width: 100% !important;
-}
-body:not(.active) .group-mentor-modal-overlay{
-  left: 0 !important;
-  margin-right: 30rem !important;
-  width: calc(100% - 30rem) !important;
-}
-.dark .group-mentor-section-title {
-  color: rgba(255, 255, 255, 0.9);
-}
-
-.dark .group-mentor-member-item {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.1);
-}
-
-.dark .group-mentor-member-item:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.2);
-}
-
-.dark .group-mentor-member-name {
-  color: rgba(255, 255, 255, 0.9);
-}
-
-.dark .group-mentor-member-email,
-.dark .group-mentor-member-status {
-  color: rgba(255, 255, 255, 0.6);
-}
-
-.dark .group-mentor-no-members {
-  color: rgba(255, 255, 255, 0.5);
-}
-
-/* DatePicker 스타일 */
-.datepicker-input {
-  width: 100%;
-  padding: 0.75rem 1rem;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  border-radius: 0.5rem;
-  font-size: 1rem;
-  background: var(--white);
-  color: rgba(0, 0, 0, 0.8);
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.datepicker-input:hover {
-  border-color: var(--main-color);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.datepicker-input:focus {
-  outline: none;
-  border-color: var(--main-color);
-  box-shadow: 0 0 0 3px rgba(102, 102, 255, 0.1);
-}
-
-/* React DatePicker 컨테이너 스타일 */
-.react-datepicker-wrapper {
-  width: 100%;
-}
-
-.react-datepicker__input-container {
-  width: 100%;
-}
-
-.react-datepicker__input-container input {
-  width: 100%;
-  padding: 0.75rem 1rem;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  border-radius: 0.5rem;
-  font-size: 1rem;
-  background: var(--white);
-  color: rgba(0, 0, 0, 0.8);
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.react-datepicker__input-container input:hover {
-  border-color: var(--main-color);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.react-datepicker__input-container input:focus {
-  outline: none;
-  border-color: var(--main-color);
-  box-shadow: 0 0 0 3px rgba(102, 102, 255, 0.1);
-}
-
-/* DatePicker 팝업 스타일 */
-.react-datepicker {
-  font-family: inherit;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  border-radius: 0.75rem;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-  background: var(--white);
-  font-size: 1.2rem;
-  min-width: 320px;
-  min-height: 280px;
-}
-
-.react-datepicker__header {
-  background: var(--main-color);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-  border-radius: 0.75rem 0.75rem 0 0;
-  padding: 1.5rem;
-}
-
-.react-datepicker__current-month {
-  color: var(--white);
-  font-size: 1.4rem;
-  font-weight: 600;
-  margin-bottom: 0.75rem;
-}
-
-.react-datepicker__day-name {
-  color: rgba(255, 255, 255, 0.8);
-  font-weight: 500;
-  margin: 0.5rem;
-  font-size: 1.1rem;
-  width: 2.5rem;
-  height: 2.5rem;
-  line-height: 2.5rem;
-}
-
-.react-datepicker__day {
-  color: rgba(0, 0, 0, 0.8);
-  border-radius: 0.5rem;
-  margin: 0.25rem;
-  transition: all 0.2s ease;
-  width: 2.5rem;
-  height: 2.5rem;
-  line-height: 2.5rem;
-  font-size: 1.1rem;
-}
-
-.react-datepicker__day:hover {
-  background: var(--main-color);
-  color: var(--white);
-}
-
-.react-datepicker__day--selected {
-  background: var(--main-color);
-  color: var(--white);
-}
-
-.react-datepicker__day--keyboard-selected {
-  background: var(--main-color);
-  color: var(--white);
-}
-
-.react-datepicker__time-container {
-  border-left: 1px solid rgba(0, 0, 0, 0.1);
-  min-width: 120px;
-}
-
-.react-datepicker__time-box {
-  border-radius: 0 0 0.75rem 0;
-  padding: 0.5rem;
-}
-
-.react-datepicker__time-list-item {
-  padding: 0.75rem 1.25rem;
-  transition: all 0.2s ease;
-  font-size: 1.1rem;
-  line-height: 1.5;
-}
-
-.react-datepicker__time-list-item:hover {
-  background: var(--main-color);
-  color: var(--white);
-}
-
-.react-datepicker__time-list-item--selected {
-  background: var(--main-color);
-  color: var(--white);
-}
-
-/* 다크모드 DatePicker */
-.dark .datepicker-input {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.8);
-}
-
-.dark .datepicker-input:hover {
-  border-color: var(--main-color);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-}
-
-.dark .datepicker-input:focus {
-  border-color: var(--main-color);
-  box-shadow: 0 0 0 3px rgba(102, 102, 255, 0.2);
-}
-
-.dark .react-datepicker__input-container input {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.8);
-}
-
-.dark .react-datepicker__input-container input:hover {
-  border-color: var(--main-color);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-}
-
-.dark .react-datepicker__input-container input:focus {
-  border-color: var(--main-color);
-  box-shadow: 0 0 0 3px rgba(102, 102, 255, 0.2);
-}
-
-.dark .react-datepicker {
-  background: #2a2a2a;
-  border-color: rgba(255, 255, 255, 0.2);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-}
-
-.dark .react-datepicker__header {
-  background: var(--main-color);
-  border-bottom-color: rgba(255, 255, 255, 0.1);
-}
-
-.dark .react-datepicker__day {
-  color: rgba(255, 255, 255, 0.8);
-}
-
-.dark .react-datepicker__day:hover {
-  background: var(--main-color);
-  color: var(--white);
-}
-
-.dark .react-datepicker__time-container {
-  border-left-color: rgba(255, 255, 255, 0.1);
-}
-
-.dark .react-datepicker__time-list-item {
-  color: rgba(255, 255, 255, 0.8);
-}
-
-.dark .react-datepicker__time-list-item:hover {
-  background: var(--main-color);
-  color: var(--white);
-}
-
-/* 과제 생성 모달 DatePicker 스타일 */
-.assignment-modal-body .datepicker-input {
-  background: var(--white);
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  border-radius: 0.5rem;
-  padding: 0.75rem 1rem;
-  font-size: 1rem;
-  color: rgba(0, 0, 0, 0.8);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  width: 100%;
-}
-
-.assignment-modal-body .datepicker-input:hover {
-  border-color: var(--main-color);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.assignment-modal-body .datepicker-input:focus {
-  outline: none;
-  border-color: var(--main-color);
-  box-shadow: 0 0 0 3px rgba(102, 102, 255, 0.1);
-}
-
-.dark .assignment-modal-body .datepicker-input {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.8);
-}
-
-.dark .assignment-modal-body .datepicker-input:hover {
-  border-color: var(--main-color);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-}
-
-.dark .assignment-modal-body .datepicker-input:focus {
-  border-color: var(--main-color);
-  box-shadow: 0 0 0 3px rgba(102, 102, 255, 0.2);
-}
-
-/* 과제 상세보기 스타일 */
-.assignment-description {
-  background: rgba(0, 0, 0, 0.02);
-  border-radius: 0.75rem;
-  padding: 1.5rem;
-  margin-bottom: 1.5rem;
-  border: 1px solid rgba(0, 0, 0, 0.05);
-}
-
-.assignment-description-header {
-  display: flex;
-  align-items: center;
+/* 멤버 정보 레이아웃 */
+.group-mentor-member-info {
+       display: flex;
   justify-content: space-between;
-  margin-bottom: 0.75rem;
-  width: 100%;
-}
-
-.assignment-description-title {
-  font-size: 2.5rem;
-  font-weight: 600;
-  color: rgba(0, 0, 0, 0.8);
-  margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+       align-items: center;
   flex: 1;
 }
 
-.assignment-description-title::before {
-  content: "📝";
-  font-size: 2rem;
+.group-mentor-member-details {
+     display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
-.assignment-description .assignment-actions {
-  display: flex;
-  gap: 0.5rem;
-  align-items: center;
-  margin-top: 0;
+/* 멤버 액션 버튼들 */
+.group-mentor-member-actions {
+        display: flex;
+  gap: 8px;
+        align-items: center;
 }
 
-.assignment-description-text {
-  font-size: 1.8rem;
-  line-height: 1.6;
-  color: rgba(0, 0, 0, 0.7);
-  margin: 0 0 1rem 0;
-  padding: 0.75rem;
-  background: rgba(255, 255, 255, 0.5);
-  border-radius: 0.5rem;
-  border-left: 3px solid var(--main-color);
+.group-mentor-warn-btn {
+  background: #ffc107;
+  color: #212529;
+  border: 2px solid #ffc107;
+  border-radius: 6px;
+  padding: 8px 12px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+  font-size: 14px;
 }
 
-.assignment-dates {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  margin-top: 1rem;
+.group-mentor-warn-btn:hover {
+  background: #e0a800;
+  border-color: #d39e00;
+        transform: translateY(-2px);
 }
 
-.assignment-date {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 1.5rem;
-  color: rgba(0, 0, 0, 0.6);
-  padding: 0.5rem 0.75rem;
-  background: rgba(255, 255, 255, 0.7);
-  border-radius: 0.5rem;
-  border: 1px solid rgba(0, 0, 0, 0.05);
+.group-mentor-remove-btn {
+  background: #dc3545;
+  color: var(--white);
+  border: 2px solid #dc3545;
+  border-radius: 6px;
+  padding: 8px 12px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+  font-size: 14px;
 }
 
-.assignment-date i {
-  color: var(--main-color);
-  font-size: 1.3qrem;
+.group-mentor-remove-btn:hover {
+  background: #c82333;
+  border-color: #bd2130;
+  transform: translateY(-2px);
 }
 
-.assignment-actions {
-  display: flex;
-  gap: 0.5rem;
-  margin-top: 1rem;
-  justify-content: flex-end;
+/* 다크 모드 액션 버튼 */
+.dark .group-mentor-warn-btn {
+  background: #ffc107;
+  color: #000;
+  border-color: #ffc107;
 }
 
-/* 과제 설명 헤더 내의 액션 버튼들은 마진 제거 */
-.assignment-description .assignment-actions {
-  margin-top: 0;
+.dark .group-mentor-warn-btn:hover {
+  background: #e0a800;
+  border-color: #d39e00;
 }
 
-.assignment-actions .btn-small {
-  padding: 0.375rem 0.75rem;
-  font-size: 1.5rem;
-  border-radius: 0.375rem;
-  font-weight: 500;
-  transition: all 0.2s ease;
-  border: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  width:auto;
+.dark .group-mentor-remove-btn {
+  background: #dc3545;
+  color: var(--white);
+  border-color: #dc3545;
 }
 
-.assignment-actions .btn-small.btn-secondary {
-  background: rgba(0, 0, 0, 0.05);
-  color: rgba(0, 0, 0, 0.7);
-  width:auto;
+.dark .group-mentor-remove-btn:hover {
+  background: #c82333;
+  border-color: #bd2130;
 }
 
-.assignment-actions .btn-small.btn-secondary:hover {
-  background: rgba(0, 0, 0, 0.1);
-  color: rgba(0, 0, 0, 0.9);
-  transform: translateY(-1px);
-}
-
-.assignment-actions .btn-small.btn-danger {
-  background: rgba(239, 68, 68, 0.1);
-  color: rgba(239, 68, 68, 0.8);
-}
-
-.assignment-actions .btn-small.btn-danger:hover {
-  background: rgba(239, 68, 68, 0.2);
-  color: rgba(239, 68, 68, 1);
-  transform: translateY(-1px);
-}
-
-/* 다크모드 과제 상세보기 */
-.dark .assignment-description {
-  background: rgba(255, 255, 255, 0.03);
-  border-color: rgba(255, 255, 255, 0.1);
-}
-
-.dark .assignment-description-title {
-  color: rgba(255, 255, 255, 0.9);
-}
-
-.dark .assignment-description-text {
-  color: rgba(255, 255, 255, 0.8);
-  background: rgba(255, 255, 255, 0.05);
-  border-left-color: var(--main-color);
-}
-
-.dark .assignment-date {
-  color: rgba(255, 255, 255, 0.7);
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.1);
-}
-
-.dark .assignment-actions .btn-small.btn-secondary {
-  background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.8);
-}
-
-.dark .assignment-actions .btn-small.btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.15);
-  color: rgba(255, 255, 255, 1);
-}
-
-.dark .assignment-actions .btn-small.btn-danger {
-  background: rgba(239, 68, 68, 0.2);
-  color: rgba(239, 68, 68, 0.9);
-}
-
-.dark .assignment-actions .btn-small.btn-danger:hover {
-  background: rgba(239, 68, 68, 0.3);
-  color: rgba(239, 68, 68, 1);
-}
-
-/* 과제가 없을 때 스타일 */
-.no-assignments {
-  text-align: center;
-  padding: 3rem 2rem;
-  background: rgba(0, 0, 0, 0.02);
-  border-radius: 0.75rem;
-  border: 2px dashed rgba(0, 0, 0, 0.1);
-  margin: 2rem 0;
-}
-
-.no-assignments p {
-  font-size: 1.2rem;
-  color: rgba(0, 0, 0, 0.6);
-  margin: 0.5rem 0;
-}
-
-.no-assignments p:first-child {
-  font-size: 1.4rem;
-  font-weight: 600;
-  color: rgba(0, 0, 0, 0.8);
-}
-
-.dark .no-assignments {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.1);
-}
-
-.dark .no-assignments p {
-  color: rgba(255, 255, 255, 0.6);
-}
-
-.dark .no-assignments p:first-child {
-  color: rgba(255, 255, 255, 0.8);
-}
-
-/* 반응형 멘토 관리 */
-@media (max-width: 768px) {
-  .group-members-header {
-    flex-direction: column;
-    gap: 1rem;
-    align-items: stretch;
-  }
-
-  .group-mentor-manage-btn {
-    justify-content: center;
-  }
-
-     .group-mentor-modal-content {
-     width: 98%;
-     margin: 1rem;
-     margin-top: 40px; /* 모바일에서는 네브바 높이를 줄임 */
-   }
-
-  .group-mentor-modal-header {
-    padding: 1rem 1.5rem;
-  }
-
-     .group-mentor-modal-title {
-     font-size: 1.6rem;
-   }
-
-  .group-mentor-modal-tabs {
-    flex-direction: column;
-  }
-
-     .group-mentor-tab {
-     padding: 1rem 1.5rem;
-     font-size: 1.1rem;
-   }
-
-     .group-mentor-modal-body {
-     padding: 2rem;
-   }
-
-     .group-mentor-member-item {
-     padding: 1rem;
-   }
-
-     .group-mentor-member-name {
-     font-size: 1.2rem;
-   }
-
-     .group-mentor-member-email,
-   .group-mentor-member-status {
-     font-size: 1rem;
-   }
-}
-
-/* TinyMCE 에디터 스타일 */
-.tinymce-editor-container {
-  width: 100%;
-  border: 2px solid var(--border);
-  border-radius: 0.5rem;
-  overflow: hidden;
-}
-
-body.dark .tinymce-editor-container .tox-tinymce {
-  background-color: #000000 !important;
-}
-
-/* 다크모드에서 과제 모달 입력 필드 색상 */
-.dark .assignment-modal-body .form-group input,
-.dark .assignment-modal-body .form-group textarea {
-  background-color: #2a2a2a;
-  color: var(--black);
-  border-color: var(--border);
-}
-
-.dark .assignment-modal-body .form-group input::placeholder,
-.dark .assignment-modal-body .form-group textarea::placeholder {
-  color: #aaa;
-}
-
-
-
-/* 과제 생성/수정 모달 스타일 */
-.assignment-modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
+/* 공통 모달 오버레이 */
+.modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.8);
-  display: flex;
-  justify-content: center;
+  background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        justify-content: center;
   align-items: center;
-  z-index: 1000;
-  backdrop-filter: blur(8px);
-}
+        z-index: 1000;
+  backdrop-filter: blur(4px);
+      }
 
-.assignment-modal-content {
-  background: var(--white);
-  border-radius: 12px;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  width: 50%;
-  height: 80%;
-  max-height: 90vh;
+/* 공통 모달 컨텐츠 */
+.modal-content {
+        background: var(--white);
+  border-radius: 1.5rem;
+  padding: 3rem;
+  max-width: 600px;
+        width: 90%;
+  max-height: 80vh;
   overflow-y: auto;
+  box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.2);
   position: relative;
-  animation: modalSlideIn 0.3s ease-out;
-  font-size: 3rem;
 }
 
-@keyframes modalSlideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-50px) scale(0.9);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-.assignment-modal-header {
-  padding: 20px 24px 0;
-  border-bottom: 1px solid #e5e7eb;
-  display: flex;
-  justify-content: space-between;
+.modal-header {
+        display: flex;
+        justify-content: space-between;
   align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid var(--border);
 }
 
-.assignment-modal-title {
-  font-size: 3rem;
-  font-weight: 600;
+.modal-title {
+  font-size: 2.2rem;
+  font-weight: 700;
   color: var(--black);
-  margin: 0;
-}
+        margin: 0;
+      }
 
-.assignment-modal-close {
+.modal-close {
   background: none;
-  border: none;
-  font-size: 1.5rem;
-  color: #6b7280;
-  cursor: pointer;
-  padding: 0;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 6px;
-  transition: all 0.2s;
-}
-
-.assignment-modal-close:hover {
-  background: #f3f4f6;
-  color: #374151;
-}
-
-.assignment-modal-body {
-  padding: 24px;
-}
-
-.assignment-modal-body .form-group {
-  margin-bottom: 20px;
-}
-
-.assignment-modal-body .form-group label {
-  display: block;
-  margin-bottom: 8px;
-  font-weight: 500;
-  color: var(--black);
+        border: none;
   font-size: 2rem;
+  color: var(--black);
+        cursor: pointer;
+        padding: 0.5rem;
+  border-radius: 0.5rem;
+  transition: all 0.3s ease;
 }
 
-.assignment-modal-body .form-group input,
-.assignment-modal-body .form-group textarea {
-  width: 100%;
-  padding: 12px 16px;
-  border: 1px solid #d1d5db !important;
-  border-radius: 8px;
-  font-size: 1.3rem;
-  transition: all 0.2s;
-  box-sizing: border-box;
-}
-
-.assignment-modal-body .form-group input:focus,
-.assignment-modal-body .form-group textarea:focus {
-  outline: none;
-  border-color: var(--main-color);
-  box-shadow: 0 0 0 3px rgba(120, 120, 255, 0.1);
-}
-
-.assignment-modal-body .form-group textarea {
-  resize: vertical;
-  min-height: 120px;
-}
-
-.assignment-modal-body .form-group input::placeholder,
-.assignment-modal-body .form-group textarea::placeholder {
-  color: #9ca3af;
-}
-
-.assignment-modal-body .form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-}
-.assignment-modal-body .form-row input{
-  width: 80%;
-}
-
-.assignment-modal-footer {
-  padding: 20px 24px;
-  border-top: 1px solid #e5e7eb;
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-}
-
-/* 다크모드 과제 모달 */
-.dark .assignment-modal-content {
-  background: #2a2a2a;
-  border: 1px solid var(--border);
-}
-
-.dark .assignment-modal-header {
-  border-bottom: 1px solid var(--border);
-}
-
-.dark .assignment-modal-title {
+.modal-close:hover {
+  background: var(--light-bg);
   color: var(--black);
 }
 
-.dark .assignment-modal-close {
-  color: var(--black);
+.modal-body {
+  padding: 1rem 0;
 }
 
-.dark .assignment-modal-close:hover {
-  color: var(--main-color);
-}
-
-.dark .assignment-modal-body .form-group label {
-  color: var(--black);
-}
-
-.dark .assignment-modal-body .form-group input,
-.dark .assignment-modal-body .form-group textarea {
-  background: #2a2a2a;
-  border: 1px solid var(--border);
-  color: var(--black);
-}
-
-.dark .assignment-modal-body .form-group input::placeholder,
-.dark .assignment-modal-body .form-group textarea::placeholder {
-  color: #aaa;
-}
-
-.dark .assignment-modal-body .form-group input:focus,
-.dark .assignment-modal-body .form-group textarea:focus {
-  border-color: var(--main-color);
-  box-shadow: 0 0 0 2px rgba(120, 120, 255, 0.2);
-}
-
-.dark .assignment-modal-footer {
+.modal-footer {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+  margin-top: 2rem;
+  padding-top: 2rem;
   border-top: 1px solid var(--border);
 }
 
-.dark .assignment-modal-footer button {
+/* 공통 폼 스타일 */
+.form-group {
+  margin-bottom: 2rem;
+}
+
+.form-group label {
+  display: block;
+  font-size: 1.4rem;
+   font-weight: 600;
   color: var(--black);
 }
 
-.dark .assignment-modal-footer button:hover {
-  color: var(--black);
-}
-
-/* 반응형 과제 모달 */
-@media (max-width: 768px) {
-  .assignment-modal-content {
-    width: 95%;
-    max-width: none;
-    margin: 20px auto;
-  }
-  
-  .assignment-modal-body .form-row {
-    flex-direction: column;
-  }
-  
-  .assignment-modal-body .form-row .form-group {
-    width: 100%;
-    margin-bottom: 15px;
-  }
-}
-
-/* 다크모드 assignment-create-btn 스타일 */
-.dark .assignment-create-btn {
-  background: var(--main-color);
-  color: #fff;
-}
-
-.dark .assignment-create-btn:hover {
-  background: #4a4a8a;
-  color: #fff;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-}
-
-/* 과제가 없을 때 스타일 */
-.no-assignments {
-  text-align: center;
-  padding: 3rem 2rem;
+.form-group input,
+.form-group textarea,
+.form-group select {
+  width: 100%;
+  padding: 1rem;
+  border: 2px solid var(--border);
+  border-radius: 0.8rem;
+  font-size: 1.4rem;
   background: var(--white);
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  margin: 1rem 0;
+  color: var(--black);
+  transition: border-color 0.3s ease;
+  box-sizing: border-box;
 }
 
-.no-assignments-text {
-  font-size: 1.1rem;
-  color: var(--light-color);
-  margin-bottom: 1rem;
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: var(--main-color);
 }
 
-.no-assignments-hint {
-  font-size: 0.9rem;
-  color: var(--main-color);
-  font-style: italic;
+.form-group textarea {
+  resize: vertical;
+  min-height: 100px;
 }
 
-/* 다크모드 과제 없음 스타일 */
-.dark .no-assignments {
+/* 공통 로딩 스피너 */
+.loading-spinner {
+  display: inline-block;
+  width: 2rem;
+  height: 2rem;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: var(--white);
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* 공통 섹션 제목 */
+.section-title {
+  font-size: 2.4rem;
+  font-weight: 700;
+  color: var(--black);
+  margin-bottom: 2rem;
+  border-bottom: 2px solid var(--main-color);
+  padding-bottom: 1rem;
+}
+
+/* 공통 카드 스타일 */
+.card {
+  background: var(--white);
+  border-radius: 1.5rem;
+  padding: 3rem;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+  border: 2px solid var(--border);
+  margin-bottom: 3rem;
+}
+
+/* 다크모드 공통 스타일 */
+.dark .modal-content {
   background: #2a2a2a;
 }
 
-.dark .no-assignments-text {
-  color: var(--light-color);
+.dark .modal-title {
+  color: var(--white);
 }
 
-.dark .no-assignments-hint {
-  color: var(--main-color);
+.dark .modal-header {
+  border-color: #444;
 }
 
-/* 과제 삭제 모달 특화 스타일 */
-.assignment-modal-body p {
-  font-size: 1.1rem;
-  line-height: 1.6;
-  margin-bottom: 1rem;
-  color: var(--light-color);
+.dark .modal-close {
+  color: #ccc;
 }
 
-.assignment-modal-body p:first-child {
-  font-weight: 600;
-  color: var(--main-color);
-  font-size: 1.2rem;
+.dark .modal-close:hover {
+  background: #444;
+  color: var(--white);
 }
 
-.assignment-modal-body p:last-child {
-  font-size: 0.9rem;
-  color: #e74c3c;
-  font-style: italic;
+.dark .modal-footer {
+  border-color: #444;
 }
 
-.dark .assignment-modal-body p {
-  color: var(--light-color);
+.dark .form-group label {
+  color: var(--white);
 }
 
-.dark .assignment-modal-body p:first-child {
-  color: var(--main-color);
+.dark .form-group input,
+.dark .form-group textarea,
+.dark .form-group select {
+  background: #444;
+  color: var(--white);
+  border-color: #555;
 }
 
-.dark .assignment-modal-body p:last-child {
-  color: #ff6b6b;
+.dark .form-group input:focus,
+.dark .form-group textarea:focus,
+.dark .form-group select:focus {
+  border-color: var(--main-color);
 }
 
-/* 삭제 모달 작은 크기 스타일 */
-.assignment-modal-content.delete-modal {
-  width: 40%;
-  height: auto;
-  max-height: 30vh;
-  font-size: 2rem;
-}
-body.active .assignment-modal-overlay {
-  left: 0 !important;
-  margin-right: 0 !important;
-  width: 100% !important;
+.dark .section-title {
+  color: var(--white);
 }
 
-body:not(.active) .assignment-modal-overlay {
-  left: 0 !important;
-  margin-right: 30rem !important;
-  width: calc(100% - 30rem) !important;
+.dark .card {
+  background: #2a2a2a;
+  border-color: #444;
 }
 
-.assignment-modal-content.delete-modal .assignment-modal-title {
+/* 반응형 공통 스타일 */
+@media (max-width: 768px) {
+  .modal-content {
+    width: 95%;
+    padding: 2rem;
+     margin: 1rem;
+  }
+
+  .modal-title {
   font-size: 1.8rem;
 }
 
-.assignment-modal-content.delete-modal .assignment-modal-body {
-  padding: 20px 24px;
-}
-
-.assignment-modal-content.delete-modal .assignment-modal-body p {
+  .section-title {
   font-size: 2rem;
-  margin-bottom: 0.8rem;
+  }
+
+  .card {
+     padding: 2rem;
+   }
+
+  .modal-footer {
+    flex-direction: column;
+  }
+
+  .btn {
+  width: 100%;
+  justify-content: center;
+  }
 }
 
-.assignment-modal-content.delete-modal .assignment-modal-body p:first-child {
-  font-size: 1.5rem;
+@media (max-width: 480px) {
+.modal-content {
+    padding: 1.5rem;
+  }
+
+  .card {
+    padding: 1.5rem;
+  }
+
+  .modal-title {
+    font-size: 1.6rem;
+  }
+
+  .section-title {
+    font-size: 1.8rem;
+  }
 }
 
-/* React DatePicker 다크모드 스타일 */
-.react-datepicker {
-  background-color: var(--white) !important;
-  border: 1px solid var(--border) !important;
-  border-radius: 8px !important;
-  font-family: inherit !important;
+/* 다크모드 버튼 스타일 */
+.dark .btn-secondary {
+  background: var(--light-bg);
+  color: var(--white);
+  border-color: var(--border);
 }
 
-.react-datepicker__header {
-  background-color: var(--main-color) !important;
-  border-bottom: 1px solid var(--border) !important;
-}
-
-.react-datepicker__current-month,
-.react-datepicker__day-name,
-.react-datepicker__day {
-  color: var(--black) !important;
-}
-
-.react-datepicker__day:hover {
-  background-color: var(--main-color) !important;
-  color: var(--white) !important;
-}
-
-.react-datepicker__day--selected {
-  background-color: var(--main-color) !important;
-  color: var(--white) !important;
-}
-
-.react-datepicker__time-container {
-  background-color: var(--white) !important;
-  border-left: 1px solid var(--border) !important;
-}
-
-.react-datepicker__time-list {
-  background-color: var(--white) !important;
-}
-
-.react-datepicker__time-list-item {
-  color: var(--black) !important;
-}
-
-.react-datepicker__time-list-item:hover {
-  background-color: var(--main-color) !important;
-  color: var(--white) !important;
-}
-
-.react-datepicker__time-list-item--selected {
-  background-color: var(--main-color) !important;
-  color: var(--white) !important;
-}
-
-/* 다크모드 DatePicker 스타일 */
-.dark .react-datepicker {
-  background-color: var(--black) !important;
-  border-color: var(--border) !important;
-}
-
-.dark .react-datepicker__header {
-  background-color: var(--main-color) !important;
-  border-bottom-color: var(--border) !important;
-}
-
-.dark .react-datepicker__current-month,
-.dark .react-datepicker__day-name,
-.dark .react-datepicker__day {
-  color: var(--white) !important;
-}
-
-.dark .react-datepicker__time-container {
-  background-color: var(--black) !important;
-  border-left-color: var(--border) !important;
-}
-
-.dark .react-datepicker__time-list {
-  background-color: var(--black) !important;
-}
-
-.dark .react-datepicker__time-list-item {
-  color: var(--white) !important;
-}
-
-/* 마감 배지 스타일 */
-.deadline-badge {
-  display: inline-block;
-  background-color: #dc3545;
-  color: white;
-  font-size: 0.75rem;
-  font-weight: 600;
-  padding: 2px 8px;
-  border-radius: 12px;
-  margin-left: 8px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.week-title-container {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex: 1;
-  min-width: 0;
-}
-
-.week-title {
-  margin: 0;
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.dark .btn-secondary:hover {
+  background: var(--white);
+  color: var(--black);
+  border-color: var(--white);
+  transform: translateY(-2px);
 }
