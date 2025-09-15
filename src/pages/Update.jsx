@@ -1,6 +1,6 @@
 ﻿import { useState, useEffect } from 'react'
 import { useAuth } from '../components/auth'
-import { api } from '../lib/api'
+import { api } from "../components/client"
 
 export default function Update() {
   const { token } = useAuth()
