@@ -41,72 +41,66 @@ export default function Profile() {
         for (const studyGroup of profile.studyGroups) {
           try {
             // 먼저 해당 스터디에서 사용자의 역할 확인
-            const memberResponse = await fetch(`/api/v1/group/${studyGroup.studyGroupId}/member`, {
-              method: 'GET',
-              headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-              }
-            })
+            const memberResult = await api(
+              'GET',
+              `/group/${studyGroup.studyGroupId}/member`,
+              null,
+              token
+            )
 
-            if (memberResponse.ok) {
-              const memberResult = await memberResponse.json()
-              if (memberResult.code === 'SUCCESS') {
-                // JWT 토큰에서 학번 추출
-                let myStudentNumber = null
-                try {
-                  const tokenPayload = JSON.parse(atob(token.split('.')[1]))
-                  myStudentNumber = parseInt(tokenPayload.studentNumber || tokenPayload.sub || tokenPayload.userId || tokenPayload.id)
-                } catch {
-                  // JWT에서 학번 추출 실패
+            if (memberResult?.code === 'SUCCESS') {
+              // JWT 토큰에서 학번 추출
+              let myStudentNumber = null
+              try {
+                const tokenPayload = JSON.parse(atob((token.split('.')[1]) || ''))
+                myStudentNumber = parseInt(
+                  tokenPayload.studentNumber || tokenPayload.sub || tokenPayload.userId || tokenPayload.id
+                )
+              } catch {
+                // JWT에서 학번 추출 실패
+              }
+
+              if (myStudentNumber) {
+                // 해당 스터디에서 내 역할 찾기
+                const myMemberInfo = (memberResult.data || []).find(member => member.studentNumber === myStudentNumber)
+                
+                // 멘토인 경우 출석률 계산 건너뛰기
+                if (myMemberInfo && myMemberInfo.role === 'MENTOR') {
+                  console.log(`스터디 ${studyGroup.name}: 멘토이므로 출석률 계산 건너뛰기`)
+                  continue
                 }
 
-                if (myStudentNumber) {
-                  // 해당 스터디에서 내 역할 찾기
-                  const myMemberInfo = memberResult.data.find(member => member.studentNumber === myStudentNumber)
-                  
-                  // 멘토인 경우 출석률 계산 건너뛰기
-                  if (myMemberInfo && myMemberInfo.role === 'MENTOR') {
-                    console.log(`스터디 ${studyGroup.name}: 멘토이므로 출석률 계산 건너뛰기`)
-                    continue
-                  }
+                // 멘티인 경우에만 출석률 계산
+                if (myMemberInfo && myMemberInfo.role === 'MENTEE') {
+                  // 각 스터디의 출석 데이터 가져오기
+                  const attendanceResult = await api(
+                    'GET',
+                    `/group/${studyGroup.studyGroupId}/attendance/all-weeks`,
+                    null,
+                    token
+                  )
 
-                  // 멘티인 경우에만 출석률 계산
-                  if (myMemberInfo && myMemberInfo.role === 'MENTEE') {
-                    // 각 스터디의 출석 데이터 가져오기
-                    const attendanceResponse = await fetch(`/api/v1/group/${studyGroup.studyGroupId}/attendance/all-weeks`, {
-                      method: 'GET',
-                      headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                      }
-                    })
+                  if (attendanceResult?.code === 'SUCCESS') {
+                    const allAttendanceData = attendanceResult.data || {}
+                    
+                    // 출석률 계산
+                    const totalWeeks = Object.keys(allAttendanceData).length
+                    let attendedWeeks = 0
 
-                    if (attendanceResponse.ok) {
-                      const attendanceResult = await attendanceResponse.json()
-                      if (attendanceResult.code === 'SUCCESS') {
-                        const allAttendanceData = attendanceResult.data || {}
-                        
-                        // 출석률 계산
-                        const totalWeeks = Object.keys(allAttendanceData).length
-                        let attendedWeeks = 0
-
-                        for (const week in allAttendanceData) {
-                          const weekAttendance = allAttendanceData[week]
-                          const myAttendance = weekAttendance.find(att => att.studentNumber === myStudentNumber)
-                          if (myAttendance && myAttendance.attendanceType === 'ATTEND') {
-                            attendedWeeks++
-                          }
-                        }
-
-                        const rate = totalWeeks > 0 ? Math.round((attendedWeeks / totalWeeks) * 100) : 0
-                        rates.push({
-                          groupId: studyGroup.studyGroupId,
-                          groupName: studyGroup.name || `스터디 ${studyGroup.studyGroupId}`,
-                          rate: rate
-                        })
+                    for (const week in allAttendanceData) {
+                      const weekAttendance = allAttendanceData[week]
+                      const myAttendance = weekAttendance.find(att => att.studentNumber === myStudentNumber)
+                      if (myAttendance && myAttendance.attendanceType === 'ATTEND') {
+                        attendedWeeks++
                       }
                     }
+
+                    const rate = totalWeeks > 0 ? Math.round((attendedWeeks / totalWeeks) * 100) : 0
+                    rates.push({
+                      groupId: studyGroup.studyGroupId,
+                      groupName: studyGroup.name || `스터디 ${studyGroup.studyGroupId}`,
+                      rate: rate
+                    })
                   }
                 }
               }
