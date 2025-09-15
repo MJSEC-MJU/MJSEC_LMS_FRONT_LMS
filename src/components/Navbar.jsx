@@ -12,6 +12,16 @@ export default function Navbar() {
   const location = useLocation()
   const { user, token, logout } = useAuth()
 
+  // BASE_URL 기반 로고/프로필 이미지 경로 (로고만/이미지만 수정)
+  const base = (import.meta.env.BASE_URL || "/") // dev: '/', prod: '/lms/'
+  const logoFallback = `${base}images/logo.png`
+  const brandLogoSrc = `${base}images/mockup-logo2.png`
+  const profileImgSrc = profile?.profileImage
+    ? (/^(https?:)?\/\//.test(profile.profileImage) || profile.profileImage.startsWith("data:")
+        ? profile.profileImage
+        : `${base}${profile.profileImage.replace(/^\//, "")}`)
+    : logoFallback
+
   // Sync body class and localStorage for dark mode
   useEffect(() => {
     document.body.classList.toggle("dark", isDarkModeEnabled)
@@ -52,7 +62,6 @@ export default function Navbar() {
         const resp = await api('GET', '/user/user-page', undefined, token)
         if (isMounted) setProfile(resp?.data || null)
       } catch {
-        // 사용자 페이지 로드 실패 처리
         if (isMounted) setProfile(null)
       }
     }
@@ -71,7 +80,13 @@ export default function Navbar() {
       <header className="header">
         <section className="flex">
           <Link to="/" className="logo">
-            <img src="/images/mockup-logo2.png" alt="MJSEC Logo" style={{ height: '5rem', verticalAlign: 'middle' }} />
+            {/* 로고 경로 수정 */}
+            <img
+              src={brandLogoSrc}
+              alt="MJSEC Logo"
+              style={{ height: '5rem', verticalAlign: 'middle' }}
+              onError={(e) => { e.currentTarget.src = logoFallback }}
+            />
             MJSEC
           </Link>
 
@@ -82,7 +97,13 @@ export default function Navbar() {
           </div>
 
           <div className={`profile ${isProfileOpen ? "active" : ""}`}>
-            <img src={profile?.profileImage || "/images/logo.png"} className="image" alt="" onError={(e) => { e.currentTarget.src = "/images/logo.png" }} />
+            {/* 프로필 이미지도 BASE_URL 기준 + 로고 fallback */}
+            <img
+              src={profileImgSrc}
+              className="image"
+              alt=""
+              onError={(e) => { e.currentTarget.src = logoFallback }}
+            />
             {user ? (
               <>
                 <h3 className="name">{profile?.name || user.name || user.username || '사용자'}</h3>
@@ -112,7 +133,13 @@ export default function Navbar() {
         </div>
 
         <div className="profile">
-          <img src={profile?.profileImage || "/images/logo.png"} className="image" alt="" onError={(e) => { e.currentTarget.src = "/images/logo.png" }} />
+          {/* 사이드바의 프로필 이미지도 동일 처리 */}
+          <img
+            src={profileImgSrc}
+            className="image"
+            alt=""
+            onError={(e) => { e.currentTarget.src = logoFallback }}
+          />
           {user ? (
             <>
               <h3 className="name">{profile?.name || user.name || user.username || '사용자'}</h3>
