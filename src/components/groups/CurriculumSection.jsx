@@ -156,7 +156,7 @@ export default function CurriculumSection({ groupId, isMentor, token }) {
       // 데이터 매핑 적용
       const mappedAssignments = plans.map(mapPlanToAssignment);
       setAssignments(mappedAssignments);
-    } catch (error) {
+    } catch {
       // 커리큘럼 목록 조회 오류 처리
     }
   }, [token, groupId, mapPlanToAssignment]);
@@ -173,12 +173,7 @@ export default function CurriculumSection({ groupId, isMentor, token }) {
         endDate: assignmentData.endDate ? new Date(assignmentData.endDate).toISOString() : null
       };
       
-      console.log('커리큘럼 생성 요청 데이터:', apiData);
-      console.log('API 엔드포인트:', `/mentor/group/${groupId}/create-plan`);
-      
       const result = await api('POST', `/mentor/group/${groupId}/create-plan`, apiData, token);
-      
-      console.log('커리큘럼 생성 응답:', result);
       
       if (result.code === 'SUCCESS') {
         return { success: true, data: result.data };
@@ -186,8 +181,6 @@ export default function CurriculumSection({ groupId, isMentor, token }) {
         throw new Error(result.message || '커리큘럼 생성에 실패했습니다.');
       }
     } catch (error) {
-      console.error('커리큘럼 생성 에러:', error);
-      console.error('에러 상세:', error.response || error.message);
       return { success: false, error: { message: error.message || '커리큘럼 생성에 실패했습니다.' } };
     }
   };
@@ -204,12 +197,7 @@ export default function CurriculumSection({ groupId, isMentor, token }) {
         endDate: assignmentData.endDate ? new Date(assignmentData.endDate).toISOString() : null
       };
       
-      console.log('커리큘럼 수정 요청 데이터:', apiData);
-      console.log('API 엔드포인트:', `/mentor/group/${groupId}/plan/${assignmentId}`);
-      
       const result = await api('PUT', `/mentor/group/${groupId}/plan/${assignmentId}`, apiData, token);
-      
-      console.log('커리큘럼 수정 응답:', result);
       
       if (result.code === 'SUCCESS') {
         return { success: true, data: result.data };
@@ -217,7 +205,6 @@ export default function CurriculumSection({ groupId, isMentor, token }) {
         throw new Error(result.message || '커리큘럼 수정에 실패했습니다.');
       }
     } catch (error) {
-      console.error('커리큘럼 수정 에러:', error);
       return { success: false, error: { message: error.message || '커리큘럼 수정에 실패했습니다.' } };
     }
   };
@@ -485,8 +472,7 @@ export default function CurriculumSection({ groupId, isMentor, token }) {
       } else {
         return { success: false, error: result.message || '활동 상세조회에 실패했습니다.' };
       }
-    } catch (error) {
-      console.error('활동 상세조회 에러:', error);
+    } catch {
       return { success: false, error: '활동 상세조회 중 오류가 발생했습니다.' };
     }
   };
@@ -656,17 +642,14 @@ export default function CurriculumSection({ groupId, isMentor, token }) {
         alert(`활동 수정 실패: ${result.message || '알 수 없는 오류'}`);
         return { success: false, error: result.message || '수정 실패' };
       }
-    } catch (error) {
-      console.error('활동 수정 에러:', error);
+    } catch {
       alert('활동 수정 중 오류가 발생했습니다.');
-      return { success: false, error: error.message };
+      return { success: false, error: '활동 수정 중 오류가 발생했습니다.' };
     }
   };
 
   // 활동 수정 모달 열기
   const openActivityEditModal = (activity) => {
-    console.log('수정 모달 열기:', activity);
-    console.log('활동 content 값:', activity.content);
     setActivityEditModal({ isOpen: true, activity });
     
     // 주차에서 숫자만 추출 (예: "1주차" -> "1")
@@ -682,8 +665,6 @@ export default function CurriculumSection({ groupId, isMentor, token }) {
       image: null,
       attendance: {}
     });
-    console.log('수정 모달 상태 설정 완료');
-    console.log('설정된 content 값:', contentValue);
   };
 
   // 활동 수정 모달 닫기
@@ -725,8 +706,7 @@ export default function CurriculumSection({ groupId, isMentor, token }) {
       } else {
         return { success: false, error: result.message || '과제 제출에 실패했습니다.' };
       }
-    } catch (error) {
-      console.error('과제 제출 에러:', error);
+    } catch {
       return { success: false, error: '과제 제출 중 오류가 발생했습니다.' };
     }
   };
@@ -787,7 +767,7 @@ export default function CurriculumSection({ groupId, isMentor, token }) {
       } else {
         alert(`과제 제출 실패: ${result.error}`);
       }
-    } catch (error) {
+    } catch {
       alert('과제 제출 중 오류가 발생했습니다.');
     }
   };

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
 import { api } from "../client";
 
 export default function MenteeManagement({ groupId, isMentor, mentees, menteesLoading, fetchMentees }) {
@@ -48,7 +48,7 @@ export default function MenteeManagement({ groupId, isMentor, mentees, menteesLo
       } else {
         alert(response.message || '멘티 추가에 실패했습니다.');
       }
-    } catch (error) {
+    } catch {
       // 멘티 추가 오류 처리
       alert('멘티 추가에 실패했습니다.');
     } finally {
@@ -70,17 +70,17 @@ export default function MenteeManagement({ groupId, isMentor, mentees, menteesLo
       } else {
         alert(response.message || '멘티 삭제에 실패했습니다.');
       }
-    } catch (error) {
+    } catch {
       // 멘티 삭제 오류 처리
       alert('멘티 삭제에 실패했습니다.');
     }
   };
 
   // 사용 가능한 멘티 목록 (현재 그룹에 속하지 않은 멘티들)
-  const getAvailableMentees = () => {
-    const currentMemberIds = mentees.map(member => member.id);
-    return clubMembers.filter(member => !currentMemberIds.includes(member.id));
-  };
+  // const getAvailableMentees = () => {
+  //   const currentMemberIds = mentees.map(member => member.id);
+  //   return clubMembers.filter(member => !currentMemberIds.includes(member.id));
+  // };
 
   return (
     <div className="mentee-management-section">

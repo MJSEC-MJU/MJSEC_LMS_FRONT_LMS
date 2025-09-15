@@ -51,7 +51,7 @@ export default function Navbar() {
         }
         const resp = await api('GET', '/user/user-page', undefined, token)
         if (isMounted) setProfile(resp?.data || null)
-      } catch (e) {
+      } catch {
         // 사용자 페이지 로드 실패 처리
         if (isMounted) setProfile(null)
       }

@@ -32,7 +32,7 @@ export default function GroupsList({ myStudies }) {
           })
         );
         setMentorInfo(mentorData);
-      } catch (error) {
+      } catch {
         // 멘토 정보 조회 오류 처리
       } finally {
         setLoadingMentors(false);

@@ -38,7 +38,7 @@ function decodeJwt(token) {
     );
     const decoded = JSON.parse(jsonPayload);
     return decoded;
-  } catch (e) {
+    } catch {
     // JWT 디코딩 오류 처리
     return null;
   }

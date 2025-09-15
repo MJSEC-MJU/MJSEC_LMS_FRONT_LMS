@@ -6,7 +6,7 @@ import { api } from "../lib/api"
 export default function Profile() {
   const { token, user } = useAuth()
   const [profile, setProfile] = useState(null)
-  const [attendanceRates, setAttendanceRates] = useState([])
+  // const [attendanceRates, setAttendanceRates] = useState([])
   const [randomAttendanceRate, setRandomAttendanceRate] = useState(0)
   const [selectedStudyGroup, setSelectedStudyGroup] = useState(null)
 

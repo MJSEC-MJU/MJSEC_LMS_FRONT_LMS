@@ -13,20 +13,7 @@ export default function GroupDetail({ groupId, myStudies }) {
   
   // 그룹 멘티 목록 및 제출 상태
   const [mentees, setMentees] = useState([]);
-  const [menteesLoading, setMenteesLoading] = useState(false);
-  const [_menteeSubmissions, setMenteeSubmissions] = useState({});
   const [isMentor, setIsMentor] = useState(null);
-  const [submissionForm, setSubmissionForm] = useState({ content: '', password: '' });
-  const [isSubmittingAssign, setIsSubmittingAssign] = useState(false);
-  const [submissionMsg, setSubmissionMsg] = useState('');
-  const [submissionErr, setSubmissionErr] = useState('');
-  const [submissionList, setSubmissionList] = useState([]);
-  const [submissionLoading, setSubmissionLoading] = useState(false);
-  const [selectedSubmission, setSelectedSubmission] = useState(null);
-  const [passwordVisibility, setPasswordVisibility] = useState({});
-  const [mySubmissions, setMySubmissions] = useState({});
-  const [editSubmissionModal, setEditSubmissionModal] = useState({ isOpen: false, assignmentId: null, currentSubmission: null });
-  const [submissionDetailModal, setSubmissionDetailModal] = useState({ isOpen: false, submission: null });
   const [mentorModal, setMentorModal] = useState({
     isOpen: false,
     activeTab: 'add'
