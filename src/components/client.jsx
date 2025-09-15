@@ -1,52 +1,58 @@
+// src/components/client.ts
 export async function api(method, path, body, token) {
-  const headers = {
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-  };
-
+  const headers = token ? { Authorization: `Bearer ${token}` } : {};
   let requestBody;
   if (body instanceof FormData) {
-    requestBody = body;
-    // FormData는 Content-Type을 자동으로 설정하므로 명시적으로 설정하지 않음
+    requestBody = body; // Content-Type 자동
   } else if (body) {
-    headers['Content-Type'] = 'application/json';
+    headers["Content-Type"] = "application/json";
     requestBody = JSON.stringify(body);
   }
-  // 환경별 API 베이스 계산
-  // 1) VITE_API_BASE가 있으면 우선 사용 (예: "/api/v1" 또는 "https://api.example.com/api/v1")
-  // 2) 없으면 기존 동작 유지: PROD는 https://<host>/<base>/api/v1, DEV는 http://localhost:8080/api/v1
-  const basePath = (import.meta.env.BASE_URL || "/").replace(/\/$/, "");
-  const defaultProdOrigin = `${window.location.origin}${basePath}`; // 예: https://mjsec.kr/lms
-  const originBase = import.meta.env.PROD ? defaultProdOrigin : "http://localhost:8080";
 
-  const envApiBaseRaw = import.meta.env.VITE_API_BASE; // 선택: "/api/v1" 또는 "https://mjsec.kr/api/v1"
-  const apiBase = envApiBaseRaw && envApiBaseRaw.trim() !== ""
-    ? envApiBaseRaw.replace(/\/$/, "")
-    : `${originBase}/api/v1`;
+  const basePath = (import.meta.env.BASE_URL || "/").replace(/\/$/, ""); // "" 또는 "/lms"
+  const raw = (import.meta.env.VITE_API_BASE || "").trim();
 
-  const url = `${apiBase}${path}`;
+  const isAbs = (s) => /^https?:\/\//i.test(s);
+  const ensureApiV1 = (b) => {
+    // 실수 보정: "/api"로 끝나면 "/v1" 붙임
+    if (/\/api$/i.test(b)) return `${b}/v1`;
+    return b;
+  };
 
+  // VITE_API_BASE 우선 사용 (절대/상대 모두 대응)
+  let apiBase;
+  if (raw) {
+    let b = raw.replace(/\/$/, "");
+    b = ensureApiV1(b);
+
+    if (isAbs(b)) {
+      apiBase = b; // 절대 URL이면 그대로
+    } else {
+      // 경로형이면 dev/prod에 맞춰 호스트 결합
+      b = b.startsWith("/") ? b : `/${b}`;
+      apiBase = import.meta.env.PROD ? `${window.location.origin}${b}` : b;
+    }
+  } else {
+    // 기본값: dev는 상대경로(/api/v1) → Vite proxy가 처리, prod는 BASE_URL(/lms) 기준
+    apiBase = import.meta.env.PROD
+      ? `${window.location.origin}${basePath}/api/v1`
+      : `/api/v1`;
+  }
+
+  const p = path.startsWith("/") ? path : `/${path}`;
+  const url = `${apiBase}${p}`;
 
   const res = await fetch(url, {
-
     method,
     headers,
     body: requestBody,
-    credentials: 'include',
+    credentials: "include",
   });
 
-
-
-  const ct = res.headers.get('content-type') || '';
-  const data = ct.includes('application/json') ? await res.json() : await res.text();
-
- 
+  const ct = res.headers.get("content-type") || "";
+  const data = ct.includes("application/json") ? await res.json() : await res.text();
 
   if (!res.ok) {
-    if (!import.meta.env.PROD) {
-      // API 에러 응답 처리
-      // const msgDev = (data && (data.message || data.error)) || `HTTP ${res.status}`;
-      // API 에러 메시지 처리
-    }
     const msg = (data && (data.message || data.error)) || `HTTP ${res.status}`;
     throw new Error(msg);
   }
