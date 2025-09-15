@@ -1,0 +1,442 @@
+/* Group 공통 스타일 - 분리된 컴포넌트별 CSS 파일들을 import하세요 */
+
+/* Group 공통 스타일 - base.css의 변수를 사용합니다 */
+
+/* 공통 버튼 스타일 */
+.btn {
+  display: inline-block;
+  padding: 1rem 2rem;
+  border: none;
+  border-radius: 0.8rem;
+  font-size: 1.4rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+}
+
+.btn-primary {
+  background: var(--main-color);
+  color: var(--white);
+}
+
+.btn-primary:hover {
+  background: var(--black);
+  transform: translateY(-2px);
+}
+
+.btn-secondary {
+    background: var(--light-bg);
+  color: var(--black);
+  border: 2px solid var(--border);
+}
+
+.btn-secondary:hover {
+  background: var(--black);
+   color: var(--white);
+  border-color: var(--black);
+}
+
+.btn-warning {
+  background: #ffc107;
+  color: #212529;
+  border: 2px solid #ffc107;
+}
+
+.btn-warning:hover {
+  background: #e0a800;
+  border-color: #d39e00;
+  transform: translateY(-2px);
+}
+
+.btn-danger {
+  background: #dc3545;
+        color: var(--white);
+  border: 2px solid #dc3545;
+}
+
+.btn-danger:hover {
+  background: #c82333;
+  border-color: #bd2130;
+        transform: translateY(-2px);
+}
+
+/* 다크 모드 버튼 스타일 */
+.dark .btn-warning {
+  background: #ffc107;
+  color: #000;
+  border-color: #ffc107;
+}
+
+.dark .btn-warning:hover {
+  background: #e0a800;
+  border-color: #d39e00;
+}
+
+.dark .btn-danger {
+  background: #dc3545;
+  color: var(--white);
+  border-color: #dc3545;
+}
+
+.dark .btn-danger:hover {
+  background: #c82333;
+  border-color: #bd2130;
+}
+
+/* 멤버 경고 횟수 표시 */
+.group-mentor-member-warnings {
+  font-size: 12px;
+  color: #dc3545 !important;
+        font-weight: 600;
+  background: #f8d7da;
+  padding: 2px 8px;
+  border-radius: 12px;
+  border: 1px solid #f5c6cb;
+}
+
+.dark .group-mentor-member-warnings {
+  color: #ff6b6b !important;
+  background: #4d1e1e;
+  border-color: #5a2d2d;
+}
+
+/* 멤버 정보 레이아웃 */
+.group-mentor-member-info {
+       display: flex;
+  justify-content: space-between;
+       align-items: center;
+  flex: 1;
+}
+
+.group-mentor-member-details {
+     display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* 멤버 액션 버튼들 */
+.group-mentor-member-actions {
+        display: flex;
+  gap: 8px;
+        align-items: center;
+}
+
+.group-mentor-warn-btn {
+  background: #ffc107;
+  color: #212529;
+  border: 2px solid #ffc107;
+  border-radius: 6px;
+  padding: 8px 12px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+  font-size: 14px;
+}
+
+.group-mentor-warn-btn:hover {
+  background: #e0a800;
+  border-color: #d39e00;
+        transform: translateY(-2px);
+}
+
+.group-mentor-remove-btn {
+  background: #dc3545;
+  color: var(--white);
+  border: 2px solid #dc3545;
+  border-radius: 6px;
+  padding: 8px 12px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+  font-size: 14px;
+}
+
+.group-mentor-remove-btn:hover {
+  background: #c82333;
+  border-color: #bd2130;
+  transform: translateY(-2px);
+}
+
+/* 다크 모드 액션 버튼 */
+.dark .group-mentor-warn-btn {
+  background: #ffc107;
+  color: #000;
+  border-color: #ffc107;
+}
+
+.dark .group-mentor-warn-btn:hover {
+  background: #e0a800;
+  border-color: #d39e00;
+}
+
+.dark .group-mentor-remove-btn {
+  background: #dc3545;
+  color: var(--white);
+  border-color: #dc3545;
+}
+
+.dark .group-mentor-remove-btn:hover {
+  background: #c82333;
+  border-color: #bd2130;
+}
+
+/* 공통 모달 오버레이 */
+.modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        justify-content: center;
+  align-items: center;
+        z-index: 1000;
+  backdrop-filter: blur(4px);
+      }
+
+/* 공통 모달 컨텐츠 */
+.modal-content {
+        background: var(--white);
+  border-radius: 1.5rem;
+  padding: 3rem;
+  max-width: 600px;
+        width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.2);
+  position: relative;
+}
+
+.modal-header {
+        display: flex;
+        justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid var(--border);
+}
+
+.modal-title {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: var(--black);
+        margin: 0;
+      }
+
+.modal-close {
+  background: none;
+        border: none;
+  font-size: 2rem;
+  color: var(--black);
+        cursor: pointer;
+        padding: 0.5rem;
+  border-radius: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.modal-close:hover {
+  background: var(--light-bg);
+  color: var(--black);
+}
+
+.modal-body {
+  padding: 1rem 0;
+}
+
+.modal-footer {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--border);
+}
+
+/* 공통 폼 스타일 */
+.form-group {
+  margin-bottom: 2rem;
+}
+
+.form-group label {
+  display: block;
+  font-size: 1.4rem;
+   font-weight: 600;
+  color: var(--black);
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+  width: 100%;
+  padding: 1rem;
+  border: 2px solid var(--border);
+  border-radius: 0.8rem;
+  font-size: 1.4rem;
+  background: var(--white);
+  color: var(--black);
+  transition: border-color 0.3s ease;
+  box-sizing: border-box;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: var(--main-color);
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+/* 공통 로딩 스피너 */
+.loading-spinner {
+  display: inline-block;
+  width: 2rem;
+  height: 2rem;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: var(--white);
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* 공통 섹션 제목 */
+.section-title {
+  font-size: 2.4rem;
+  font-weight: 700;
+  color: var(--black);
+  margin-bottom: 2rem;
+  border-bottom: 2px solid var(--main-color);
+  padding-bottom: 1rem;
+}
+
+/* 공통 카드 스타일 */
+.card {
+  background: var(--white);
+  border-radius: 1.5rem;
+  padding: 3rem;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+  border: 2px solid var(--border);
+  margin-bottom: 3rem;
+}
+
+/* 다크모드 공통 스타일 */
+.dark .modal-content {
+  background: #2a2a2a;
+}
+
+.dark .modal-title {
+  color: var(--white);
+}
+
+.dark .modal-header {
+  border-color: #444;
+}
+
+.dark .modal-close {
+  color: #ccc;
+}
+
+.dark .modal-close:hover {
+  background: #444;
+  color: var(--white);
+}
+
+.dark .modal-footer {
+  border-color: #444;
+}
+
+.dark .form-group label {
+  color: var(--white);
+}
+
+.dark .form-group input,
+.dark .form-group textarea,
+.dark .form-group select {
+  background: #444;
+  color: var(--white);
+  border-color: #555;
+}
+
+.dark .form-group input:focus,
+.dark .form-group textarea:focus,
+.dark .form-group select:focus {
+  border-color: var(--main-color);
+}
+
+.dark .section-title {
+  color: var(--white);
+}
+
+.dark .card {
+  background: #2a2a2a;
+  border-color: #444;
+}
+
+/* 반응형 공통 스타일 */
+@media (max-width: 768px) {
+  .modal-content {
+    width: 95%;
+    padding: 2rem;
+     margin: 1rem;
+  }
+
+  .modal-title {
+  font-size: 1.8rem;
+}
+
+  .section-title {
+  font-size: 2rem;
+  }
+
+  .card {
+     padding: 2rem;
+   }
+
+  .modal-footer {
+    flex-direction: column;
+  }
+
+  .btn {
+  width: 100%;
+  justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+.modal-content {
+    padding: 1.5rem;
+  }
+
+  .card {
+    padding: 1.5rem;
+  }
+
+  .modal-title {
+    font-size: 1.6rem;
+  }
+
+  .section-title {
+    font-size: 1.8rem;
+  }
+}
+
+/* 다크모드 버튼 스타일 */
+.dark .btn-secondary {
+  background: var(--light-bg);
+  color: var(--white);
+  border-color: var(--border);
+}
+
+.dark .btn-secondary:hover {
+  background: var(--white);
+  color: var(--black);
+  border-color: var(--white);
+  transform: translateY(-2px);
+}

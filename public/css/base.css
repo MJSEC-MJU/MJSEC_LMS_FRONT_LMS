@@ -1,0 +1,202 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@200;300;400;500;600;700&display=swap');
+
+:root{
+   --main-color:#007bff;
+   --red:#e74c3c;
+   --orange:#f39c12;
+   --light-color:#888;
+   --light-bg:#eee;
+   --black:#2c3e50;
+   --white:#fff;
+   --border:.1rem solid rgba(0,0,0,.2);
+   
+   /* 공지사항 배지 배경색 변수 */
+   --competition-bg: rgba(231, 76, 60, 0.1);
+   --event-bg: rgba(243, 156, 18, 0.1);
+   --notice-bg: rgba(66, 68, 146, 0.1);
+   --general-bg: rgba(136, 136, 136, 0.1);
+   --border-color: #888;
+   
+   /* CSS 변수 전환 설정 */
+   --transition-duration: 0.3s;
+   --transition-timing: ease;
+}
+
+*{
+   font-family: 'Nunito', sans-serif;
+   margin:0; padding:0;
+   box-sizing: border-box;
+   text-decoration: none;
+   transition: all 0.3s ease;
+}
+
+*::selection{
+   background-color: var(--main-color);
+   color:#fff;
+}
+
+html{
+   font-size: 62.5%;
+   overflow-x: hidden;
+   transition: all 0.3s ease;
+}
+
+html::-webkit-scrollbar{
+   width: 1rem;
+   height: .5rem;
+}
+
+html::-webkit-scrollbar-track{
+   background-color: transparent;
+}
+
+html::-webkit-scrollbar-thumb{
+   background-color: var(--main-color);
+}
+
+body{
+   background-color: var(--light-bg);
+   padding-right: 30rem !important;
+   transition: all 0.3s ease;
+}
+
+body.dark{
+   --light-color:#aaa;
+   --light-bg:#333;
+   --black:#fff;
+   --white:#222;
+   --border:.1rem solid rgba(255,255,255,.2);
+   
+}
+
+body.active{
+   padding-right: 0 !important;
+}
+
+section{
+   padding:2rem;
+   margin: 0 auto;
+   max-width: 1200px;
+   transition: all 0.3s ease;
+}
+
+.heading{
+   font-size: 2.5rem;
+   color:var(--black);
+   margin-bottom: 2.5rem;
+   border-bottom: var(--border);
+   padding-bottom: 1.5rem;
+   text-transform: capitalize;
+   transition: all 0.3s ease;
+}
+
+/* 공통 버튼 스타일 */
+.inline-btn,
+.inline-option-btn,
+.inline-delete-btn,
+.btn,
+.delete-btn,
+.option-btn{
+   border-radius: .5rem;
+   color:#fff;
+   font-size: 1.8rem;
+   cursor: pointer;
+   text-transform: capitalize;
+   padding:1rem 3rem;
+   text-align: center;
+   margin-top: 1rem;
+   transition: all 0.3s ease;
+}
+
+.btn,
+.delete-btn,
+.option-btn{
+   display: block;
+   width: 100%;
+}
+
+.inline-btn,
+.inline-option-btn,
+.inline-delete-btn{
+   display: inline-block;
+}
+
+.btn,
+.inline-btn{
+   background-color: var(--main-color);
+}
+
+.option-btn,
+.inline-option-btn{
+   background-color:var(--orange);
+}
+
+.delete-btn,
+.inline-delete-btn{
+   background-color: var(--red);
+}
+
+.inline-btn:hover,
+.inline-option-btn:hover,
+.inline-delete-btn:hover,
+.btn:hover,
+.delete-btn:hover,
+.option-btn:hover{
+   background-color: var(--black);
+   color: var(--white);
+   transition: all 0.3s ease;
+}
+
+/* 더 보기(View more) 등 인라인 버튼 강화 스타일 */
+.inline-btn{
+   background: linear-gradient(135deg, var(--main-color) 0%, #6a6cc4 100%);
+   border: none;
+   border-radius: 9999px;
+   padding: .9rem 2rem;
+   display: inline-flex;
+   align-items: center;
+   gap: .8rem;
+   box-shadow: 0 .6rem 1.2rem rgba(0,0,0,.08);
+}
+
+.inline-btn:hover{
+   background: linear-gradient(135deg, var(--main-color) 0%, #5a5cc0 100%);
+   color: #fff;
+   transform: translateY(-.5px);
+   box-shadow: 0 .8rem 1.6rem rgba(0,0,0,.12);
+}
+
+/* 홈 화면의 현재 강좌 섹션 내 버튼 사이 간격 정돈 */
+.current-course-item .inline-btn{
+   margin-top: .6rem;
+}
+
+.flex-btn{
+   display: flex;
+   gap: 1rem;
+   transition: all 0.3s ease;
+}
+
+/* 반응형 디자인 */
+@media (max-width:1200px){
+   body{
+      padding-right: 0 !important;
+   }
+}
+@media (min-width:1200px){
+   body{
+      padding-right: 0;
+   }
+}
+
+@media (max-width:991px){
+   html{
+      font-size: 55%;
+   }
+}
+
+@media (max-width:450px){
+   html{
+      font-size: 50%;
+   }
+} 
