@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { api } from "../client";
+import { api, API_BASE } from "../client";
 import { Editor } from '@tinymce/tinymce-react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
@@ -315,7 +315,6 @@ export default function CurriculumSection({ groupId, isMentor, token }) {
 
       // FormData 생성
       const formData = new FormData();
-      
       // 출석체크 데이터 생성
       const studyAttendanceDtoList = menteeList.map(mentee => ({
         studentNumber: mentee.studentNumber,
@@ -328,7 +327,7 @@ export default function CurriculumSection({ groupId, isMentor, token }) {
         title: activityFormData.title.trim(),
         content: activityFormData.content.trim(),
         week: `${weekNumber}주차`,
-        studyAttendanceDtoList: studyAttendanceDtoList
+        studyAttendanceDtoList
       };
 
       // 빈 문자열 체크 및 기본값 설정
@@ -345,35 +344,44 @@ export default function CurriculumSection({ groupId, isMentor, token }) {
         return;
       }
 
-
-      // FormData에 추가 - Content-Type을 명시적으로 설정
-      const studyActivityDtoBlob = new Blob([JSON.stringify(studyActivityDto)], { type: 'application/json' });
-      formData.append('studyActivityDto', studyActivityDtoBlob);
-      
-      
+      // FormData에 추가 (브라우저가 boundary 포함 Content-Type 자동 설정)
+      formData.append(
+        'studyActivityDto',
+        new Blob([JSON.stringify(studyActivityDto)], { type: 'application/json' })
+      );
       if (activityFormData.image) {
         formData.append('image', activityFormData.image);
       }
 
-      // API 호출
-      const response = await fetch(`/api/v1/group/${groupId}/create-activity`, {
+      // API_BASE 사용 + Accept 헤더 추가 + 안전 파싱
+      const url = `${API_BASE}/group/${groupId}/create-activity`;
+      const response = await fetch(url, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`
-          // Content-Type은 FormData 사용 시 브라우저가 자동으로 설정
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json'
         },
         body: formData
       });
-      
+
       let result;
-      const responseText = await response.text();
-      
-      try {
-        result = JSON.parse(responseText);
-      } catch {
-        alert(`서버에서 예상치 못한 응답을 받았습니다.\n상태: ${response.status}\n응답: ${responseText}`);
-        return;
-      }
+      const contentType = response.headers.get('content-type') || '';
+      if (contentType.includes('application/json')) {
+        try {
+          result = await response.json();
+        } catch {
+          alert(`서버 응답(JSON) 파싱에 실패했습니다.\n상태: ${response.status}`);
+          return;
+        }
+      } else {
+        const responseText = await response.text();
+        try {
+          result = JSON.parse(responseText);
+        } catch {
+          alert(`서버에서 예상치 못한 응답을 받았습니다.\n상태: ${response.status}\n응답: ${responseText}`);
+          return;
+        }
+      } // ← else 블록 닫음
 
       if (response.ok && result.code === 'SUCCESS') {
         alert('활동 기록이 성공적으로 저장되었습니다!');
@@ -386,7 +394,17 @@ export default function CurriculumSection({ groupId, isMentor, token }) {
           image: null
         });
       } else {
-        // 에러 처리
+        // 권한 에러 우선 처리
+        if (response.status === 401) {
+          alert('로그인이 필요합니다. 다시 로그인 후 시도해주세요.');
+          return;
+        }
+        if (response.status === 403) {
+          alert('권한이 없습니다.');
+          return;
+        }
+
+        // 서버 에러 코드 처리
         if (result.code === 'DUPLICATE_WEEK') {
           alert('해당 주차의 활동 글이 이미 존재합니다.');
         } else if (result.code === 'ACTIVITY_TITLE_TOO_LONG') {
@@ -396,7 +414,6 @@ export default function CurriculumSection({ groupId, isMentor, token }) {
         } else if (result.code === 'WARNING_CONTENT') {
           alert('허용되지 않은 내용입니다.');
         } else if (result.errors && result.errors.length > 0) {
-          // 필드별 에러 메시지 표시
           const errorMessage = result.errors.map(error => error.message).join('\n');
           alert(errorMessage);
         } else {
@@ -450,24 +467,48 @@ export default function CurriculumSection({ groupId, isMentor, token }) {
   // 활동 상세조회 API 함수
   const fetchActivityDetail = async (activityId) => {
     try {
-      const response = await fetch(`/api/v1/group/${groupId}/activity/${activityId}`, {
+      const url = `${API_BASE}/group/${groupId}/activity/${activityId}`;
+      const response = await fetch(url, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${token}`
-        }
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json'
+        },
+        credentials: 'include',
       });
 
-      const result = await response.json();
-      
-      if (response.ok && result.code === 'SUCCESS') {
-        return { success: true, data: result.data };
+      let result;
+      const ct = response.headers.get('content-type') || '';
+      if (ct.includes('application/json')) {
+        try {
+          result = await response.json();
+        } catch {
+          return { success: false, error: `서버 응답(JSON) 파싱 실패 (status ${response.status})` };
+        }
       } else {
-        return { success: false, error: result.message || '활동 상세조회에 실패했습니다.' };
+        const text = await response.text();
+        try {
+          result = JSON.parse(text);
+        } catch {
+          return { success: false, error: `예상치 못한 응답 형식 (status ${response.status})` };
+        }
       }
+
+      if (!response.ok) {
+        if (response.status === 401) return { success: false, error: '로그인이 필요합니다.' };
+        if (response.status === 403) return { success: false, error: '권한이 없습니다.' };
+        return { success: false, error: result?.message || `요청 실패 (status ${response.status})` };
+      }
+
+      if (result.code === 'SUCCESS') {
+        return { success: true, data: result.data };
+      }
+      return { success: false, error: result.message || '활동 상세조회에 실패했습니다.' };
     } catch {
       return { success: false, error: '활동 상세조회 중 오류가 발생했습니다.' };
     }
   };
+
 
   // 활동 상세보기 모달 열기
   const openActivityDetailModal = async (activity) => {
@@ -532,50 +573,48 @@ export default function CurriculumSection({ groupId, isMentor, token }) {
   // 활동 삭제 API 호출
   const deleteActivity = async (activityId) => {
     try {
-      console.log('활동 삭제 요청:', {
-        groupId,
-        activityId,
-        url: `/api/v1/group/${groupId}/activity/${activityId}`
-      });
-      
-      const response = await fetch(`/api/v1/group/${groupId}/activity/${activityId}`, {
+      const url = `${API_BASE}/group/${groupId}/activity/${activityId}`;
+      const response = await fetch(url, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${token}`
-        }
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json',
+        },
+        credentials: 'include',
       });
 
-      console.log('활동 삭제 응답 상태:', response.status);
-      
-      const responseText = await response.text();
-      console.log('활동 삭제 응답 텍스트:', responseText);
-      
       let result;
-      
-      try {
-        result = JSON.parse(responseText);
-        console.log('활동 삭제 응답 JSON:', result);
-      } catch {
-        console.error('JSON 파싱 에러');
-        console.error('응답 텍스트:', responseText);
-        
-        if (responseText.includes('내부 서버 오류가 발생했습니다.')) {
-          alert(`활동 삭제에 실패했습니다.\n\n에러: 500 Internal Server Error\n활동 ID: ${activityId}\n\n가능한 원인:\n1. 권한 부족 (활동을 생성한 멘토만 삭제 가능)\n2. 서버 내부 오류\n3. 데이터 무결성 문제\n\n백엔드 개발자에게 문의하세요.`);
-        } else {
-          alert(`서버에서 예상치 못한 응답을 받았습니다.\n\n상태: ${response.status}\n응답: ${responseText}`);
+      const ct = response.headers.get('content-type') || '';
+      if (ct.includes('application/json')) {
+        try {
+          result = await response.json();
+        } catch {
+          return { success: false, error: `서버 응답(JSON) 파싱 실패 (status ${response.status})` };
         }
-        return { success: false, error: 'JSON 파싱 오류' };
+      } else {
+        const text = await response.text();
+        try {
+          result = JSON.parse(text);
+        } catch {
+          return { success: false, error: `예상치 못한 응답 형식 (status ${response.status})` };
+        }
       }
 
-      if (response.ok && result.code === 'SUCCESS') {
-        return { success: true, data: result.data };
-      } else {
-        return { success: false, error: result.message || '활동 삭제에 실패했습니다.' };
+      if (!response.ok) {
+        if (response.status === 401) return { success: false, error: '로그인이 필요합니다.' };
+        if (response.status === 403) return { success: false, error: '권한이 없습니다.' };
+        return { success: false, error: result?.message || `요청 실패 (status ${response.status})` };
       }
+
+      if (result.code === 'SUCCESS') {
+        return { success: true, data: result.data };
+      }
+      return { success: false, error: result.message || '활동 삭제에 실패했습니다.' };
     } catch {
       return { success: false, error: '활동 삭제 중 오류가 발생했습니다.' };
     }
   };
+
 
   // 활동 수정 API 호출
   const updateActivity = async (activityId, formData) => {
@@ -592,53 +631,60 @@ export default function CurriculumSection({ groupId, isMentor, token }) {
       };
 
       const formDataToSend = new FormData();
-      formDataToSend.append('studyActivityDto', new Blob([JSON.stringify(studyActivityDto)], { type: 'application/json' }));
+      formDataToSend.append(
+        'studyActivityDto',
+        new Blob([JSON.stringify(studyActivityDto)], { type: 'application/json' })
+      );
       if (formData.image) {
         formDataToSend.append('image', formData.image);
       }
 
-      console.log('활동 수정 요청:', {
-        groupId,
-        activityId,
-        url: `/api/v1/group/${groupId}/activity/${activityId}`,
-        studyActivityDto
-      });
-
-      const response = await fetch(`/api/v1/group/${groupId}/activity/${activityId}`, {
+      const url = `${API_BASE}/group/${groupId}/activity/${activityId}`;
+      const response = await fetch(url, {
         method: 'PUT',
         headers: {
-          'Authorization': `Bearer ${token}`
-          // Content-Type은 FormData 사용 시 자동으로 설정되므로 명시하지 않음
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json',
         },
+        credentials: 'include',
         body: formDataToSend
       });
 
-      console.log('활동 수정 응답 상태:', response.status);
-      const responseText = await response.text();
-      console.log('활동 수정 응답 텍스트:', responseText);
-
+      // 응답 안전 파싱
       let result;
-      try {
-        result = JSON.parse(responseText);
-        console.log('활동 수정 응답 JSON:', result);
-      } catch {
-        console.error('JSON 파싱 에러');
-        console.error('응답 텍스트:', responseText);
-        alert('서버 응답을 처리하는 중 오류가 발생했습니다.');
-        return { success: false, error: 'JSON 파싱 오류' };
+      const ct = response.headers.get('content-type') || '';
+      if (ct.includes('application/json')) {
+        try {
+          result = await response.json();
+        } catch {
+          return { success: false, error: `서버 응답(JSON) 파싱 실패 (status ${response.status})` };
+        }
+      } else {
+        const text = await response.text();
+        try {
+          result = JSON.parse(text);
+        } catch {
+          return { success: false, error: `예상치 못한 응답 형식 (status ${response.status})` };
+        }
       }
 
-      if (response.ok && result.code === 'SUCCESS') {
-        return { success: true, data: result.data };
-      } else {
-        alert(`활동 수정 실패: ${result.message || '알 수 없는 오류'}`);
-        return { success: false, error: result.message || '수정 실패' };
+      // 상태코드 기반 에러 처리
+      if (!response.ok) {
+        if (response.status === 401) return { success: false, error: '로그인이 필요합니다.' };
+        if (response.status === 403) return { success: false, error: '권한이 없습니다.' };
+        return { success: false, error: result?.message || `요청 실패 (status ${response.status})` };
       }
+
+      // 비즈니스 코드 처리
+      if (result.code === 'SUCCESS') {
+        return { success: true, data: result.data };
+      }
+      return { success: false, error: result.message || '활동 수정에 실패했습니다.' };
     } catch {
-      alert('활동 수정 중 오류가 발생했습니다.');
       return { success: false, error: '활동 수정 중 오류가 발생했습니다.' };
     }
   };
+
 
   // 활동 수정 모달 열기
   const openActivityEditModal = (activity) => {
@@ -682,26 +728,46 @@ export default function CurriculumSection({ groupId, isMentor, token }) {
   // 과제 제출 API 함수
   const submitAssignment = async (planId, formData) => {
     try {
-      const response = await fetch(`/api/v1/group/${groupId}/assignment/submit/${planId}`, {
+      const url = `${API_BASE}/group/${groupId}/assignment/submit/${planId}`;
+      const response = await fetch(url, {
         method: 'POST',
         headers: {
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Accept': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify(formData)
       });
 
-      const result = await response.json();
-      
-      if (response.ok && result.code === 'SUCCESS') {
-        return { success: true, data: result.data };
+      // 응답 안전 파싱
+      let result;
+      const ct = response.headers.get('content-type') || '';
+      if (ct.includes('application/json')) {
+        result = await response.json();
       } else {
-        return { success: false, error: result.message || '과제 제출에 실패했습니다.' };
+        const text = await response.text();
+        try { result = JSON.parse(text); }
+        catch { return { success: false, error: `예상치 못한 응답 형식 (status ${response.status})` }; }
       }
+
+      // HTTP 에러 처리
+      if (!response.ok) {
+        if (response.status === 401) return { success: false, error: '로그인이 필요합니다.' };
+        if (response.status === 403) return { success: false, error: '권한이 없습니다.' };
+        return { success: false, error: result?.message || `요청 실패 (status ${response.status})` };
+      }
+
+      // 비즈니스 코드 처리
+      if (result.code === 'SUCCESS') {
+        return { success: true, data: result.data };
+      }
+      return { success: false, error: result.message || '과제 제출에 실패했습니다.' };
     } catch {
       return { success: false, error: '과제 제출 중 오류가 발생했습니다.' };
     }
   };
+
 
   // 과제 제출 모달 열기
   const openAssignmentSubmissionModal = (assignment) => {
@@ -872,24 +938,39 @@ export default function CurriculumSection({ groupId, isMentor, token }) {
   // 멘티 목록 조회 함수
   const fetchMenteeList = async () => {
     try {
-      const response = await fetch(`/api/v1/group/${groupId}/mentee`, {
+      const url = `${API_BASE}/group/${groupId}/mentee`;
+      const response = await fetch(url, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+          'Accept': 'application/json'
+        },
+        credentials: 'include'
       });
 
+      // 응답 안전 파싱
       let result;
-      try {
+      const ct = response.headers.get('content-type') || '';
+      if (ct.includes('application/json')) {
         result = await response.json();
-      } catch {
+      } else {
+        const text = await response.text();
+        try { result = JSON.parse(text); }
+        catch {
+          setMenteeList([]);
+          return;
+        }
+      }
+
+      // HTTP 에러 처리
+      if (!response.ok) {
+        setMenteeList([]);
         return;
       }
 
-      if (response.ok && result.code === 'SUCCESS') {
-        const menteeList = result.data || [];
-        setMenteeList(menteeList);
+      // 비즈니스 코드 처리
+      if (result.code === 'SUCCESS' && Array.isArray(result.data)) {
+        setMenteeList(result.data);
       } else {
         setMenteeList([]);
       }
@@ -901,26 +982,28 @@ export default function CurriculumSection({ groupId, isMentor, token }) {
   // 주차별 출석 조회 함수
   const fetchAttendanceByWeek = async (week) => {
     try {
-      const response = await fetch(`/api/v1/group/${groupId}/attendance/week/${encodeURIComponent(week)}`, {
+      const url = `${API_BASE}/group/${groupId}/attendance/week/${encodeURIComponent(week)}`;
+      const response = await fetch(url, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+          'Accept': 'application/json'
+        },
+        credentials: 'include'
       });
 
+      // 안전 파싱
       let result;
-      try {
+      const ct = response.headers.get('content-type') || '';
+      if (ct.includes('application/json')) {
         result = await response.json();
-      } catch {
-        return [];
+      } else {
+        const text = await response.text();
+        try { result = JSON.parse(text); } catch { return []; }
       }
 
-      if (response.ok && result.code === 'SUCCESS') {
-        return result.data || [];
-      } else {
-        return [];
-      }
+      if (!response.ok) return [];
+      return result.code === 'SUCCESS' && Array.isArray(result.data) ? result.data : (result.data || []);
     } catch {
       return [];
     }
@@ -929,91 +1012,89 @@ export default function CurriculumSection({ groupId, isMentor, token }) {
   // 전체 주차별 출석 데이터 가져오기
   const fetchAllWeeksAttendance = async () => {
     if (isMentor) return; // 멘토는 출석 상태를 표시하지 않음
-    
+
     try {
-      const response = await fetch(`/api/v1/group/${groupId}/attendance/all-weeks`, {
+      const url = `${API_BASE}/group/${groupId}/attendance/all-weeks`;
+      const response = await fetch(url, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+          'Accept': 'application/json'
+        },
+        credentials: 'include'
       });
-      
+
+      // 안전 파싱
       let result;
-      try {
+      const ct = response.headers.get('content-type') || '';
+      if (ct.includes('application/json')) {
         result = await response.json();
-      } catch {
-        return;
+      } else {
+        const text = await response.text();
+        try { result = JSON.parse(text); } catch { return; }
       }
-      
-      if (response.ok && result.code === 'SUCCESS') {
-        const allAttendanceData = result.data || {};
-        // JWT 토큰을 여러 방법으로 찾기
-        let myStudentNumber = null;
-        let token = null;
-        
-        // 1. localStorage에서 토큰 찾기
-        token = localStorage.getItem('token') || localStorage.getItem('accessToken') || localStorage.getItem('jwt');
-        
-        // 2. sessionStorage에서 토큰 찾기
-        if (!token) {
-          token = sessionStorage.getItem('token') || sessionStorage.getItem('accessToken') || sessionStorage.getItem('jwt');
+      if (!response.ok || result.code !== 'SUCCESS') return;
+
+      const allAttendanceData = result.data || {};
+
+      // 내 학번 복원 (prop token 우선, 이후 로컬 저장소/세션/쿠키 순)
+      const tryDecodeStudentNo = (jwt) => {
+        if (!jwt) return null;
+        try {
+          const payload = JSON.parse(atob(jwt.split('.')[1]));
+          const n = parseInt(
+            payload.studentNumber ?? payload.sub ?? payload.userId ?? payload.id
+          );
+          return Number.isNaN(n) ? null : n;
+        } catch {
+          return null;
         }
-        
-        // 3. 쿠키에서 토큰 찾기
-        if (!token) {
-          const cookies = document.cookie.split(';');
-          for (let cookie of cookies) {
-            const [name, value] = cookie.trim().split('=');
-            if (name === 'token' || name === 'accessToken' || name === 'jwt') {
-              token = value;
-              break;
-            }
-          }
-        }
-        
-        // 토큰에서 학번 추출
-        if (token) {
-          try {
-            const payload = JSON.parse(atob(token.split('.')[1]));
-            myStudentNumber = parseInt(payload.studentNumber || payload.sub || payload.userId || payload.id);
-          } catch {
-            // JWT 토큰에서 학번 추출 실패
-          }
-        }
-        
-        // JWT에서 추출 실패 시 localStorage에서 시도
-        if (!myStudentNumber || isNaN(myStudentNumber)) {
-          myStudentNumber = parseInt(localStorage.getItem('studentNumber'));
-        }
-        if (!myStudentNumber || isNaN(myStudentNumber)) {
-          myStudentNumber = parseInt(localStorage.getItem('student_number'));
-        }
-        if (!myStudentNumber || isNaN(myStudentNumber)) {
-          myStudentNumber = parseInt(localStorage.getItem('userStudentNumber'));
-        }
-        
-        const attendanceMap = {};
-        
-        // 각 활동의 주차별로 본인 출석 상태 찾기
-        for (const photo of activityPhotos) {
-          if (photo.week && allAttendanceData[photo.week]) {
-            const weekAttendance = allAttendanceData[photo.week];
-            const myAttendance = weekAttendance.find(att => att.studentNumber === myStudentNumber);
-            if (myAttendance) {
-              attendanceMap[photo.id] = myAttendance.attendanceType;
-            }
-          }
-        }
-        
-        setMenteeAttendanceData(attendanceMap);
-        
-        // 출석율 계산
-        const totalWeeks = activityPhotos.length;
-        const attendedWeeks = Object.values(attendanceMap).filter(status => status === 'ATTEND').length;
-        const rate = totalWeeks > 0 ? Math.round((attendedWeeks / totalWeeks) * 100) : 0;
-        setAttendanceRate(rate);
+      };
+
+      let myStudentNumber =
+        tryDecodeStudentNo(token) ||
+        tryDecodeStudentNo(
+          localStorage.getItem('token') ||
+          localStorage.getItem('accessToken') ||
+          localStorage.getItem('jwt')
+        ) ||
+        tryDecodeStudentNo(
+          sessionStorage.getItem('token') ||
+          sessionStorage.getItem('accessToken') ||
+          sessionStorage.getItem('jwt')
+        );
+
+      if (!myStudentNumber) {
+        const fallback =
+          parseInt(localStorage.getItem('studentNumber')) ||
+          parseInt(localStorage.getItem('student_number')) ||
+          parseInt(localStorage.getItem('userStudentNumber'));
+        myStudentNumber = Number.isNaN(fallback) ? null : fallback;
       }
+
+      const attendanceMap = {};
+
+      // 각 활동(week)별 본인 출석 상태 매핑
+      for (const photo of activityPhotos) {
+        const weekKey = photo.week;
+        const weekAttendance = allAttendanceData?.[weekKey];
+        if (!Array.isArray(weekAttendance) || !myStudentNumber) continue;
+
+        const mine = weekAttendance.find(
+          (att) => att.studentNumber === myStudentNumber
+        );
+        if (mine) attendanceMap[photo.id] = mine.attendanceType;
+      }
+
+      setMenteeAttendanceData(attendanceMap);
+
+      // 출석률 계산
+      const totalWeeks = activityPhotos.length;
+      const attendedWeeks = Object.values(attendanceMap).filter(
+        (s) => s === 'ATTEND'
+      ).length;
+      const rate = totalWeeks > 0 ? Math.round((attendedWeeks / totalWeeks) * 100) : 0;
+      setAttendanceRate(rate);
     } catch {
       // 출석 데이터 가져오기 실패 시 무시
     }
@@ -1021,20 +1102,25 @@ export default function CurriculumSection({ groupId, isMentor, token }) {
 
   // 이미지 URL을 Blob URL로 변환하는 함수
   const fetchImageAsBlob = async (imageUrl) => {
+    if (!imageUrl) return null;
     try {
-      const response = await fetch(imageUrl, {
+      // 절대/상대 경로 모두 대응
+      const url = /^https?:\/\//i.test(imageUrl)
+        ? imageUrl
+        : `${API_BASE}${imageUrl.startsWith('/') ? '' : '/'}${imageUrl}`;
+
+      const response = await fetch(url, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${token}`
-        }
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'image/*',
+        },
+        credentials: 'include',
       });
 
-      if (response.ok) {
-        const blob = await response.blob();
-        return URL.createObjectURL(blob);
-      } else {
-        return null;
-      }
+      if (!response.ok) return null;
+      const blob = await response.blob();
+      return URL.createObjectURL(blob);
     } catch {
       return null;
     }
@@ -1044,44 +1130,64 @@ export default function CurriculumSection({ groupId, isMentor, token }) {
   const fetchActivityPhotos = async () => {
     try {
       setLoadingPhotos(true);
-      
-      const response = await fetch(`/api/v1/group/${groupId}/activity-list`, {
+
+      const response = await fetch(`${API_BASE}/group/${groupId}/activity-list`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+          'Accept': 'application/json',
+        },
+        credentials: 'include',
       });
 
+      // 안전 파싱
       let result;
-      try {
+      const ct = response.headers.get('content-type') || '';
+      if (ct.includes('application/json')) {
         result = await response.json();
-      } catch {
-        alert('서버에서 예상치 못한 응답을 받았습니다.');
-        return;
+      } else {
+        const text = await response.text();
+        try { result = JSON.parse(text); } catch {
+          alert('서버에서 예상치 못한 응답을 받았습니다.');
+          return;
+        }
       }
 
       if (response.ok && result.code === 'SUCCESS') {
-        // API 응답을 모달에 맞는 형태로 변환
         const activityList = result.data || [];
         const photoDataList = activityList.map((activityData, index) => {
-          
+          // 서버가 준 이미지 경로를 파일명으로 정규화해서 API_BASE로 프록시
+          const raw = activityData.imageUrl;
+          const normalizedImage = raw
+            ? `${API_BASE}/image/${raw.replace('/uploads/', '')}`
+            : null;
+
           return {
-            id: activityData.activityId || activityData.studyActivityId || activityData.id || `temp-${index}`,
-            studyActivityId: activityData.activityId || activityData.studyActivityId || activityData.id,
+            id:
+              activityData.activityId ||
+              activityData.studyActivityId ||
+              activityData.id ||
+              `temp-${index}`,
+            studyActivityId:
+              activityData.activityId ||
+              activityData.studyActivityId ||
+              activityData.id,
             title: activityData.title,
             week: activityData.week,
             content: activityData.content,
-            imageUrl: activityData.imageUrl ? `/api/v1/image/${activityData.imageUrl.replace('/uploads/', '')}` : null,
+            imageUrl: normalizedImage,
             uploadedAt: activityData.createdAt,
-            attendanceList: activityData.studyAttendanceDtoList || activityData.attendanceList || []
+            attendanceList:
+              activityData.studyAttendanceDtoList ||
+              activityData.attendanceList ||
+              [],
           };
         });
         setActivityPhotos(photoDataList);
-      } else if (result.code === 'STUDY_ACTIVITY_NOT_FOUND') {
+      } else if (result?.code === 'STUDY_ACTIVITY_NOT_FOUND') {
         setActivityPhotos([]);
       } else {
-        alert(result.message || '활동 사진을 불러오는데 실패했습니다.');
+        alert(result?.message || '활동 사진을 불러오는데 실패했습니다.');
         setActivityPhotos([]);
       }
     } catch {
@@ -1092,21 +1198,6 @@ export default function CurriculumSection({ groupId, isMentor, token }) {
     }
   };
 
-  // 과제 모달 닫기 함수
-  const closeAssignmentModal = () => {
-    setAssignmentModal({
-      isOpen: false,
-      mode: 'create',
-      assignment: null
-    });
-    setAssignmentFormData({
-      title: "",
-      description: "",
-      hasAssignment: false,
-      startDate: "",
-      endDate: ""
-    });
-  };
 
   // 삭제 확인 함수
   const handleDeleteAssignment = async () => {
@@ -1128,7 +1219,8 @@ export default function CurriculumSection({ groupId, isMentor, token }) {
   };
 
   // 과제 제출 함수 (생성/수정)
-  const handleAssignmentSubmit = async () => {
+  const handleAssignmentSubmit = async (e) => {
+    e?.preventDefault?.();
     try {
       // 제목 유효성 검사
       if (!assignmentFormData.title || assignmentFormData.title.trim() === '') {
