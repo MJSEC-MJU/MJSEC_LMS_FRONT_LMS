@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { api, API_BASE } from "../client";
+import { api } from "../client";
 import { Editor } from '@tinymce/tinymce-react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
+const API_BASE = (import.meta.env.VITE_API_BASE || "").replace(/\/+$/, "");
 
 export default function CurriculumSection({ groupId, isMentor, token }) {
   // 과제/커리큘럼 관련 상태
