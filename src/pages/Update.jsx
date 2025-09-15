@@ -3,7 +3,7 @@ import { useAuth } from '../components/auth'
 import { api } from '../lib/api'
 
 export default function Update() {
-  const { token, user } = useAuth()
+  const { token } = useAuth()
   const [profile, setProfile] = useState(null)
   const [formData, setFormData] = useState({
     phoneNumber: '',
