@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useSearchParams } from "react-router-dom";
+﻿import React, { useState, useEffect } from 'react';
+import { useSearchParams, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../components/auth";
 import { api } from "../components/client";
 import GroupsList from "../components/groups/GroupsList";
@@ -7,10 +7,30 @@ import GroupDetail from "../components/groups/GroupDetail";
 
 export default function Group() {
   const [searchParams] = useSearchParams();
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // BASE_URL(basename) 중복 교정: /lms/lms/... -> /lms/...
+  useEffect(() => {
+    const base = (import.meta.env.BASE_URL || '/');       // e.g. '/lms/' or '/'
+    const baseTrim = base.replace(/\/+$/, '');            // '/lms' or ''
+    if (!baseTrim) return;                                // base == '/' 인 경우는 스킵
+
+    const doublePrefix = `${baseTrim}${baseTrim}`;        // '/lms/lms'
+    const { pathname, search, hash } = location;
+
+    // '/lms/lms' 정확히 또는 '/lms/lms/...'
+    if (pathname === doublePrefix || pathname.startsWith(doublePrefix + '/')) {
+      const fixedPath = baseTrim + pathname.slice(doublePrefix.length); // '/lms' + 나머지
+      navigate(fixedPath + search + hash, { replace: true });
+    }
+  }, [location, navigate]);
+
   const groupIdQuery = searchParams.get('groupId');
-  const groupId = parseInt(groupIdQuery, 10);
+  const groupId = Number.isFinite(parseInt(groupIdQuery, 10)) ? parseInt(groupIdQuery, 10) : undefined;
+
   const { user, token } = useAuth();
-  
+
   // 내 스터디 목록 (API로 조회)
   const [myStudies, setMyStudies] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -38,10 +58,7 @@ export default function Group() {
         setMyStudies(mapped);
       } catch (error) {
         // 사용자 그룹 목록 조회 오류 처리
-        // 403 오류인 경우 로그인 페이지로 리다이렉트하거나 에러 메시지 표시
-        if (error.message.includes('403')) {
-          // 403 오류: 인증이 필요합니다
-          // 임시로 빈 배열로 설정하여 빈 목록 표시
+        if (String(error?.message || '').includes('403')) {
           setMyStudies([]);
         }
       } finally {
@@ -65,7 +82,7 @@ export default function Group() {
   }
 
   // groupId가 있으면 상세 페이지, 없으면 목록 페이지
-  if (groupId && !isNaN(groupId)) {
+  if (groupId && !Number.isNaN(groupId)) {
     return <GroupDetail groupId={groupId} myStudies={myStudies} />;
   }
 
