@@ -3,7 +3,11 @@ import { api } from "../client";
 import { Editor } from '@tinymce/tinymce-react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
-const API_BASE = (import.meta.env.VITE_API_BASE || "").replace(/\/+$/, "");
+const BASE_URL   = (import.meta.env.VITE_API_BASE || "").replace(/\/+$/, "");
+const API_PREFIX = (import.meta.env.VITE_API_PREFIX || "/api/v1")
+  .replace(/^\/?/, "/")   // 맨 앞에 슬래시 강제
+  .replace(/\/+$/, "");   // 끝 슬래시 제거
+const API_BASE   = `${BASE_URL}${API_PREFIX}`;
 
 export default function CurriculumSection({ groupId, isMentor, token }) {
   // 과제/커리큘럼 관련 상태
