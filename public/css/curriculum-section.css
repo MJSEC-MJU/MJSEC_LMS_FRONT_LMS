@@ -189,37 +189,77 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   position: relative;
-  overflow: hidden;
+  overflow: visible;
+  border-radius: 50% !important;
+  margin: 0.5rem;
 }
 
 .activity-modal-close::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  right: -50%;
+  bottom: -50%;
+  background: radial-gradient(circle, rgba(220, 53, 69, 0.2) 0%, rgba(255, 107, 122, 0.1) 50%, transparent 70%);
+  opacity: 0;
+  transition: all 0.4s ease;
+  border-radius: 50% !important;
+  transform: scale(0);
+}
+
+.activity-modal-close::after {
   content: '';
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(220, 53, 69, 0.1);
+  background: linear-gradient(45deg, rgba(220, 53, 69, 0.1), rgba(255, 107, 122, 0.05));
   opacity: 0;
-  transition: opacity 0.3s ease;
-  border-radius: 50%;
+  transition: all 0.3s ease;
+  border-radius: 50% !important;
 }
 
 .activity-modal-close:hover {
   color: #dc3545;
-  transform: scale(1.1) rotate(90deg);
-  box-shadow: 0 0.5rem 1rem rgba(220, 53, 69, 0.2);
-  border-color: rgba(220, 53, 69, 0.3);
+  transform: scale(1.15) rotate(180deg);
+  border-color: transparent;
 }
 
 .activity-modal-close:hover::before {
   opacity: 1;
+  transform: scale(1);
+  animation: rotateGradient 2s linear infinite;
+}
+
+.activity-modal-close:hover::after {
+  opacity: 1;
+  animation: pulseGlow 1.5s ease-in-out infinite alternate;
 }
 
 .activity-modal-close:active {
-  transform: scale(0.95) rotate(90deg);
+  transform: scale(1.05) rotate(180deg);
+}
+
+@keyframes rotateGradient {
+  0% {
+    transform: scale(1) rotate(0deg);
+  }
+  100% {
+    transform: scale(1) rotate(360deg);
+  }
+}
+
+@keyframes pulseGlow {
+  0% {
+    box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4);
+  }
+  100% {
+    box-shadow: 0 0 0 10px rgba(220, 53, 69, 0);
+  }
 }
 
 .activity-modal-close i {
@@ -229,8 +269,33 @@
 
 .activity-modal-body {
   padding: 2rem;
+  padding-left: 2.5rem;
+  padding-right: 2.5rem;
   overflow-y: auto;
+  overflow-x: visible;
   flex: 1;
+}
+
+/* 활동 기록 모달 input 스타일 */
+.activity-form-group input,
+.activity-form-group textarea {
+  width: 100%;
+  padding: 1rem;
+  border: 2px solid var(--border);
+  border-radius: 0.8rem;
+  font-size: 1.4rem;
+  background: var(--white);
+  color: var(--black);
+  transition: border-color 0.3s ease;
+  box-sizing: border-box;
+  margin: 0.2rem;
+}
+
+.activity-form-group input:focus,
+.activity-form-group textarea:focus {
+  outline: none;
+  border-color: #28a745;
+  box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.1);
 }
 
 .activity-modal-footer {
@@ -264,18 +329,34 @@
 }
 
 .dark .activity-modal-close {
-  color: var(--white);
+  color: var(--black);
 }
 
 .dark .activity-modal-close::before {
-  background: rgba(255, 107, 122, 0.15);
+  background: radial-gradient(circle, rgba(255, 107, 122, 0.25) 0%, rgba(255, 182, 193, 0.15) 50%, transparent 70%);
+  border-radius: 50% !important;
 }
 
+.dark .activity-modal-close::after {
+  background: linear-gradient(45deg, rgba(255, 107, 122, 0.15), rgba(255, 182, 193, 0.08));
+  border-radius: 50% !important;
+}
 
 .dark .activity-modal-close:hover {
   color: #ff6b7a;
-  box-shadow: 0 0.5rem 1rem rgba(255, 107, 122, 0.2);
-  border-color: rgba(255, 107, 122, 0.3);
+  transform: scale(1.15) rotate(180deg);
+  border-color: transparent;
+}
+
+.dark .activity-modal-close:hover::before {
+  opacity: 1;
+  transform: scale(1);
+  animation: rotateGradient 2s linear infinite;
+}
+
+.dark .activity-modal-close:hover::after {
+  opacity: 1;
+  animation: pulseGlow 1.5s ease-in-out infinite alternate;
 }
 
 .dark .activity-modal-footer {
@@ -367,9 +448,10 @@
 /* 멘티용 활동 사진 버튼 컨테이너 */
 .mentee-activity-photos-container {
   display: flex;
-  justify-content: flex-start;
+  justify-content: flex-end;
   align-items: center;
   margin-top: 8px;
+  margin-bottom: 1rem;
 }
 
 /* 커리큘럼 생성 버튼 */
@@ -560,16 +642,16 @@
 }
 
 .btn-secondary {
-  background: #ff8c00;
+  background: #c80101;
   color: var(--white);
-  border: 2px solid #ff8c00;
+  border: 2px solid #c80101;
   transition: all 0.3s ease;
 }
 
 .btn-secondary:hover {
-  background: #e67e00;
+  background: #9e0000;
   color: var(--white);
-  border-color: #e67e00;
+  border-color: #9e0000;
   transform: translateY(-2px);
 }
 
@@ -581,6 +663,9 @@
 .btn-danger:hover {
   background: #c82333;
   transform: translateY(-1px);
+}
+.dark .btn-danger:hover {
+  color: var(--black);
 }
 
 .curriculum-content {
@@ -812,6 +897,7 @@
   .mentee-photos-btn {
     width: 100%;
     justify-content: center;
+    margin-top: 0;
   }
 
   .week-button-content {
@@ -894,18 +980,75 @@
 
 .assignment-modal-close {
   background: none;
-  border: none;
-  font-size: 2rem;
+  border: 2px solid transparent;
   color: var(--black);
+  font-size: 1.8rem;
   cursor: pointer;
-  padding: 0.5rem;
-  border-radius: 0.5rem;
+  padding: 0.8rem;
+  border-radius: 50%;
+  width: 4rem;
+  height: 4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: relative;
+  overflow: visible;
+  border-radius: 50% !important;
+  margin: 0.5rem;
+}
+
+.assignment-modal-close::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  right: -50%;
+  bottom: -50%;
+  background: radial-gradient(circle, rgba(220, 53, 69, 0.2) 0%, rgba(255, 107, 122, 0.1) 50%, transparent 70%);
+  opacity: 0;
+  transition: all 0.4s ease;
+  border-radius: 50% !important;
+  transform: scale(0);
+}
+
+.assignment-modal-close::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, rgba(220, 53, 69, 0.1), rgba(255, 107, 122, 0.05));
+  opacity: 0;
   transition: all 0.3s ease;
+  border-radius: 50% !important;
 }
 
 .assignment-modal-close:hover {
-  background: var(--light-bg);
-  color: var(--black);
+  color: #dc3545;
+  transform: scale(1.15) rotate(180deg);
+  border-color: transparent;
+}
+
+.assignment-modal-close:hover::before {
+  opacity: 1;
+  transform: scale(1);
+  animation: rotateGradient 2s linear infinite;
+}
+
+.assignment-modal-close:hover::after {
+  opacity: 1;
+  animation: pulseGlow 1.5s ease-in-out infinite alternate;
+}
+
+.assignment-modal-close:active {
+  transform: scale(1.05) rotate(180deg);
+}
+
+.assignment-modal-close i {
+  position: relative;
+  z-index: 1;
 }
 
 .assignment-modal-body {
@@ -955,9 +1098,31 @@
   color: var(--black);
 }
 
+.dark .assignment-modal-close::before {
+  background: radial-gradient(circle, rgba(255, 107, 122, 0.25) 0%, rgba(255, 182, 193, 0.15) 50%, transparent 70%);
+  border-radius: 50% !important;
+}
+
+.dark .assignment-modal-close::after {
+  background: linear-gradient(45deg, rgba(255, 107, 122, 0.15), rgba(255, 182, 193, 0.08));
+  border-radius: 50% !important;
+}
+
 .dark .assignment-modal-close:hover {
-  background: #444;
-  color: var(--white);
+  color: #ff6b7a;
+  transform: scale(1.15) rotate(180deg);
+  border-color: transparent;
+}
+
+.dark .assignment-modal-close:hover::before {
+  opacity: 1;
+  transform: scale(1);
+  animation: rotateGradient 2s linear infinite;
+}
+
+.dark .assignment-modal-close:hover::after {
+  opacity: 1;
+  animation: pulseGlow 1.5s ease-in-out infinite alternate;
 }
 
 .dark .assignment-modal-body {
@@ -1299,9 +1464,9 @@
 
   /* 다크모드 버튼 스타일 */
   .dark .btn-secondary {
-    background: #ff8c00;
+    background: #c80101;
     color: var(--white);
-    border-color: #ff8c00;
+    border-color: #c80101;
   }
 
   .dark .btn-small {
@@ -1310,9 +1475,9 @@
   }
 
 .dark .btn-secondary:hover {
-  background: #e67e00;
+  background: #9e0000;
   color: var(--white);
-  border-color: #e67e00;
+  border-color: #9e0000;
   transform: translateY(-2px);
 }
 
@@ -1370,11 +1535,11 @@ body:not(.active) .assignment-modal-overlay {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   border: none;
-  padding: 8px 20px;
+  padding: 8px 16px;
   border-radius: 6px;
   cursor: pointer;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -1382,6 +1547,9 @@ body:not(.active) .assignment-modal-overlay {
   box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
   min-width: 140px;
   white-space: nowrap;
+  width: auto;
+  margin-top: 0;
+  min-height: 40px;
 }
 
 .activity-photos-btn:hover {
@@ -1390,13 +1558,24 @@ body:not(.active) .assignment-modal-overlay {
 }
 
 .activity-photos-btn i {
-  font-size: 16px;
+  font-size: 14px;
 }
 
 /* 멘티용 활동 사진 버튼 */
 .mentee-photos-btn {
   background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
   box-shadow: 0 2px 4px rgba(245, 87, 108, 0.3);
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  min-width: 160px;
+  min-height: 44px;
+  gap: 8px;
+}
+
+.mentee-photos-btn i {
+  font-size: 16px;
 }
 
 .mentee-photos-btn:hover {
@@ -1452,18 +1631,75 @@ body:not(.active) .assignment-modal-overlay {
 
 .activity-photos-modal-close {
   background: none;
-  border: none;
-  font-size: 20px;
-  color: #6b7280;
+  border: 2px solid transparent;
+  color: var(--black);
+  font-size: 1.8rem;
   cursor: pointer;
-  padding: 8px;
-  border-radius: 6px;
-  transition: all 0.2s ease;
+  padding: 0.8rem;
+  border-radius: 50%;
+  width: 4rem;
+  height: 4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: relative;
+  overflow: visible;
+  border-radius: 50% !important;
+  margin: 0.5rem;
+}
+
+.activity-photos-modal-close::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  right: -50%;
+  bottom: -50%;
+  background: radial-gradient(circle, rgba(220, 53, 69, 0.2) 0%, rgba(255, 107, 122, 0.1) 50%, transparent 70%);
+  opacity: 0;
+  transition: all 0.4s ease;
+  border-radius: 50% !important;
+  transform: scale(0);
+}
+
+.activity-photos-modal-close::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, rgba(220, 53, 69, 0.1), rgba(255, 107, 122, 0.05));
+  opacity: 0;
+  transition: all 0.3s ease;
+  border-radius: 50% !important;
 }
 
 .activity-photos-modal-close:hover {
-  background: #e5e7eb;
-  color: #374151;
+  color: #dc3545;
+  transform: scale(1.15) rotate(180deg);
+  border-color: transparent;
+}
+
+.activity-photos-modal-close:hover::before {
+  opacity: 1;
+  transform: scale(1);
+  animation: rotateGradient 2s linear infinite;
+}
+
+.activity-photos-modal-close:hover::after {
+  opacity: 1;
+  animation: pulseGlow 1.5s ease-in-out infinite alternate;
+}
+
+.activity-photos-modal-close:active {
+  transform: scale(1.05) rotate(180deg);
+}
+
+.activity-photos-modal-close i {
+  position: relative;
+  z-index: 1;
 }
 
 .activity-photos-modal-body {
@@ -1494,7 +1730,7 @@ body:not(.active) .assignment-modal-overlay {
 
 /* 활동 사진 컨테이너 */
 .activity-photos-container {
-  max-width: 100%;
+  max-width: auto;
 }
 
 /* 활동 상세 카드 */
@@ -1741,12 +1977,34 @@ body:not(.active) .assignment-modal-overlay {
 }
 
 .dark .activity-photos-modal-close {
-  color: #9ca3af;
+  color: var(--black);
+}
+
+.dark .activity-photos-modal-close::before {
+  background: radial-gradient(circle, rgba(255, 107, 122, 0.25) 0%, rgba(255, 182, 193, 0.15) 50%, transparent 70%);
+  border-radius: 50% !important;
+}
+
+.dark .activity-photos-modal-close::after {
+  background: linear-gradient(45deg, rgba(255, 107, 122, 0.15), rgba(255, 182, 193, 0.08));
+  border-radius: 50% !important;
 }
 
 .dark .activity-photos-modal-close:hover {
-  background: #374151;
-  color: #f9fafb;
+  color: #ff6b7a;
+  transform: scale(1.15) rotate(180deg);
+  border-color: transparent;
+}
+
+.dark .activity-photos-modal-close:hover::before {
+  opacity: 1;
+  transform: scale(1);
+  animation: rotateGradient 2s linear infinite;
+}
+
+.dark .activity-photos-modal-close:hover::after {
+  opacity: 1;
+  animation: pulseGlow 1.5s ease-in-out infinite alternate;
 }
 
 .dark .loading-spinner {
@@ -2082,6 +2340,41 @@ body:not(.active) .activity-photos-modal-overlay {
   box-shadow: 0 4px 12px rgba(155, 89, 182, 0.5);
 }
 
+/* 커리큘럼 수정 버튼 전용 스타일 - btn-small과 동일한 구조 */
+.curriculum-edit-btn {
+  padding: 0.8rem 1.5rem;
+  font-size: 1.2rem;
+  border-radius: 0.6rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-width: 8rem;
+  width: 8rem;
+  background: #3498db;
+  color: var(--black);
+}
+
+.curriculum-edit-btn:hover {
+  background: #2980b9;
+  transform: translateY(-1px);
+}
+
+.dark .curriculum-edit-btn {
+  width: 8rem;
+  min-width: 8rem;
+  background: #5dade2;
+  color: var(--white);
+}
+
+.dark .curriculum-edit-btn:hover {
+  background: #3498db;
+  color: var(--black)
+}
+
 
 /* 활동 상세보기 모달 스타일 */
 .activity-detail-modal-overlay {
@@ -2131,18 +2424,106 @@ body:not(.active) .activity-photos-modal-overlay {
 
 .activity-detail-modal-close {
   background: none;
-  border: none;
-  font-size: 20px;
-  color: var(--light-color);
+  border: 2px solid transparent;
+  color: var(--black);
+  font-size: 1.8rem;
   cursor: pointer;
-  padding: 0.5rem;
+  padding: 0.8rem;
   border-radius: 50%;
-  transition: all 0.2s ease;
+  width: 4rem;
+  height: 4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: relative;
+  overflow: visible;
+  border-radius: 50% !important;
+  margin: 0.5rem;
+}
+
+.activity-detail-modal-close::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  right: -50%;
+  bottom: -50%;
+  background: radial-gradient(circle, rgba(220, 53, 69, 0.2) 0%, rgba(255, 107, 122, 0.1) 50%, transparent 70%);
+  opacity: 0;
+  transition: all 0.4s ease;
+  border-radius: 50% !important;
+  transform: scale(0);
+}
+
+.activity-detail-modal-close::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, rgba(220, 53, 69, 0.1), rgba(255, 107, 122, 0.05));
+  opacity: 0;
+  transition: all 0.3s ease;
+  border-radius: 50% !important;
 }
 
 .activity-detail-modal-close:hover {
-  background: var(--border);
+  color: #dc3545;
+  transform: scale(1.15) rotate(180deg);
+  border-color: transparent;
+}
+
+.activity-detail-modal-close:hover::before {
+  opacity: 1;
+  transform: scale(1);
+  animation: rotateGradient 2s linear infinite;
+}
+
+.activity-detail-modal-close:hover::after {
+  opacity: 1;
+  animation: pulseGlow 1.5s ease-in-out infinite alternate;
+}
+
+.activity-detail-modal-close:active {
+  transform: scale(1.05) rotate(180deg);
+}
+
+.activity-detail-modal-close i {
+  position: relative;
+  z-index: 1;
+}
+
+.dark .activity-detail-modal-close {
   color: var(--black);
+}
+
+.dark .activity-detail-modal-close::before {
+  background: radial-gradient(circle, rgba(255, 107, 122, 0.25) 0%, rgba(255, 182, 193, 0.15) 50%, transparent 70%);
+  border-radius: 50% !important;
+}
+
+.dark .activity-detail-modal-close::after {
+  background: linear-gradient(45deg, rgba(255, 107, 122, 0.15), rgba(255, 182, 193, 0.08));
+  border-radius: 50% !important;
+}
+
+.dark .activity-detail-modal-close:hover {
+  color: #ff6b7a;
+  transform: scale(1.15) rotate(180deg);
+  border-color: transparent;
+}
+
+.dark .activity-detail-modal-close:hover::before {
+  opacity: 1;
+  transform: scale(1);
+  animation: rotateGradient 2s linear infinite;
+}
+
+.dark .activity-detail-modal-close:hover::after {
+  opacity: 1;
+  animation: pulseGlow 1.5s ease-in-out infinite alternate;
 }
 
 .activity-detail-modal-body {

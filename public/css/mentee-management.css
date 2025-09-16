@@ -158,6 +158,7 @@
   overflow-y: auto;
   box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.2);
   position: relative;
+  overflow-x: hidden;
 }
 
 .group-mentor-modal-header {
@@ -178,18 +179,93 @@
 
 .group-mentor-modal-close {
   background: none;
-  border: none;
-  font-size: 2rem;
-  color: var(--black);
+  border: 2px solid transparent;
+  color: var(--white);
+  font-size: 1.8rem;
   cursor: pointer;
-  padding: 0.5rem;
-  border-radius: 0.5rem;
+  padding: 0.8rem;
+  border-radius: 50%;
+  width: 4rem;
+  height: 4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: relative;
+  overflow: visible;
+  border-radius: 50% !important;
+  margin: 0.5rem;
+}
+
+.group-mentor-modal-close::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  right: -50%;
+  bottom: -50%;
+  background: radial-gradient(circle, rgba(220, 53, 69, 0.2) 0%, rgba(255, 107, 122, 0.1) 50%, transparent 70%);
+  opacity: 0;
+  transition: all 0.4s ease;
+  border-radius: 50% !important;
+  transform: scale(0);
+}
+
+.group-mentor-modal-close::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, rgba(220, 53, 69, 0.1), rgba(255, 107, 122, 0.05));
+  opacity: 0;
   transition: all 0.3s ease;
+  border-radius: 50% !important;
 }
 
 .group-mentor-modal-close:hover {
-  background: var(--light-bg);
-  color: var(--black);
+  color: #dc3545;
+  transform: scale(1.15) rotate(180deg);
+  border-color: transparent;
+}
+
+.group-mentor-modal-close:hover::before {
+  opacity: 1;
+  transform: scale(1);
+  animation: rotateGradient 2s linear infinite;
+}
+
+.group-mentor-modal-close:hover::after {
+  opacity: 1;
+  animation: pulseGlow 1.5s ease-in-out infinite alternate;
+}
+
+.group-mentor-modal-close:active {
+  transform: scale(1.05) rotate(180deg);
+}
+
+.group-mentor-modal-close i {
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes rotateGradient {
+  0% {
+    transform: scale(1) rotate(0deg);
+  }
+  100% {
+    transform: scale(1) rotate(360deg);
+  }
+}
+
+@keyframes pulseGlow {
+  0% {
+    box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4);
+  }
+  100% {
+    box-shadow: 0 0 0 10px rgba(220, 53, 69, 0);
+  }
 }
 
 .group-mentor-modal-tabs {
@@ -428,9 +504,31 @@
   color: var(--black);
 }
 
+.dark .group-mentor-modal-close::before {
+  background: radial-gradient(circle, rgba(255, 107, 122, 0.25) 0%, rgba(255, 182, 193, 0.15) 50%, transparent 70%);
+  border-radius: 50% !important;
+}
+
+.dark .group-mentor-modal-close::after {
+  background: linear-gradient(45deg, rgba(255, 107, 122, 0.15), rgba(255, 182, 193, 0.08));
+  border-radius: 50% !important;
+}
+
 .dark .group-mentor-modal-close:hover {
-  background: #444;
-  color: var(--white);
+  color: #ff6b7a;
+  transform: scale(1.15) rotate(180deg);
+  border-color: transparent;
+}
+
+.dark .group-mentor-modal-close:hover::before {
+  opacity: 1;
+  transform: scale(1);
+  animation: rotateGradient 2s linear infinite;
+}
+
+.dark .group-mentor-modal-close:hover::after {
+  opacity: 1;
+  animation: pulseGlow 1.5s ease-in-out infinite alternate;
 }
 
 .dark .group-mentor-modal-tabs {

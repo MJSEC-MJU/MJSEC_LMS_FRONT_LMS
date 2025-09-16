@@ -690,23 +690,23 @@ export default function Notifications() {
             <div className="notification-modal-footer">
               {modalType === "delete" ? (
                 <>
-                  <button className="btn btn-secondary" onClick={handleModalClose}>
+                  <button className="notification-modal-cancel-btn" onClick={handleModalClose}>
                     취소
                   </button>
-                  <button className="btn btn-danger" onClick={handleConfirmDelete}>
+                  <button className="notification-modal-delete-btn" onClick={handleConfirmDelete}>
                     삭제
                   </button>
                 </>
               ) : modalType === "view" ? (
-                <button className="btn btn-secondary" onClick={handleModalClose}>
+                <button className="notification-modal-cancel-btn" onClick={handleModalClose}>
                   닫기
                 </button>
               ) : (
                 <>
-                  <button className="btn btn-secondary" onClick={handleModalClose}>
+                  <button className="notification-modal-cancel-btn" onClick={handleModalClose}>
                     취소
                   </button>
-                  <button className="btn btn-primary" onClick={handleFormSubmit}>
+                  <button className="notification-modal-edit-btn" onClick={handleFormSubmit}>
                     {modalType === "create" ? "등록" : "수정"}
                   </button>
                 </>
