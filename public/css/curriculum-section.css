@@ -29,24 +29,6 @@
   box-shadow: 0 0.3rem 0.6rem rgba(0, 0, 0, 0.2);
 }
 
-.activity-detail-btn {
-  background: var(--secondary-color);
-  color: var(--white);
-  border: none;
-  padding: 0.6rem 1.2rem;
-  border-radius: 0.5rem;
-  font-size: 1.2rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  min-width: 8rem;
-}
-
-.activity-detail-btn:hover {
-  background: var(--secondary-dark);
-  transform: translateY(-1px);
-  box-shadow: 0 0.3rem 0.6rem rgba(0, 0, 0, 0.2);
-}
 
 /* 활동 수정 모달 */
 .activity-modal-overlay {
@@ -165,11 +147,13 @@
   width: 90%;
   max-width: 60rem;
   max-height: 90vh;
-  overflow-y: auto;
+  overflow: hidden;
   box-shadow: 0 2rem 4rem rgba(0, 0, 0, 0.3);
   animation: modalSlideIn 0.3s ease-out;
   position: relative;
   z-index: 2000001 !important;
+  display: flex;
+  flex-direction: column;
 }
 
 .activity-modal-header {
@@ -217,7 +201,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, rgba(220, 53, 69, 0.1), rgba(255, 107, 122, 0.1));
+  background: rgba(220, 53, 69, 0.1);
   opacity: 0;
   transition: opacity 0.3s ease;
   border-radius: 50%;
@@ -245,6 +229,8 @@
 
 .activity-modal-body {
   padding: 2rem;
+  overflow-y: auto;
+  flex: 1;
 }
 
 .activity-modal-footer {
@@ -253,11 +239,9 @@
   gap: 1rem;
   padding: 2rem;
   border-top: 2px solid var(--border);
-  position: sticky;
-  bottom: 0;
   background: var(--white);
-  z-index: 10;
   border-radius: 0 0 1.5rem 1.5rem;
+  margin-top: auto;
 }
 
 /* 다크모드 */
@@ -284,8 +268,9 @@
 }
 
 .dark .activity-modal-close::before {
-  background: linear-gradient(135deg, rgba(255, 107, 122, 0.15), rgba(220, 53, 69, 0.15));
+  background: rgba(255, 107, 122, 0.15);
 }
+
 
 .dark .activity-modal-close:hover {
   color: #ff6b7a;
@@ -568,20 +553,23 @@
   transition: all 0.3s ease;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
+  min-width: 8rem;
+  width: 8rem;
 }
 
 .btn-secondary {
-  background: var(--light-bg);
-  color: var(--black);
-  border: 2px solid var(--border);
+  background: #ff8c00;
+  color: var(--white);
+  border: 2px solid #ff8c00;
   transition: all 0.3s ease;
 }
 
 .btn-secondary:hover {
-  background: var(--black);
+  background: #e67e00;
   color: var(--white);
-  border-color: var(--black);
+  border-color: #e67e00;
   transform: translateY(-2px);
 }
 
@@ -977,6 +965,14 @@
   border-color: #555;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
+.dark .assignment-modal-body p{
+  color: var(--black);
+  font-size:1.8rem;
+}
+.assignment-modal-body p{
+  color: var(--black);
+  font-size:1.8rem;
+}
 
 .dark .assignment-modal-footer {
   background: #2a2a2a;
@@ -1301,17 +1297,22 @@
   font-weight: 700 !important;
 }
 
-/* 다크모드 버튼 스타일 */
-.dark .btn-secondary {
-  background: var(--light-bg);
-  color: var(--black);
-  border-color: var(--border);
-}
+  /* 다크모드 버튼 스타일 */
+  .dark .btn-secondary {
+    background: #ff8c00;
+    color: var(--white);
+    border-color: #ff8c00;
+  }
+
+  .dark .btn-small {
+    width: 8rem;
+    min-width: 8rem;
+  }
 
 .dark .btn-secondary:hover {
-  background: rgb(62, 62, 62);
-  color: var(--black);
-  border-color: var(--white);
+  background: #e67e00;
+  color: var(--white);
+  border-color: #e67e00;
   transform: translateY(-2px);
 }
 
@@ -2040,23 +2041,47 @@ body:not(.active) .activity-photos-modal-overlay {
   color: var(--light-color);
 }
 
+/* 활동 기록 자세히보기 버튼 */
 .activity-detail-btn {
-  padding: 0.75rem 1.5rem;
-  background: var(--main-color);
+  padding: 0.8rem 1.5rem;
+  background: linear-gradient(135deg, #8e44ad, #9b59b6);
   color: var(--white);
   border: none;
-  border-radius: 8px;
-  font-size: 14px;
+  border-radius: 0.8rem;
+  font-size: 1.2rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-width: 8rem;
+  box-shadow: 0 2px 8px rgba(142, 68, 173, 0.3);
 }
 
 .activity-detail-btn:hover {
-  background: var(--black);
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  background: linear-gradient(135deg, #7d3c98, #8e44ad);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(142, 68, 173, 0.4);
 }
+
+.activity-detail-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(142, 68, 173, 0.3);
+}
+
+/* 다크모드 활동 기록 자세히보기 버튼 */
+.dark .activity-detail-btn {
+  background: linear-gradient(135deg, #9b59b6, #a569bd);
+  box-shadow: 0 2px 8px rgba(155, 89, 182, 0.4);
+}
+
+.dark .activity-detail-btn:hover {
+  background: linear-gradient(135deg, #8e44ad, #9b59b6);
+  box-shadow: 0 4px 12px rgba(155, 89, 182, 0.5);
+}
+
 
 /* 활동 상세보기 모달 스타일 */
 .activity-detail-modal-overlay {

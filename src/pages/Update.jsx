@@ -1,9 +1,11 @@
 ﻿import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../components/auth'
 import { api } from "../components/client"
 
 export default function Update() {
   const { token } = useAuth()
+  const navigate = useNavigate()
   const [profile, setProfile] = useState(null)
   const [formData, setFormData] = useState({
     phoneNumber: '',
@@ -61,30 +63,28 @@ export default function Update() {
       const fullPhoneNumber = `${formData.phonePart1}-${formData.phonePart2}-${formData.phonePart3}`
       
       const formDataToSend = new FormData()
-      formDataToSend.append('phoneNumber', fullPhoneNumber)
-      formDataToSend.append('email', formData.email)
+      
+      // UserUpdateDto를 JSON Blob으로 생성
+      const userUpdateDto = {
+        phoneNumber: fullPhoneNumber,
+        email: formData.email
+      }
+      const userUpdateDtoBlob = new Blob([JSON.stringify(userUpdateDto)], { type: 'application/json' })
+      formDataToSend.append('userUpdateDto', userUpdateDtoBlob)
       
       if (formData.profileImage) {
         formDataToSend.append('profileImage', formData.profileImage)
       }
 
-      const response = await fetch('/api/v1/user/update-profile', {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        },
-        body: formDataToSend
-      })
+      const result = await api('PUT', '/user/user-page', formDataToSend, token)
 
-      const result = await response.json()
-
-      if (response.ok && result.code === 'SUCCESS') {
+      if (result.code === 'SUCCESS') {
         setMessage('프로필이 성공적으로 업데이트되었습니다.')
-        // 프로필 정보 새로고침
-        const updatedProfile = await api('GET', '/user/user-page', null, token)
-        if (updatedProfile?.data) {
-          setProfile(updatedProfile.data)
-        }
+        
+        // 0.5초 후 프로필 페이지로 이동
+        setTimeout(() => {
+          navigate('/profile')
+        }, 500)
       } else {
         setError(result.message || '프로필 업데이트에 실패했습니다.')
       }
