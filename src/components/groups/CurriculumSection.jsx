@@ -3,6 +3,7 @@ import { api } from "../client";
 import { Editor } from '@tinymce/tinymce-react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
+const BASE_URL = (import.meta.env.BASE_URL || '/').replace(/\/+$/, '');
 const RAW_BASE   = (import.meta.env.VITE_API_BASE || "").replace(/\/+$/, "");
 const RAW_PREFIX = (import.meta.env.VITE_API_PREFIX ?? "/api/v1")
   .replace(/\/+$/, "")
