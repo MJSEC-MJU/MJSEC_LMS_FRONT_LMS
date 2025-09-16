@@ -3,20 +3,58 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../auth";
 import { api } from "../client";
 
-// public/images/default-study.svg → 문자열 경로(IMPORT 금지)
-const DEFAULT_STUDY_SVG = `${import.meta.env.BASE_URL}images/default-study.svg`;
-
-// API 베이스(있으면 사용)
-const RAW_BASE   = (import.meta.env.VITE_API_BASE || "").replace(/\/+$/, "");
-const RAW_PREFIX = (import.meta.env.VITE_API_PREFIX ?? "/api/v1").replace(/\/+$/, "").replace(/^\/?/, "/");
-const API_BASE = (() => {
-  if (!RAW_PREFIX || RAW_PREFIX === "/") return RAW_BASE;
-  if (RAW_BASE.endsWith(RAW_PREFIX)) return RAW_BASE;
-  if (RAW_BASE.endsWith("/api") && RAW_PREFIX === "/api/v1") return RAW_BASE.replace(/\/api$/, "/api/v1");
-  if (RAW_BASE.includes("/api/v1")) return RAW_BASE;
-  return `${RAW_BASE}${RAW_PREFIX}`;
+/* =======================================================================
+   /lms 서브패스 배포 안전 베이스 계산
+   - Vite 빌드 base가 '/'로 들어와도 런타임에서 /lms/를 자동 보정
+   ======================================================================= */
+const ENV_BASE = (import.meta.env.BASE_URL || '/').replace(/\/+$/, '/');
+const RUNTIME_BASE = (() => {
+  if (ENV_BASE !== '/') return ENV_BASE; // vite base가 정상 설정된 경우
+  try {
+    const p = window.location.pathname || '/';
+    if (p.startsWith('/lms/')) return '/lms/';
+  } catch {/* no-op */}
+  return '/';
 })();
 
+/* =======================================================================
+   정적 기본 이미지 (public/images/default-study.svg)
+   - 문자열 경로만 사용 (import 금지)
+   ======================================================================= */
+const DEFAULT_STUDY_SVG = `${RUNTIME_BASE}images/default-study.svg`;
+
+/* =======================================================================
+   API 베이스 계산
+   - 절대 URL이면 그대로 사용
+   - 상대/미설정이면 /lms 기준으로 보정
+   ======================================================================= */
+const RAW_BASE   = (import.meta.env.VITE_API_BASE || "").replace(/\/+$/, "");
+const RAW_PREFIX = (import.meta.env.VITE_API_PREFIX ?? "/api/v1")
+  .replace(/\/+$/, "")
+  .replace(/^\/?/, "/");
+
+const API_BASE = (() => {
+  // 절대 URL 설정 시: 그대로 prefix만 정리
+  if (/^https?:\/\//i.test(RAW_BASE)) {
+    if (!RAW_PREFIX || RAW_PREFIX === "/") return RAW_BASE;
+    if (RAW_BASE.endsWith(RAW_PREFIX)) return RAW_BASE;
+    if (RAW_BASE.endsWith("/api") && RAW_PREFIX === "/api/v1") return RAW_BASE.replace(/\/api$/, "/api/v1");
+    if (RAW_BASE.includes("/api/v1")) return RAW_BASE;
+    return `${RAW_BASE}${RAW_PREFIX}`;
+  }
+  // 상대/미설정: /lms 기반으로
+  const base = RAW_BASE ? `${RUNTIME_BASE}${RAW_BASE.replace(/^\//, "")}` : RUNTIME_BASE;
+  const trimmed = base.replace(/\/$/, "");
+  if (!RAW_PREFIX || RAW_PREFIX === "/") return trimmed;
+  if (trimmed.endsWith(RAW_PREFIX)) return trimmed;
+  if (trimmed.endsWith("/api") && RAW_PREFIX === "/api/v1") return trimmed.replace(/\/api$/, "/api/v1");
+  if (trimmed.includes("/api/v1")) return trimmed;
+  return `${trimmed}${RAW_PREFIX}`;
+})();
+
+/* =======================================================================
+   유틸들
+   ======================================================================= */
 const isAbs = (u) => /^https?:\/\//i.test(u || "");
 const fileName = (raw) => {
   if (!raw) return "";
@@ -41,26 +79,34 @@ const toImageApiUrl = (raw) => {
 // 그룹 이미지 정규화(없으면 기본 이미지)
 const normalizeGroupImage = (raw) => toImageApiUrl(raw) || DEFAULT_STUDY_SVG;
 
+/* =======================================================================
+   컴포넌트
+   ======================================================================= */
 export default function GroupsList({ myStudies = [] }) {
   const { token } = useAuth();
   const [mentorInfo, setMentorInfo] = useState({});
   const [loadingMentors, setLoadingMentors] = useState(false);
 
+  // 멘토 정보 가져오기
   useEffect(() => {
     (async () => {
       if (!token || myStudies.length === 0) return;
+
       setLoadingMentors(true);
       const mentorData = {};
+
       try {
         await Promise.all(
           myStudies.map(async (study) => {
             try {
               const res = await api('GET', `/group/${study.groupId}/member`, null, token);
               const members = res?.data || [];
-              const mentor = members.find(m => m.role === 'MENTOR');
-              if (mentor) mentorData[study.groupId] = mentor.name;
+              const mentor = members.find((m) => m.role === 'MENTOR');
+              if (mentor) {
+                mentorData[study.groupId] = mentor.name;
+              }
             } catch (err) {
-              // 개별 그룹 멘토 조회 실패는 무시(로그만 남김)
+              // 개별 그룹 조회 실패는 무시
               console.debug('[GroupsList] mentor fetch error', { groupId: study.groupId, err });
             }
           })
@@ -119,7 +165,7 @@ export default function GroupsList({ myStudies = [] }) {
                 <div className="group-footer">
                   {/* 서브패스(`/lms`) 배포 호환 */}
                   <Link
-                    to={`${import.meta.env.BASE_URL}groups?groupId=${study.groupId}`}
+                    to={`${RUNTIME_BASE}groups?groupId=${study.groupId}`}
                     className="group-more-btn"
                   >
                     상세보기
