@@ -56,7 +56,37 @@ export default function Admin() {
   const [editGroupMentor, setEditGroupMentor] = useState('');
   const [editGroupImage, setEditGroupImage] = useState(null); // 이미지 파일 추가
   const [updatingGroup, setUpdatingGroup] = useState(false);
+  
+  //스터디 그룹 정보 조회
+  const [groups, setGroups] = useState([]);
+  const [groupsLoading, setGroupsLoading] = useState(false);
+  const [groupsError, setGroupsError] = useState(null);
+  
+  const fetchGroups = useCallback(async () => {
+  setGroupsLoading(true);
+  setGroupsError(null);
+  try {
+    const res = await api('GET', '/api/v1/admin/group/all', null, token);
+    if (res?.code === 'SUCCESS') {
+      setGroups(res.data || []);
+    } else {
+      setGroupsError(res?.message || '스터디 그룹 목록을 불러오지 못했습니다.');
+    }
+  } catch (e) {
+    setGroupsError(`스터디 그룹 목록 조회 오류: ${e.message}`);
+  } finally {
+    setGroupsLoading(false);
+  }
+}, [token]);
 
+useEffect(() => {
+  if (activeTab === 'groups') {
+    fetchGroups();
+  }
+}, [activeTab, fetchGroups]);
+
+  
+  
   // 회원가입 대기 명단 불러오기
   const fetchPendingMembers = useCallback(async () => {
     try {
@@ -554,9 +584,44 @@ export default function Admin() {
             </button>
           </form>
         </div>
+                {/* 스터디 그룹 조회 테이블 추가 */}
+        <div className="box" style={{ flex: '1 1 800px', backgroundColor: '#fff', padding: '30px', borderRadius: '15px', boxShadow: '0 10px 20px rgba(0,0,0,0.15)', border: '1px solid #eee' }}>
+          <h3 style={{ color: '#007bff', marginBottom: '20px', fontSize: '2.2em', fontWeight: '600' }}>전체 스터디 그룹 목록</h3>
+          {groupsLoading && <p>스터디 그룹 목록을 불러오는 중...</p>}
+          {groupsError && <p className="error-message">{groupsError}</p>}
+          {!groupsLoading && !groupsError && (
+            groups.length === 0 ? (
+              <p>스터디 그룹이 없습니다.</p>
+            ) : (
+              <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '15px' }}>
+                <thead>
+                  <tr>
+                    <th style={{ padding: '12px', border: '1px solid #ddd', backgroundColor: '#343a40', color: '#fff' }}>ID</th>
+                    <th style={{ padding: '12px', border: '1px solid #ddd', backgroundColor: '#343a40', color: '#fff' }}>이름</th>
+                    <th style={{ padding: '12px', border: '1px solid #ddd', backgroundColor: '#343a40', color: '#fff' }}>카테고리</th>
+                    <th style={{ padding: '12px', border: '1px solid #ddd', backgroundColor: '#343a40', color: '#fff' }}>이미지</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {groups.map(g => (
+                    <tr key={g.studyGroupId}>
+                      <td style={{ padding: '10px 12px', border: '1px solid #ddd' }}>{g.studyGroupId}</td>
+                      <td style={{ padding: '10px 12px', border: '1px solid #ddd' }}>{g.name}</td>
+                      <td style={{ padding: '10px 12px', border: '1px solid #ddd' }}>{g.category}</td>
+                      <td style={{ padding: '10px 12px', border: '1px solid #ddd' }}>
+                        {g.studyImage && <img src={g.studyImage} alt={g.name} style={{ width: 60, height: 40, objectFit: 'cover', borderRadius: 5 }} />}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )
+          )}
+        </div>
           </>
         )}
       </div>
     </section>
+    
   );
 }
