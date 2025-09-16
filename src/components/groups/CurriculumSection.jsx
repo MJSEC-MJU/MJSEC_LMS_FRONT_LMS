@@ -8,15 +8,36 @@ const RAW_PREFIX = (import.meta.env.VITE_API_PREFIX ?? "/api/v1")
   .replace(/\/+$/, "")
   .replace(/^\/?/, "/");
 const API_BASE = (() => {
-  if (!RAW_PREFIX || RAW_PREFIX === "/") return RAW_BASE;               // 프리픽스 비활성
-  if (RAW_BASE.endsWith(RAW_PREFIX)) return RAW_BASE;                   // 이미 붙어있음
-  if (RAW_BASE.endsWith("/api") && RAW_PREFIX === "/api/v1") {          // /api -> /api/v1로 교체
+  if (!RAW_PREFIX || RAW_PREFIX === "/") return RAW_BASE;
+  if (RAW_BASE.endsWith(RAW_PREFIX)) return RAW_BASE;
+  if (RAW_BASE.endsWith("/api") && RAW_PREFIX === "/api/v1") {
     return RAW_BASE.replace(/\/api$/, "/api/v1");
   }
-  if (RAW_BASE.includes("/api/v1")) return RAW_BASE;                    // 경로 내에 이미 존재
-  return `${RAW_BASE}${RAW_PREFIX}`;                                    // 그냥 붙이기
+  if (RAW_BASE.includes("/api/v1")) return RAW_BASE;
+  return `${RAW_BASE}${RAW_PREFIX}`;
 })();
 
+const API_URL = new URL(API_BASE, window.location.origin);
+const ORIGIN = API_URL.origin;
+
+// 원본 경로/URL에서 파일명만 추출
+const extractFileName = (raw) => {
+  if (!raw) return "";
+  try {
+    const u = new URL(raw, ORIGIN); // 절대/상대/파일명 단독 모두 처리
+    const parts = u.pathname.split("/");
+    return parts.pop() || "";
+  } catch {
+    const parts = String(raw).split("/");
+    return parts.pop() || "";
+  }
+};
+
+// /api/v1/image/{파일명} 로 정규화
+const toImageApiUrl = (raw) => {
+  const name = extractFileName(raw);
+  return name ? `${API_BASE}/image/${name}` : null;
+};
 export default function CurriculumSection({ groupId, isMentor, token }) {
   // 과제/커리큘럼 관련 상태
   const [assignments, setAssignments] = useState([]);
@@ -525,9 +546,13 @@ export default function CurriculumSection({ groupId, isMentor, token }) {
 
   // 활동 상세보기 모달 열기
   const openActivityDetailModal = async (activity) => {
+    // 우선 목록에서 넘어온 데이터로 모달 열기 (이미지 경로 정규화)
     setActivityDetailModal({
       isOpen: true,
-      activity: activity
+      activity: {
+        ...activity,
+        imageUrl: toImageApiUrl(activity.imageUrl),
+      },
     });
 
     // URL에 activityId 파라미터 추가
@@ -537,43 +562,32 @@ export default function CurriculumSection({ groupId, isMentor, token }) {
 
     // API에서 상세 데이터 가져오기
     const result = await fetchActivityDetail(activity.id);
-    
-    if (result.success) {
-      const activityData = {
-        ...result.data,
-        id: result.data.activityId, // API 응답의 activityId를 id로 매핑
-        uploadedAt: result.data.createdAt, // API 응답의 createdAt을 uploadedAt로 매핑
-        attendanceList: result.data.studyAttendanceDtoList || [] // API 응답의 출석 데이터
-      };
 
-      setActivityDetailModal(prev => ({
-        ...prev,
-        activity: activityData
-      }));
-
-      // 이미지가 있으면 Blob URL로 변환
-      if (activityData.imageUrl) {
-        const blobUrl = await fetchImageAsBlob(activityData.imageUrl);
-        if (blobUrl) {
-          setActivityDetailModal(prev => ({
-            ...prev,
-            activity: {
-              ...prev.activity,
-              imageUrl: blobUrl
-            }
-          }));
-        }
-      }
-    } else {
+    if (!result.success) {
       alert(`활동 상세조회 실패: ${result.error}`);
+      return;
     }
+
+    // 응답 매핑 + 이미지 경로 정규화 (응답이 없으면 기존 값 유지)
+    const activityData = {
+      ...result.data,
+      id: result.data.activityId,
+      uploadedAt: result.data.createdAt,
+      attendanceList: result.data.studyAttendanceDtoList || [],
+      imageUrl: toImageApiUrl(result.data.imageUrl ?? activity.imageUrl),
+    };
+
+    setActivityDetailModal((prev) => ({
+      ...prev,
+      activity: activityData,
+    }));
   };
 
   // 활동 상세보기 모달 닫기
   const closeActivityDetailModal = () => {
     setActivityDetailModal({
       isOpen: false,
-      activity: null
+      activity: null,
     });
 
     // URL에서 activityId 파라미터 제거
@@ -581,6 +595,7 @@ export default function CurriculumSection({ groupId, isMentor, token }) {
     url.searchParams.delete('activityId');
     window.history.pushState({}, '', url);
   };
+
 
 
   // 활동 삭제 API 호출
@@ -1113,31 +1128,6 @@ export default function CurriculumSection({ groupId, isMentor, token }) {
     }
   };
 
-  // 이미지 URL을 Blob URL로 변환하는 함수
-  const fetchImageAsBlob = async (imageUrl) => {
-    if (!imageUrl) return null;
-    try {
-      // 절대/상대 경로 모두 대응
-      const url = /^https?:\/\//i.test(imageUrl)
-        ? imageUrl
-        : `${API_BASE}${imageUrl.startsWith('/') ? '' : '/'}${imageUrl}`;
-
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Accept': 'image/*',
-        },
-        credentials: 'include',
-      });
-
-      if (!response.ok) return null;
-      const blob = await response.blob();
-      return URL.createObjectURL(blob);
-    } catch {
-      return null;
-    }
-  };
 
   // 활동 사진 목록 조회 함수
   const fetchActivityPhotos = async () => {
@@ -1170,10 +1160,7 @@ export default function CurriculumSection({ groupId, isMentor, token }) {
         const activityList = result.data || [];
         const photoDataList = activityList.map((activityData, index) => {
           // 서버가 준 이미지 경로를 파일명으로 정규화해서 API_BASE로 프록시
-          const raw = activityData.imageUrl;
-          const normalizedImage = raw
-            ? `${API_BASE}/image/${raw.replace('/uploads/', '')}`
-            : null;
+          const normalizedImage = toImageApiUrl(activityData.imageUrl);
 
           return {
             id:
