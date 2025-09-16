@@ -746,13 +746,6 @@ export default function CurriculumSection({ groupId, isMentor, token }) {
     });
   };
 
-  // 커리큘럼 자세히보기 열기
-  const openCurriculumDetail = (assignment) => {
-    const currentUrl = new URL(window.location);
-    currentUrl.searchParams.set('groupId', groupId);
-    currentUrl.searchParams.set('planId', assignment.assignmentId);
-    window.history.pushState({}, '', currentUrl);
-  };
 
   // 과제 제출 API 함수
   const submitAssignment = async (planId, formData) => {
