@@ -4,8 +4,7 @@ import { useAuth } from "../auth";
 import { api } from "../client";
 
 /* =======================================================================
-   /lms 서브패스 배포 안전 베이스 계산
-   - Vite 빌드 base가 '/'로 들어와도 런타임에서 /lms/를 자동 보정
+   /lms 서브패스 배포 안전 베이스 계산 (정적 자산용)
    ======================================================================= */
 const ENV_BASE = (import.meta.env.BASE_URL || '/').replace(/\/+$/, '/');
 const RUNTIME_BASE = (() => {
@@ -19,14 +18,11 @@ const RUNTIME_BASE = (() => {
 
 /* =======================================================================
    정적 기본 이미지 (public/images/default-study.svg)
-   - 문자열 경로만 사용 (import 금지)
    ======================================================================= */
 const DEFAULT_STUDY_SVG = `${RUNTIME_BASE}images/default-study.svg`;
 
 /* =======================================================================
-   API 베이스 계산
-   - 절대 URL이면 그대로 사용
-   - 상대/미설정이면 /lms 기준으로 보정
+   API 베이스 계산 (이미지 API용)
    ======================================================================= */
 const RAW_BASE   = (import.meta.env.VITE_API_BASE || "").replace(/\/+$/, "");
 const RAW_PREFIX = (import.meta.env.VITE_API_PREFIX ?? "/api/v1")
@@ -34,7 +30,6 @@ const RAW_PREFIX = (import.meta.env.VITE_API_PREFIX ?? "/api/v1")
   .replace(/^\/?/, "/");
 
 const API_BASE = (() => {
-  // 절대 URL 설정 시: 그대로 prefix만 정리
   if (/^https?:\/\//i.test(RAW_BASE)) {
     if (!RAW_PREFIX || RAW_PREFIX === "/") return RAW_BASE;
     if (RAW_BASE.endsWith(RAW_PREFIX)) return RAW_BASE;
@@ -42,7 +37,6 @@ const API_BASE = (() => {
     if (RAW_BASE.includes("/api/v1")) return RAW_BASE;
     return `${RAW_BASE}${RAW_PREFIX}`;
   }
-  // 상대/미설정: /lms 기반으로
   const base = RAW_BASE ? `${RUNTIME_BASE}${RAW_BASE.replace(/^\//, "")}` : RUNTIME_BASE;
   const trimmed = base.replace(/\/$/, "");
   if (!RAW_PREFIX || RAW_PREFIX === "/") return trimmed;
@@ -53,7 +47,7 @@ const API_BASE = (() => {
 })();
 
 /* =======================================================================
-   유틸들
+   유틸
    ======================================================================= */
 const isAbs = (u) => /^https?:\/\//i.test(u || "");
 const fileName = (raw) => {
@@ -68,7 +62,7 @@ const fileName = (raw) => {
   }
 };
 
-// /api/v1/image/{파일명} 로 라우팅(백엔드 규약일 때만 사용)
+// /api/v1/image/{파일명} (백엔드 규약 시)
 const toImageApiUrl = (raw) => {
   if (!raw) return null;
   if (isAbs(raw)) return raw;
@@ -76,7 +70,6 @@ const toImageApiUrl = (raw) => {
   return name ? `${API_BASE}/image/${name}` : null;
 };
 
-// 그룹 이미지 정규화(없으면 기본 이미지)
 const normalizeGroupImage = (raw) => toImageApiUrl(raw) || DEFAULT_STUDY_SVG;
 
 /* =======================================================================
@@ -106,7 +99,6 @@ export default function GroupsList({ myStudies = [] }) {
                 mentorData[study.groupId] = mentor.name;
               }
             } catch (err) {
-              // 개별 그룹 조회 실패는 무시
               console.debug('[GroupsList] mentor fetch error', { groupId: study.groupId, err });
             }
           })
@@ -119,6 +111,9 @@ export default function GroupsList({ myStudies = [] }) {
       }
     })();
   }, [token, myStudies]);
+
+  const categoryLabel = (cat) =>
+    Array.isArray(cat) ? (cat.length ? cat.join(', ') : '일반') : (cat || '일반');
 
   return (
     <section className="contact">
@@ -147,7 +142,6 @@ export default function GroupsList({ myStudies = [] }) {
                       src={normalizeGroupImage(study.GroupImage)}
                       alt={study.name}
                       onError={(e) => {
-                        // 무한 onerror 루프 방지
                         if (e.currentTarget.src !== DEFAULT_STUDY_SVG) {
                           e.currentTarget.onerror = null;
                           e.currentTarget.src = DEFAULT_STUDY_SVG;
@@ -158,14 +152,14 @@ export default function GroupsList({ myStudies = [] }) {
                   <p className="group-description">{study.description}</p>
 
                   <div className="group-categories">
-                    <span className="group-category-tag">{study.category || '일반'}</span>
+                    <span className="group-category-tag">{categoryLabel(study.category)}</span>
                   </div>
                 </div>
 
                 <div className="group-footer">
-                  {/* 서브패스(`/lms`) 배포 호환 */}
+                  {/* 내부 라우팅에는 basename을 붙이지 않는다 */}
                   <Link
-                    to={`${RUNTIME_BASE}groups?groupId=${study.groupId}`}
+                    to={`/groups?groupId=${study.groupId}`}
                     className="group-more-btn"
                   >
                     상세보기
