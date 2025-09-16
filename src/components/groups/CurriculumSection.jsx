@@ -3,11 +3,19 @@ import { api } from "../client";
 import { Editor } from '@tinymce/tinymce-react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
-const BASE_URL   = (import.meta.env.VITE_API_BASE || "").replace(/\/+$/, "");
-const API_PREFIX = (import.meta.env.VITE_API_PREFIX || "/api/v1")
-  .replace(/^\/?/, "/")   // 맨 앞에 슬래시 강제
-  .replace(/\/+$/, "");   // 끝 슬래시 제거
-const API_BASE   = `${BASE_URL}${API_PREFIX}`;
+const RAW_BASE   = (import.meta.env.VITE_API_BASE || "").replace(/\/+$/, "");
+const RAW_PREFIX = (import.meta.env.VITE_API_PREFIX ?? "/api/v1")
+  .replace(/\/+$/, "")
+  .replace(/^\/?/, "/");
+const API_BASE = (() => {
+  if (!RAW_PREFIX || RAW_PREFIX === "/") return RAW_BASE;               // 프리픽스 비활성
+  if (RAW_BASE.endsWith(RAW_PREFIX)) return RAW_BASE;                   // 이미 붙어있음
+  if (RAW_BASE.endsWith("/api") && RAW_PREFIX === "/api/v1") {          // /api -> /api/v1로 교체
+    return RAW_BASE.replace(/\/api$/, "/api/v1");
+  }
+  if (RAW_BASE.includes("/api/v1")) return RAW_BASE;                    // 경로 내에 이미 존재
+  return `${RAW_BASE}${RAW_PREFIX}`;                                    // 그냥 붙이기
+})();
 
 export default function CurriculumSection({ groupId, isMentor, token }) {
   // 과제/커리큘럼 관련 상태
