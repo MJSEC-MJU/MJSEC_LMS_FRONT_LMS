@@ -66,7 +66,7 @@ export default function Admin() {
   setGroupsLoading(true);
   setGroupsError(null);
   try {
-    const res = await api('GET', '/api/v1/admin/group/all', null, token);
+    const res = await api('GET', '/admin/group/all', null, token);
     if (res?.code === 'SUCCESS') {
       setGroups(res.data || []);
     } else {
