@@ -746,13 +746,6 @@ export default function CurriculumSection({ groupId, isMentor, token }) {
     });
   };
 
-  // 커리큘럼 자세히보기 열기
-  const openCurriculumDetail = (assignment) => {
-    const currentUrl = new URL(window.location);
-    currentUrl.searchParams.set('groupId', groupId);
-    currentUrl.searchParams.set('planId', assignment.assignmentId);
-    window.history.pushState({}, '', currentUrl);
-  };
 
   // 과제 제출 API 함수
   const submitAssignment = async (planId, formData) => {
@@ -1517,16 +1510,10 @@ export default function CurriculumSection({ groupId, isMentor, token }) {
                     </div>
                     {isMentor && (
                       <div className="curriculum-actions">
-                        <button 
-                          className="btn btn-small btn-primary"
-                          onClick={() => openCurriculumDetail(assignment)}
-                        >
-                          <i className="fas fa-eye"></i> 자세히보기
-                        </button>
                         {isMentor && (
                           <>
                             <button 
-                              className="btn btn-small btn-secondary"
+                              className="btn btn-small curriculum-edit-btn"
                               onClick={() => openAssignmentModal('edit', assignment)}
                             >
                               <i className="fas fa-edit"></i> 수정
@@ -1792,7 +1779,7 @@ export default function CurriculumSection({ groupId, isMentor, token }) {
                   required
                   min="1"
                   max="20"
-                  placeholder="예: 1, 2, 3 등"
+                  placeholder="예: 1, 2, 3"
                 />
               </div>
               

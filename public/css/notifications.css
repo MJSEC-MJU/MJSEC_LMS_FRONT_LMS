@@ -375,6 +375,7 @@ body:not(.active) .notification-modal-overlay {
   justify-content: space-between;
   align-items: center;
   padding: 2rem;
+  padding-top: 1rem;
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
   padding-bottom:0;
@@ -389,54 +390,92 @@ body:not(.active) .notification-modal-overlay {
 .notification-modal-close {
   background: none;
   border: 2px solid transparent;
+  color: var(--black);
   font-size: 1.8rem;
   cursor: pointer;
-  color: var(--light-color);
   padding: 0.8rem;
   border-radius: 50%;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  width: 4rem;
+  height: 4rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 4rem;
-  height: 4rem;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   position: relative;
-  overflow: hidden;
+  overflow: visible;
+  border-radius: 50% !important;
+  margin: 0.5rem;
 }
 
 .notification-modal-close::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  right: -50%;
+  bottom: -50%;
+  background: radial-gradient(circle, rgba(220, 53, 69, 0.2) 0%, rgba(255, 107, 122, 0.1) 50%, transparent 70%);
+  opacity: 0;
+  transition: all 0.4s ease;
+  border-radius: 50% !important;
+  transform: scale(0);
+}
+
+.notification-modal-close::after {
   content: '';
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, rgba(220, 53, 69, 0.1), rgba(255, 107, 122, 0.1));
+  background: linear-gradient(45deg, rgba(220, 53, 69, 0.1), rgba(255, 107, 122, 0.05));
   opacity: 0;
-  transition: opacity 0.3s ease;
-  border-radius: 50%;
+  transition: all 0.3s ease;
+  border-radius: 50% !important;
 }
 
 .notification-modal-close:hover {
   color: #dc3545;
-  transform: scale(1.1) rotate(90deg);
-  box-shadow: 0 6px 20px rgba(220, 53, 69, 0.25);
-  border-color: rgba(220, 53, 69, 0.3);
+  transform: scale(1.15) rotate(180deg);
+  border-color: transparent;
 }
 
 .notification-modal-close:hover::before {
   opacity: 1;
+  transform: scale(1);
+  animation: rotateGradient 2s linear infinite;
+}
+
+.notification-modal-close:hover::after {
+  opacity: 1;
+  animation: pulseGlow 1.5s ease-in-out infinite alternate;
 }
 
 .notification-modal-close:active {
-  transform: scale(0.95) rotate(90deg);
-  box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
+  transform: scale(1.05) rotate(180deg);
 }
 
 .notification-modal-close i {
   position: relative;
   z-index: 1;
-  transition: all 0.3s ease;
+}
+
+@keyframes rotateGradient {
+  0% {
+    transform: scale(1) rotate(0deg);
+  }
+  100% {
+    transform: scale(1) rotate(360deg);
+  }
+}
+
+@keyframes pulseGlow {
+  0% {
+    box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4);
+  }
+  100% {
+    box-shadow: 0 0 0 10px rgba(220, 53, 69, 0);
+  }
 }
 
 .notification-modal-body {
@@ -505,6 +544,115 @@ body:not(.active) .notification-modal-overlay {
   padding: 2rem;
   border-top: 1px solid var(--border);
   flex-shrink: 0;
+}
+
+/* Notification 모달 전용 버튼 스타일 */
+.notification-modal-cancel-btn {
+  padding: 1rem 2rem;
+  border-radius: 0.5rem;
+  font-size: 1.4rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: #6c757d;
+  color: var(--white);
+  border: 2px solid #6c757d;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-width: 8rem;
+}
+
+.notification-modal-cancel-btn:hover {
+  background: #5a6268;
+  border-color: #5a6268;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(108, 117, 125, 0.3);
+}
+
+.notification-modal-delete-btn {
+  padding: 1rem 2rem;
+  border-radius: 0.5rem;
+  font-size: 1.4rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: #dc3545;
+  color: var(--white);
+  border: 2px solid #dc3545;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-width: 8rem;
+}
+
+.notification-modal-delete-btn:hover {
+  background: #c82333;
+  border-color: #c82333;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+}
+
+/* 다크모드 notification 모달 버튼 */
+.dark .notification-modal-cancel-btn {
+  background: #495057;
+  border-color: #495057;
+  color: var(--white);
+}
+
+.dark .notification-modal-cancel-btn:hover {
+  background: #343a40;
+  border-color: #343a40;
+}
+
+.dark .notification-modal-delete-btn {
+  background: #dc3545;
+  border-color: #dc3545;
+  color: var(--white);
+}
+
+.dark .notification-modal-delete-btn:hover {
+  background: #c82333;
+  border-color: #c82333;
+}
+
+.notification-modal-edit-btn {
+  padding: 1rem 2rem;
+  border-radius: 0.5rem;
+  font-size: 1.4rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: #007bff;
+  color: var(--white);
+  border: 2px solid #007bff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-width: 8rem;
+}
+
+.notification-modal-edit-btn:hover {
+  background: #0056b3;
+  border-color: #0056b3;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
+}
+
+/* 다크모드 notification 모달 수정 버튼 */
+.dark .notification-modal-edit-btn {
+  background: #007bff;
+  border-color: #007bff;
+  color: var(--black);
+}
+
+.dark .notification-modal-edit-btn:hover {
+  background: #0056b3;
+  border-color: #0056b3;
+  color: var(--black);
 }
 
 .btn {
@@ -968,22 +1116,34 @@ body.dark .detail-content {
 
 /* 다크모드에서 모달 닫기 버튼 색상 */
 .dark .notification-modal-close {
-  color: #ffffff;
+  color: var(--black);
 }
 
 .dark .notification-modal-close::before {
-  background: linear-gradient(135deg, rgba(255, 107, 122, 0.15), rgba(220, 53, 69, 0.15));
+  background: radial-gradient(circle, rgba(255, 107, 122, 0.25) 0%, rgba(255, 182, 193, 0.15) 50%, transparent 70%);
+  border-radius: 50% !important;
+}
+
+.dark .notification-modal-close::after {
+  background: linear-gradient(45deg, rgba(255, 107, 122, 0.15), rgba(255, 182, 193, 0.08));
+  border-radius: 50% !important;
 }
 
 .dark .notification-modal-close:hover {
   color: #ff6b7a;
-  transform: scale(1.1) rotate(90deg);
-  box-shadow: 0 6px 20px rgba(255, 107, 122, 0.3);
-  border-color: rgba(255, 107, 122, 0.4);
+  transform: scale(1.15) rotate(180deg);
+  border-color: transparent;
 }
 
 .dark .notification-modal-close:hover::before {
   opacity: 1;
+  transform: scale(1);
+  animation: rotateGradient 2s linear infinite;
+}
+
+.dark .notification-modal-close:hover::after {
+  opacity: 1;
+  animation: pulseGlow 1.5s ease-in-out infinite alternate;
 }
 
 /* 다크모드에서 모달 배경 더 진하게 */
