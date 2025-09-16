@@ -59,10 +59,15 @@ export default function GroupsList({ myStudies = [] }) {
               const members = res?.data || [];
               const mentor = members.find(m => m.role === 'MENTOR');
               if (mentor) mentorData[study.groupId] = mentor.name;
-            } catch {}
+            } catch (err) {
+              // 개별 그룹 멘토 조회 실패는 무시(로그만 남김)
+              console.debug('[GroupsList] mentor fetch error', { groupId: study.groupId, err });
+            }
           })
         );
         setMentorInfo(mentorData);
+      } catch (err) {
+        console.debug('[GroupsList] mentor list load failed', err);
       } finally {
         setLoadingMentors(false);
       }
