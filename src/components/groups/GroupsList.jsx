@@ -127,6 +127,10 @@ export default function GroupsList({ myStudies = [] }) {
 
   const filteredStudies = getFilteredStudies();
 
+  const categoryLabel = (cat) =>
+    Array.isArray(cat) ? (cat.length ? cat.join(', ') : '일반') : (cat || '일반');
+
+
   return (
     <section className="contact">
       <h1 className="heading">Groups</h1>
