@@ -46,7 +46,7 @@ export default function App() {
         } />
         <Route path="/password/update" element={
           <PublicRoute>
-            <PasswordEmailVerify />
+            <PasswordUpdate />
           </PublicRoute>
         } />
         
