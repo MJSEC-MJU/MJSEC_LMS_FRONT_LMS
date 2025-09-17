@@ -10,6 +10,7 @@ import Notifications from "./pages/Notifications.jsx"
 import Admin from "./pages/Admin.jsx" // Admin 컴포넌트 임포트
 import Unauthorized from "./pages/Unauthorized.jsx";
 import PasswordEmailVerify from "./pages/PasswordEmailVerify.jsx";
+import PasswordUpdate from "./pages/PasswordUpdate.jsx";
 import { useAuth } from "./components/auth.jsx"
 
 export default function App() {
