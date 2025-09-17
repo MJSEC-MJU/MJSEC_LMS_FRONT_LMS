@@ -154,14 +154,14 @@ export default function GroupsList({ myStudies = [] }) {
             onClick={() => setStatusFilter('active')}
           >
             <i className="fas fa-check-circle"></i>
-            활성화 ({myStudies.filter(s => s.status === 'ACTIVE' || s.status === 1).length})
+            진행중 ({myStudies.filter(s => s.status === 'ACTIVE' || s.status === 1).length})
           </button>
           <button 
             className={`filter-btn ${statusFilter === 'inactive' ? 'active' : ''}`}
             onClick={() => setStatusFilter('inactive')}
           >
             <i className="fas fa-times-circle"></i>
-            비활성화 ({myStudies.filter(s => s.status === 'INACTIVE' || s.status === 0 || !s.status).length})
+            종료 ({myStudies.filter(s => s.status === 'INACTIVE' || s.status === 0 || !s.status).length})
           </button>
         </div>
       </div>
@@ -174,7 +174,7 @@ export default function GroupsList({ myStudies = [] }) {
                 <div className="group-header">
                   <div className="group-header-left">
                     <span className={`group-status ${study.status?.toLowerCase() || 'inactive'}`}>
-                      {study.status === 'ACTIVE' ? '활성' : '비활성'}
+                      {study.status === 'ACTIVE' ? '진행중' : '종료'}
                     </span>
                   </div>
                   <h3 className="list-group-title">{study.name}</h3>
@@ -226,15 +226,15 @@ export default function GroupsList({ myStudies = [] }) {
               <i className="fas fa-users" style={{ fontSize: '4rem', color: '#ccc', marginBottom: '1rem' }} />
               <h3 style={{ color: '#666', marginBottom: '0.5rem' }}>
                 {statusFilter === 'all' ? '참여 중인 그룹이 없습니다' : 
-                 statusFilter === 'active' ? '활성화된 그룹이 없습니다' : 
-                 '비활성화된 그룹이 없습니다'}
+                 statusFilter === 'active' ? '진행중인 그룹이 없습니다' : 
+                 '종료된 그룹이 없습니다'}
               </h3>
               <p style={{ color: '#888' }}>
                 {statusFilter === 'all' ? 
                   '아직 참여 중인 스터디 그룹이 없습니다.\n그룹에 가입하거나 새 그룹을 생성해보세요.' :
                   statusFilter === 'active' ?
-                  '현재 활성화된 스터디 그룹이 없습니다.\n다른 필터를 확인해보세요.' :
-                  '현재 비활성화된 스터디 그룹이 없습니다.\n다른 필터를 확인해보세요.'}
+                  '현재 진행중인 스터디 그룹이 없습니다.\n다른 필터를 확인해보세요.' :
+                  '현재 종료된 스터디 그룹이 없습니다.\n다른 필터를 확인해보세요.'}
               </p>
             </div>
           </div>
