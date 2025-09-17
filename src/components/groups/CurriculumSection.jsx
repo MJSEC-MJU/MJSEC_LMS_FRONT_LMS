@@ -123,6 +123,7 @@ export default function CurriculumSection({ groupId, isMentor }) {
   const [attendanceData, setAttendanceData] = useState({});
   const [menteeAttendanceData, setMenteeAttendanceData] = useState({});
   const [attendanceRate, setAttendanceRate] = useState(0);
+  const [menteeWarnings, setMenteeWarnings] = useState(0);
 
   // 현재 테마 감지
   const isDarkMode = document.body.classList.contains('dark');
@@ -507,7 +508,7 @@ export default function CurriculumSection({ groupId, isMentor }) {
   };
 
   // 활동 상세조회 API 함수
-  const fetchActivityDetail = async (activityId) => {
+  const fetchActivityDetail = useCallback(async (activityId) => {
     try {
       const url = `${API_BASE}/group/${groupId}/activity/${activityId}`;
       const response = await fetch(url, {
@@ -549,7 +550,7 @@ export default function CurriculumSection({ groupId, isMentor }) {
     } catch {
       return { success: false, error: '활동 상세조회 중 오류가 발생했습니다.' };
     }
-  };
+  }, [groupId, token]);
 
 
   // 활동 상세보기 모달 열기
@@ -589,7 +590,7 @@ export default function CurriculumSection({ groupId, isMentor }) {
       ...prev,
       activity: activityData,
     }));
-  }, []);
+  }, [fetchActivityDetail]);
 
   // 활동 상세보기 모달 닫기
   const closeActivityDetailModal = () => {

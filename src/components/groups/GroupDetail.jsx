@@ -277,7 +277,7 @@ const [loadingWarnings, setLoadingWarnings] = useState(false); // 로딩 상태
       </section>
     );
   }
-  const fetchMenteeWarnings = async () => {
+  const fetchMenteeWarnings = useCallback(async () => {
     try {
       const result = await api('GET', `/group/${groupId}/mentee/warn`, null, token);
       
@@ -289,7 +289,7 @@ const [loadingWarnings, setLoadingWarnings] = useState(false); // 로딩 상태
       console.error('경고 횟수 조회 오류:', error);
       return { success: false, error: '경고 횟수 조회 중 오류가 발생했습니다.' };
     }
-  };
+  }, [groupId, token]);
   useEffect(() => {
     const loadMenteeWarnings = async () => {
       if (isMentor && groupId && token) {
