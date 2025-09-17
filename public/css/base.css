@@ -20,6 +20,12 @@
    /* CSS 변수 전환 설정 */
    --transition-duration: 0.3s;
    --transition-timing: ease;
+   
+   /* 버튼 색상 변수 */
+   --danger-color: #dc3545;
+   --danger-hover: #c82333;
+   --cancel-color: #6c757d;
+   --cancel-hover: #5a6268;
 }
 
 *{
@@ -199,4 +205,58 @@ section{
    html{
       font-size: 50%;
    }
+}
+
+/* 통일된 버튼 스타일 */
+.btn-danger {
+  background: var(--danger-color);
+  color: var(--white);
+  border: 2px solid var(--danger-color);
+  transition: all 0.3s ease;
+}
+
+.btn-danger:hover {
+  background: var(--danger-hover);
+  border-color: var(--danger-hover);
+  color: var(--white);
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background: var(--cancel-color);
+  color: var(--white);
+  border: 2px solid var(--cancel-color);
+  transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+  background: var(--cancel-hover);
+  border-color: var(--cancel-hover);
+  color: var(--white);
+  transform: translateY(-1px);
+}
+
+/* 다크모드 버튼 스타일 */
+.dark .btn-danger {
+  background: var(--danger-color);
+  color: var(--white);
+  border-color: var(--danger-color);
+}
+
+.dark .btn-danger:hover {
+  background: var(--danger-hover);
+  border-color: var(--danger-hover);
+  color: var(--white);
+}
+
+.dark .btn-secondary {
+  background: var(--cancel-color);
+  color: var(--white);
+  border-color: var(--cancel-color);
+}
+
+.dark .btn-secondary:hover {
+  background: var(--cancel-hover);
+  border-color: var(--cancel-hover);
+  color: var(--white);
 } 

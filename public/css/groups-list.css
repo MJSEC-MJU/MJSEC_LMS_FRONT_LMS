@@ -42,7 +42,7 @@
   /* Left spacer for grid layout */
 }
 
-.group-title {
+.list-group-title {
   font-size: 2.2rem;
   font-weight: 700;
   color: var(--black);
@@ -180,7 +180,7 @@
   box-shadow: 0 1rem 2rem rgba(255, 255, 255, 0.1);
 }
 
-.dark .group-title {
+.dark .list-group-title {
   color: var(--black);
 }
 
@@ -230,7 +230,7 @@
     padding: 2rem;
   }
 
-  .group-title {
+  .list-group-title {
     font-size: 1.8rem;
   }
 

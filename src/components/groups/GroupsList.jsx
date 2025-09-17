@@ -131,7 +131,7 @@ export default function GroupsList({ myStudies = [] }) {
               <div key={study.groupId} className="group-card">
                 <div className="group-header">
                   <div className="group-header-left"></div>
-                  <h3 className="group-title">{study.name}</h3>
+                  <h3 className="list-group-title">{study.name}</h3>
                   <div className="group-header-right">
                     <span className="group-mentor">
                       {loadingMentors

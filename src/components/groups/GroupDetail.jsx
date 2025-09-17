@@ -31,7 +31,6 @@ export default function GroupDetail({ groupId, myStudies }) {
     studentNumber: '',
     studentName: ''
   });
-  const [warnings, setWarnings] = useState({});
   const [mentorInfo, setMentorInfo] = useState(null);
   const [_menteeSubmissions, setMenteeSubmissions] = useState({});
   const [_menteesLoading, setMenteesLoading] = useState(false);
@@ -42,6 +41,10 @@ export default function GroupDetail({ groupId, myStudies }) {
     setMenteeSubmissions(next);
   }, []);
 
+
+//경고 횟수 ㅗ회 
+const [menteeWarnings, setMenteeWarnings] = useState([]); // 멘티 경고 횟수 데이터
+const [loadingWarnings, setLoadingWarnings] = useState(false); // 로딩 상태
   // 멘토 관리 모달 닫기 함수
   const closeMentorModal = () => {
     setMentorModal({
@@ -129,21 +132,11 @@ export default function GroupDetail({ groupId, myStudies }) {
       console.log('경고 부여 응답:', response);
 
       if (response.code === 'SUCCESS') {
-        // 로컬 저장소에서 경고 횟수 증가
-        const currentWarnings = { ...warnings };
-        const studentNumber = warnModal.studentNumber;
-        currentWarnings[studentNumber] = (currentWarnings[studentNumber] || 0) + 1;
-        
-        // 상태 업데이트
-        setWarnings(currentWarnings);
-        
-        // 로컬 저장소에 저장
-        localStorage.setItem(`warnings_${groupId}`, JSON.stringify(currentWarnings));
-        
-        // 커스텀 이벤트 발생 (같은 탭 내에서 실시간 업데이트)
-        window.dispatchEvent(new CustomEvent('warningsUpdated', { 
-          detail: { groupId, warnings: currentWarnings } 
-        }));
+        // API에서 최신 경고 데이터 다시 가져오기
+        const result = await fetchMenteeWarnings();
+        if (result.success) {
+          setMenteeWarnings(result.data);
+        }
         
         alert('경고가 성공적으로 부여되었습니다.');
         setWarnModal({ isOpen: false, studentNumber: '', studentName: '' });
@@ -155,37 +148,6 @@ export default function GroupDetail({ groupId, myStudies }) {
     }
   };
 
-  // 경고 횟수 조회 함수 (로컬 저장소에서 관리)
-  const fetchWarnings = () => {
-    try {
-      const storedWarnings = localStorage.getItem(`warnings_${groupId}`);
-      if (storedWarnings) {
-        setWarnings(JSON.parse(storedWarnings));
-      } else {
-        // 초기화: 모든 멤버의 경고를 0으로 설정
-        const warningData = {};
-        mentees.forEach(mentee => {
-          warningData[mentee.studentNumber] = 0;
-        });
-        setWarnings(warningData);
-        localStorage.setItem(`warnings_${groupId}`, JSON.stringify(warningData));
-      }
-    } catch {
-      // 오류 시 모든 멤버의 경고를 0으로 설정
-      const warningData = {};
-      mentees.forEach(mentee => {
-        warningData[mentee.studentNumber] = 0;
-      });
-      setWarnings(warningData);
-    }
-  };
-
-  // 경고 횟수 조회
-  useEffect(() => {
-    if (isMentor && token) {
-      fetchWarnings();
-    }
-  }, [isMentor, token]);
 
   // 멘토 권한 확인
   const checkMentor = React.useCallback(async () => {
@@ -326,8 +288,35 @@ export default function GroupDetail({ groupId, myStudies }) {
       </section>
     );
   }
-
-  // 디버깅을 위한 로그
+  const fetchMenteeWarnings = async () => {
+    try {
+      const result = await api('GET', `/group/${groupId}/mentee/warn`, null, token);
+      
+      if (result.code === 'SUCCESS') {
+        return { success: true, data: result.data };
+      }
+      return { success: false, error: result.message || '경고 횟수 조회에 실패했습니다.' };
+    } catch (error) {
+      console.error('경고 횟수 조회 오류:', error);
+      return { success: false, error: '경고 횟수 조회 중 오류가 발생했습니다.' };
+    }
+  };
+  useEffect(() => {
+    const loadMenteeWarnings = async () => {
+      if (isMentor && groupId && token) {
+        setLoadingWarnings(true);
+        const result = await fetchMenteeWarnings();
+        if (result.success) {
+          setMenteeWarnings(result.data);
+        } else {
+          console.error('경고 횟수 조회 실패:', result.error);
+        }
+        setLoadingWarnings(false);
+      }
+    };
+    
+    loadMenteeWarnings();
+  }, [isMentor, groupId, token]);
 
   return (
     <section className="contact">
@@ -335,6 +324,7 @@ export default function GroupDetail({ groupId, myStudies }) {
         <button onClick={() => navigate('/groups')} className="btn btn-secondary">
           ← 목록으로 돌아가기
         </button>
+        <h1 className="group-title">{currentGroup.name}</h1>
         {isMentor && (
           <button 
             className="btn btn-primary"
@@ -353,7 +343,6 @@ export default function GroupDetail({ groupId, myStudies }) {
               <p><strong>멘토:</strong> {mentorInfo.name || '정보 없음'}</p>
             )}
             <p><strong>설명:</strong> {currentGroup.description}</p>
-            <p><strong>생성일:</strong> {formatDate(currentGroup.createdAt)}</p>
             <p><strong>카테고리:</strong> {Array.isArray(currentGroup.category) ? currentGroup.category.join(', ') : currentGroup.category || '일반'}</p>
           </div>
         </div>
@@ -428,7 +417,11 @@ export default function GroupDetail({ groupId, myStudies }) {
                             <span className="group-mentor-member-email">{mentee.email}</span>
                           </div>
                           <span className="group-mentor-member-warnings">
-                            경고: {warnings[mentee.studentNumber] || 0}회
+                            {loadingWarnings ? (
+                              <i className="fas fa-spinner fa-spin"></i>
+                            ) : (
+                              `경고: ${menteeWarnings.find(w => w.studentNumber === mentee.studentNumber)?.warn || 0}회`
+                            )}
                           </span>
                         </div>
                         <div className="group-mentor-member-actions">
