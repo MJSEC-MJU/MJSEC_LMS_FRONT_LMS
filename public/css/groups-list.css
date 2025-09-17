@@ -5,6 +5,121 @@
   padding: 2rem;
 }
 
+/* 필터 컨테이너 */
+.groups-filter-container {
+  max-width: 1200px;
+  margin: 0 auto 3rem auto;
+  padding: 0 2rem;
+}
+
+.filter-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.filter-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 1rem 2rem;
+  border: 2px solid var(--border);
+  border-radius: 2rem;
+  background: var(--white);
+  color: grey;
+  font-size: 1.4rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.filter-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+  border-color: var(--main-color);
+}
+
+.filter-btn.active {
+  background: linear-gradient(135deg, var(--main-color), rgb(107, 107, 178));
+  color: var(--white);
+  border-color: var(--main-color);
+  box-shadow: 0 4px 15px rgba(var(--main-color-rgb), 0.3);
+}
+
+.filter-btn.active:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 6px 20px rgba(var(--main-color-rgb), 0.4);
+}
+
+.filter-btn i {
+  font-size: 1.6rem;
+  transition: transform 0.3s ease;
+}
+
+.filter-btn:hover i {
+  transform: scale(1.1);
+}
+
+.filter-btn.active i {
+  transform: scale(1.1);
+}
+
+/* 다크모드 스타일 */
+.dark .filter-btn {
+  background: var(--white);
+  color: grey;
+  border-color: var(--border);
+  box-shadow: 0 2px 8px rgba(255, 255, 255, 0.1);
+}
+
+.dark .filter-btn:hover {
+  border-color: var(--main-color);
+  background: var(--white);
+  box-shadow: 0 4px 15px rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+.dark .filter-btn.active {
+  background: linear-gradient(135deg, var(--main-color), rgb(107, 107, 178));
+  color: var(--black);
+  border-color: var(--main-color);
+  box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+}
+
+.dark .filter-btn.active:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 6px 20px rgba(0, 123, 255, 0.4);
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+  .filter-buttons {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .filter-btn {
+    min-width: 20rem;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .filter-btn {
+    min-width: 18rem;
+    padding: 0.8rem 1.5rem;
+    font-size: 1.3rem;
+  }
+  
+  .filter-btn i {
+    font-size: 1.4rem;
+  }
+}
+
 .groups-grid {
   display: flex;
   flex-wrap: wrap;
@@ -40,6 +155,46 @@
 
 .group-header-left {
   /* Left spacer for grid layout */
+}
+
+.group-status {
+  display: inline-block;
+  padding: 0.4rem 1rem;
+  border-radius: 2rem;
+  font-size: 1.2rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.group-status.active {
+  background: linear-gradient(135deg, #4CAF50, #45a049);
+  color: white;
+  border: 2px solid #4CAF50;
+}
+
+.group-status.inactive {
+  background: linear-gradient(135deg, #f44336, #d32f2f);
+  color: white;
+  border: 2px solid #f44336;
+}
+
+.group-status:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* 다크모드 스타일 */
+.dark .group-status.active {
+  background: linear-gradient(135deg, #66bb6a, #4caf50);
+  border-color: #66bb6a;
+}
+
+.dark .group-status.inactive {
+  background: linear-gradient(135deg, #ef5350, #f44336);
+  border-color: #ef5350;
 }
 
 .list-group-title {

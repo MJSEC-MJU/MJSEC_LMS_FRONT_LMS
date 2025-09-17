@@ -1,5 +1,7 @@
 import { Routes, Route, Navigate } from "react-router-dom"
 import Navbar from "./components/Navbar.jsx"
+import ProtectedRoute from "./components/ProtectedRoute.jsx"
+import PublicRoute from "./components/PublicRoute.jsx"
 import Home from "./pages/Home.jsx"
 import Profile from "./pages/Profile.jsx"
 import Login from "./pages/Login.jsx"
@@ -25,20 +27,75 @@ export default function App() {
             user ? <Navigate to="/home" replace /> : <Navigate to="/login" replace />
           ) : <div>Loading...</div>
           } />
-        <Route path="/home" element={<Home />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/update" element={<Update />} />
-        <Route path="/contact" element={<Group />} />
-        <Route path="/groups" element={<Group />} />
-        <Route path="/groups/:groupId" element={<Group />} />
-        <Route path="/notifications" element={<Notifications />} />
-        <Route path="/notifications/:notificationId" element={<Notifications />} />
-        <Route path="/admin" element={<Admin />} />
-        <Route path="/unauthorized" element={<Unauthorized />} />
-        <Route path="/forgot-password" element={<PasswordEmailVerify />} />
-        <Route path="/password/update" element={<PasswordUpdate />} /> 
+        
+        {/* 공개 페이지들 (로그인 없이 접근 가능) */}
+        <Route path="/login" element={
+          <PublicRoute>
+            <Login />
+          </PublicRoute>
+        } />
+        <Route path="/register" element={
+          <PublicRoute>
+            <Register />
+          </PublicRoute>
+        } />
+        <Route path="/forgot-password" element={
+          <PublicRoute>
+            <PasswordEmailVerify />
+          </PublicRoute>
+        } />
+        
+        {/* 보호된 페이지들 (로그인 필요) */}
+        <Route path="/home" element={
+          <ProtectedRoute>
+            <Home />
+          </ProtectedRoute>
+        } />
+        <Route path="/profile" element={
+          <ProtectedRoute>
+            <Profile />
+          </ProtectedRoute>
+        } />
+        <Route path="/update" element={
+          <ProtectedRoute>
+            <Update />
+          </ProtectedRoute>
+        } />
+        <Route path="/contact" element={
+          <ProtectedRoute>
+            <Group />
+          </ProtectedRoute>
+        } />
+        <Route path="/groups" element={
+          <ProtectedRoute>
+            <Group />
+          </ProtectedRoute>
+        } />
+        <Route path="/groups/:groupId" element={
+          <ProtectedRoute>
+            <Group />
+          </ProtectedRoute>
+        } />
+        <Route path="/notifications" element={
+          <ProtectedRoute>
+            <Notifications />
+          </ProtectedRoute>
+        } />
+        <Route path="/notifications/:notificationId" element={
+          <ProtectedRoute>
+            <Notifications />
+          </ProtectedRoute>
+        } />
+        <Route path="/admin" element={
+          <ProtectedRoute>
+            <Admin />
+          </ProtectedRoute>
+        } />
+        <Route path="/unauthorized" element={
+          <ProtectedRoute>
+            <Unauthorized />
+          </ProtectedRoute>
+        } />
       </Routes>
     </>
   )

@@ -38,4 +38,152 @@
    background-color: var(--light-bg);
    width: 100%;
    margin: 1rem 0;
+}
+
+/* 로그인 액션 버튼 컨테이너 */
+.login-actions {
+  display: flex;
+  gap: 1.5rem;
+  margin-top: 2rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* 로그인 액션 버튼 기본 스타일 */
+.login-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 1.2rem 2rem;
+  border-radius: 1rem;
+  text-decoration: none;
+  font-size: 1.6rem;
+  font-weight: 600;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: relative;
+  overflow: hidden;
+  min-width: 16rem;
+  justify-content: center;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  border: 2px solid transparent;
+}
+
+/* 회원가입 버튼 */
+.register-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: var(--white);
+}
+
+.register-btn:hover {
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+  color: var(--white);
+  text-decoration: none;
+}
+
+.register-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.register-btn:hover::before {
+  left: 100%;
+}
+
+/* 비밀번호 변경 버튼 */
+.password-btn {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  color: var(--white);
+}
+
+.password-btn:hover {
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 8px 25px rgba(79, 172, 254, 0.4);
+  color: var(--white);
+  text-decoration: none;
+}
+
+.password-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.password-btn:hover::before {
+  left: 100%;
+}
+
+/* 아이콘 애니메이션 */
+.login-action-btn i {
+  font-size: 1.8rem;
+  transition: transform 0.3s ease;
+}
+
+.register-btn:hover i {
+  transform: rotate(360deg) scale(1.2);
+}
+
+.password-btn:hover i {
+  transform: rotate(360deg) scale(1.2);
+}
+
+/* 텍스트 애니메이션 */
+.login-action-btn span {
+  position: relative;
+  z-index: 1;
+  transition: all 0.3s ease;
+}
+
+.login-action-btn:hover span {
+  letter-spacing: 0.5px;
+}
+
+/* 다크모드 스타일 */
+.dark .login-action-btn {
+  box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1);
+}
+
+.dark .register-btn:hover {
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
+}
+
+.dark .password-btn:hover {
+  box-shadow: 0 8px 25px rgba(79, 172, 254, 0.6);
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+  .login-actions {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .login-action-btn {
+    min-width: 20rem;
+    padding: 1.4rem 2.5rem;
+    font-size: 1.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .login-action-btn {
+    min-width: 18rem;
+    padding: 1.2rem 2rem;
+    font-size: 1.6rem;
+  }
+  
+  .login-action-btn i {
+    font-size: 1.6rem;
+  }
 } 

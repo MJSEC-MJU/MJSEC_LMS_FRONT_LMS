@@ -54,11 +54,17 @@ export default function Home() {
         return;
       }
       const resp = await api('GET', '/user/user-page', null, token);
+      console.log('🏠 /user/user-page API 응답:', resp);
+      console.log('📊 홈 그룹 데이터 개수:', resp?.data?.studyGroups?.length || 0);
+      console.log('📋 홈 그룹 목록:', resp?.data?.studyGroups);
+      
       const groups = resp?.data?.studyGroups || [];
       const mapped = groups.map(g => ({
         id: g.studyGroupId,
         name: (g.name && g.name.trim() !== '') ? g.name : (g.category || '이름없음')
       }));
+      
+      console.log('🎯 홈 매핑된 그룹 데이터:', mapped);
       setStudies(mapped);
     } catch (e) {
       console.error('수강중인 강좌 가져오기 오류:', e);

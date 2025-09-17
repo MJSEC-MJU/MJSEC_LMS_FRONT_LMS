@@ -149,9 +149,6 @@ const res = await api(
         >
           {verifying ? '확인 중…' : '인증 코드 확인'}
         </button>
-
-        <p><Link to="/login">로그인</Link></p>
-        <p><Link to="/register">회원가입</Link></p>
       </form>
     </section>
   );
