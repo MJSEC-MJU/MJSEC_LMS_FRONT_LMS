@@ -123,7 +123,6 @@ export default function CurriculumSection({ groupId, isMentor }) {
   const [attendanceData, setAttendanceData] = useState({});
   const [menteeAttendanceData, setMenteeAttendanceData] = useState({});
   const [attendanceRate, setAttendanceRate] = useState(0);
-  const [menteeWarnings, setMenteeWarnings] = useState(0);
 
   // 현재 테마 감지
   const isDarkMode = document.body.classList.contains('dark');
@@ -554,7 +553,7 @@ export default function CurriculumSection({ groupId, isMentor }) {
 
 
   // 활동 상세보기 모달 열기
-  const openActivityDetailModal = async (activity) => {
+  const openActivityDetailModal = useCallback(async (activity) => {
     // 우선 목록에서 넘어온 데이터로 모달 열기 (이미지 경로 정규화)
     setActivityDetailModal({
       isOpen: true,
@@ -590,7 +589,7 @@ export default function CurriculumSection({ groupId, isMentor }) {
       ...prev,
       activity: activityData,
     }));
-  };
+  }, []);
 
   // 활동 상세보기 모달 닫기
   const closeActivityDetailModal = () => {
@@ -813,7 +812,7 @@ export default function CurriculumSection({ groupId, isMentor }) {
   };
 
   // 과제 조회 API 함수 (멘티가 제출한 과제 확인)
-  const fetchAssignmentSubmission = async (planId) => {
+  const fetchAssignmentSubmission = useCallback(async (planId) => {
     try {
       // 사용자 프로필 정보가 없으면 먼저 가져오기
       if (!userProfile) {
@@ -870,10 +869,10 @@ export default function CurriculumSection({ groupId, isMentor }) {
       console.error('과제 조회 오류:', error);
       return { success: false, error: '과제 조회 중 오류가 발생했습니다.' };
     }
-  };
+  }, [userProfile, user, groupId, token, fetchUserProfile]);
 
   // 모든 과제의 제출 정보를 가져오는 함수
-  const fetchAllAssignmentSubmissions = async () => {
+  const fetchAllAssignmentSubmissions = useCallback(async () => {
     if (!isMentor && assignments.length > 0) {
       const submissions = {};
       
@@ -895,10 +894,10 @@ export default function CurriculumSection({ groupId, isMentor }) {
       }
       setSubmittedAssignments(submissions);
     }
-  };
+  }, [isMentor, assignments, fetchAssignmentSubmission]);
 
   // 사용자 프로필 정보 가져오기
-  const fetchUserProfile = async () => {
+  const fetchUserProfile = useCallback(async () => {
     try {
       const result = await api('GET', '/user/user-page', null, token);
       if (result?.data) {
@@ -910,10 +909,10 @@ export default function CurriculumSection({ groupId, isMentor }) {
       console.error('사용자 프로필 조회 오류:', error);
       return null;
     }
-  };
+  }, [token]);
 
   // 과제 제출 목록을 가져오는 함수 (멘토용)
-  const fetchAssignmentSubmissionList = async (planId) => {
+  const fetchAssignmentSubmissionList = useCallback(async (planId) => {
     try {
       const result = await api('GET', `/group/${groupId}/assignment/submit/${planId}`, null, token);
       
@@ -930,7 +929,7 @@ export default function CurriculumSection({ groupId, isMentor }) {
       console.error('과제 제출 목록 조회 오류:', error);
       return { success: false, error: '과제 제출 목록 조회 중 오류가 발생했습니다.' };
     }
-  };
+  }, [groupId, token]);
 
   // 개별 제출 상세 정보를 가져오는 함수 (멘토용)
   const fetchSubmissionDetail = async (planId, submissionId) => {
@@ -960,7 +959,7 @@ export default function CurriculumSection({ groupId, isMentor }) {
   };
 
   // 멘티 목록 조회 (미제출자 수 계산용)
-  const fetchMentees = async () => {
+  const fetchMentees = useCallback(async () => {
     if (!token || !groupId) return;
     
     try {
@@ -971,7 +970,7 @@ export default function CurriculumSection({ groupId, isMentor }) {
     } catch (error) {
       console.error('멘티 목록 조회 오류:', error);
     }
-  };
+  }, [token, groupId]);
 
   // 미제출자 수 계산
   const getUnsubmittedCount = (planId) => {
@@ -990,7 +989,7 @@ export default function CurriculumSection({ groupId, isMentor }) {
         ...prev,
         [key]: false
       }));
-    } else {
+      } else {
       // 상세 정보 보이기 - API에서 상세 정보 가져오기
       const result = await fetchSubmissionDetail(planId, submissionId);
       if (result.success) {
@@ -1120,10 +1119,10 @@ export default function CurriculumSection({ groupId, isMentor }) {
       setShowPassword(true);
     } else {
       // 생성 모드일 때 빈 데이터
-      setAssignmentSubmissionFormData({
-        content: "",
-        password: ""
-      });
+    setAssignmentSubmissionFormData({
+      content: "",
+      password: ""
+    });
     }
     setShowPassword(false);
   };
@@ -1164,7 +1163,7 @@ export default function CurriculumSection({ groupId, isMentor }) {
           return;
         }
         result = await updateAssignmentSubmission(assignmentSubmissionModal.planId, submitId, assignmentSubmissionFormData);
-        if (result.success) {
+      if (result.success) {
           alert('과제가 성공적으로 수정되었습니다!');
           // 제출된 과제 정보 업데이트
           setSubmittedAssignments(prev => ({
@@ -1184,8 +1183,8 @@ export default function CurriculumSection({ groupId, isMentor }) {
         
         if (result.success) {
           // 제출된 과제 정보 저장 (submissionId 포함)
-          setSubmittedAssignments(prev => ({
-            ...prev,
+        setSubmittedAssignments(prev => ({
+          ...prev,
             [assignmentSubmissionModal.planId]: {
               ...result.data,
               submissionId: result.data.submissionId || result.data.id
@@ -1198,11 +1197,11 @@ export default function CurriculumSection({ groupId, isMentor }) {
           } else {
             alert('과제가 성공적으로 제출되었습니다!');
           }
-          
-          closeAssignmentSubmissionModal();
-        } else {
-          alert(`과제 제출 실패: ${result.error}`);
-        }
+        
+        closeAssignmentSubmissionModal();
+      } else {
+        alert(`과제 제출 실패: ${result.error}`);
+      }
       }
     } catch (error) {
       console.error('과제 처리 오류:', error);
@@ -1348,7 +1347,7 @@ export default function CurriculumSection({ groupId, isMentor }) {
   };
 
   // 멘티 목록 조회 함수
-  const fetchMenteeList = async () => {
+  const fetchMenteeList = useCallback(async () => {
     try {
       const url = `${API_BASE}/group/${groupId}/mentee`;
       const response = await fetch(url, {
@@ -1389,7 +1388,7 @@ export default function CurriculumSection({ groupId, isMentor }) {
     } catch {
       setMenteeList([]);
     }
-  };
+  }, [groupId, token]);
 
   // 주차별 출석 조회 함수
   const fetchAttendanceByWeek = async (week) => {
@@ -1422,7 +1421,7 @@ export default function CurriculumSection({ groupId, isMentor }) {
   };
 
   // 전체 주차별 출석 데이터 가져오기
-  const fetchAllWeeksAttendance = async () => {
+  const fetchAllWeeksAttendance = useCallback(async () => {
     if (isMentor) return; // 멘토는 출석 상태를 표시하지 않음
 
     try {
@@ -1510,11 +1509,11 @@ export default function CurriculumSection({ groupId, isMentor }) {
     } catch {
       // 출석 데이터 가져오기 실패 시 무시
     }
-  };
+  }, [isMentor, groupId, token, activityPhotos]);
 
 
   // 활동 사진 목록 조회 함수
-  const fetchActivityPhotos = async () => {
+  const fetchActivityPhotos = useCallback(async () => {
     try {
       setLoadingPhotos(true);
 
@@ -1580,7 +1579,7 @@ export default function CurriculumSection({ groupId, isMentor }) {
     } finally {
       setLoadingPhotos(false);
     }
-  };
+  }, [groupId, token]);
 
 
   // 삭제 확인 함수
@@ -1795,7 +1794,7 @@ export default function CurriculumSection({ groupId, isMentor }) {
   }, [groupId, isMentor]);
 
   // 멘티 경고 횟수 조회 함수 (로컬 저장소에서 관리)
-  const fetchMenteeWarnings = () => {
+  const fetchMenteeWarnings = useCallback(() => {
     try {
       // JWT 토큰에서 학번 추출
       let myStudentNumber = null;
@@ -1823,7 +1822,7 @@ export default function CurriculumSection({ groupId, isMentor }) {
       // 경고 조회 실패 시 0으로 설정
       setMenteeWarnings(0);
     }
-  };
+  }, [token, groupId]);
 
   return (
     <div className="curriculum-section">

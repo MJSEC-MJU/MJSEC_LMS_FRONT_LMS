@@ -264,17 +264,6 @@ const [loadingWarnings, setLoadingWarnings] = useState(false); // 로딩 상태
     }
   }, [groupId, token, checkMentor, fetchMentees]);
 
-  // 날짜 포맷 함수
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('ko-KR', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
 
   const currentGroup = myStudies.find(study => study.groupId === parseInt(groupId));
   
@@ -316,7 +305,7 @@ const [loadingWarnings, setLoadingWarnings] = useState(false); // 로딩 상태
     };
     
     loadMenteeWarnings();
-  }, [isMentor, groupId, token]);
+  }, [isMentor, groupId, token, fetchMenteeWarnings]);
 
   return (
     <section className="contact">

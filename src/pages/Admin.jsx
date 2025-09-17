@@ -212,7 +212,7 @@ export default function Admin() {
     } finally {
       setUpdatingGroup(false);
     }
-  }, [token, editGroupId, editGroupName, editGroupDescription, editGroupCategory, editGroupMentor, updatingGroup]);
+  }, [token, editGroupId, editGroupName, editGroupDescription, editGroupCategory, editGroupMentor, editGroupImage, updatingGroup]);
 
   // 전체 사용자 목록 불러오기
   const fetchAllUsers = useCallback(async () => {
