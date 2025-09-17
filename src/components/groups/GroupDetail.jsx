@@ -264,6 +264,17 @@ const [loadingWarnings, setLoadingWarnings] = useState(false); // 로딩 상태
     }
   }, [groupId, token, checkMentor, fetchMentees]);
 
+  // 날짜 포맷 함수
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('ko-KR', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
 
   const currentGroup = myStudies.find(study => study.groupId === parseInt(groupId));
   
@@ -277,7 +288,7 @@ const [loadingWarnings, setLoadingWarnings] = useState(false); // 로딩 상태
       </section>
     );
   }
-  const fetchMenteeWarnings = useCallback(async () => {
+  const fetchMenteeWarnings = async () => {
     try {
       const result = await api('GET', `/group/${groupId}/mentee/warn`, null, token);
       
@@ -289,7 +300,7 @@ const [loadingWarnings, setLoadingWarnings] = useState(false); // 로딩 상태
       console.error('경고 횟수 조회 오류:', error);
       return { success: false, error: '경고 횟수 조회 중 오류가 발생했습니다.' };
     }
-  }, [groupId, token]);
+  };
   useEffect(() => {
     const loadMenteeWarnings = async () => {
       if (isMentor && groupId && token) {
@@ -305,7 +316,7 @@ const [loadingWarnings, setLoadingWarnings] = useState(false); // 로딩 상태
     };
     
     loadMenteeWarnings();
-  }, [isMentor, groupId, token, fetchMenteeWarnings]);
+  }, [isMentor, groupId, token]);
 
   return (
     <section className="contact">
