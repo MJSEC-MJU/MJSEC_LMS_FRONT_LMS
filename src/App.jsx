@@ -37,6 +37,7 @@ export default function App() {
         <Route path="/admin" element={<Admin />} />
         <Route path="/unauthorized" element={<Unauthorized />} />
         <Route path="/forgot-password" element={<PasswordEmailVerify />} />
+        <Route path="/password/update" element={<PasswordUpdate />} /> 
       </Routes>
     </>
   )
