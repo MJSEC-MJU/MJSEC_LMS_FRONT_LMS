@@ -123,7 +123,6 @@ export default function CurriculumSection({ groupId, isMentor }) {
   const [attendanceData, setAttendanceData] = useState({});
   const [menteeAttendanceData, setMenteeAttendanceData] = useState({});
   const [attendanceRate, setAttendanceRate] = useState(0);
-  const [menteeWarnings, setMenteeWarnings] = useState(0);
 
   // 현재 테마 감지
   const isDarkMode = document.body.classList.contains('dark');
@@ -1764,66 +1763,6 @@ export default function CurriculumSection({ groupId, isMentor }) {
     }
   }, [activityPhotos, isMentor]);
 
-  // 멘티 경고 횟수 조회
-  useEffect(() => {
-    if (!isMentor && token) {
-      fetchMenteeWarnings();
-    }
-  }, [isMentor, token]);
-
-  // localStorage 변경 감지 및 커스텀 이벤트 감지
-  useEffect(() => {
-    const handleStorageChange = (e) => {
-      if (e.key === `warnings_${groupId}` && !isMentor) {
-        fetchMenteeWarnings();
-      }
-    };
-
-    const handleWarningsUpdated = (e) => {
-      if (e.detail.groupId === groupId && !isMentor) {
-        fetchMenteeWarnings();
-      }
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    window.addEventListener('warningsUpdated', handleWarningsUpdated);
-    
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('warningsUpdated', handleWarningsUpdated);
-    };
-  }, [groupId, isMentor]);
-
-  // 멘티 경고 횟수 조회 함수 (로컬 저장소에서 관리)
-  const fetchMenteeWarnings = () => {
-    try {
-      // JWT 토큰에서 학번 추출
-      let myStudentNumber = null;
-      try {
-        const tokenPayload = JSON.parse(atob(token.split('.')[1]));
-        myStudentNumber = parseInt(tokenPayload.studentNumber || tokenPayload.sub || tokenPayload.userId || tokenPayload.id);
-      } catch {
-        setMenteeWarnings(0);
-        return;
-      }
-
-      if (myStudentNumber) {
-        // 로컬 저장소에서 경고 횟수 조회
-        const storedWarnings = localStorage.getItem(`warnings_${groupId}`);
-        if (storedWarnings) {
-          const warnings = JSON.parse(storedWarnings);
-          setMenteeWarnings(warnings[myStudentNumber] || 0);
-        } else {
-          setMenteeWarnings(0);
-        }
-      } else {
-        setMenteeWarnings(0);
-      }
-    } catch {
-      // 경고 조회 실패 시 0으로 설정
-      setMenteeWarnings(0);
-    }
-  };
 
   return (
     <div className="curriculum-section">

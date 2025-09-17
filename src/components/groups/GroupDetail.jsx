@@ -41,10 +41,9 @@ export default function GroupDetail({ groupId, myStudies }) {
     setMenteeSubmissions(next);
   }, []);
 
-
-//경고 횟수 ㅗ회 
-const [menteeWarnings, setMenteeWarnings] = useState([]); // 멘티 경고 횟수 데이터
-const [loadingWarnings, setLoadingWarnings] = useState(false); // 로딩 상태
+  // 경고 횟수 조회
+  const [menteeWarnings, setMenteeWarnings] = useState([]); // 멘티 경고 횟수 데이터
+  const [loadingWarnings, setLoadingWarnings] = useState(false); // 로딩 상태
   // 멘토 관리 모달 닫기 함수
   const closeMentorModal = () => {
     setMentorModal({
@@ -264,17 +263,6 @@ const [loadingWarnings, setLoadingWarnings] = useState(false); // 로딩 상태
     }
   }, [groupId, token, checkMentor, fetchMentees]);
 
-  // 날짜 포맷 함수
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('ko-KR', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
 
   const currentGroup = myStudies.find(study => study.groupId === parseInt(groupId));
   
