@@ -93,8 +93,16 @@ export default function Login() {
           {busy ? '로그인 중…' : '로그인'}
         </button>
 
-        <p><Link to="/register">회원가입</Link></p>
-        <p><Link to="/forgot-password">비밀번호 변경</Link></p>
+        <div className="login-actions">
+          <Link to="/register" className="login-action-btn register-btn">
+            <i className="fas fa-user-plus"></i>
+            <span>회원가입</span>
+          </Link>
+          <Link to="/forgot-password" className="login-action-btn password-btn">
+            <i className="fas fa-key"></i>
+            <span>비밀번호 변경</span>
+          </Link>
+        </div>
       </form>
     </section>
   );

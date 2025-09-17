@@ -86,6 +86,7 @@ export default function GroupsList({ myStudies = [] }) {
   const { token } = useAuth();
   const [mentorInfo, setMentorInfo] = useState({});
   const [loadingMentors, setLoadingMentors] = useState(false);
+  const [statusFilter, setStatusFilter] = useState('all'); // 'all', 'active', 'inactive'
 
   // 멘토 정보 가져오기
   useEffect(() => {
@@ -120,17 +121,62 @@ export default function GroupsList({ myStudies = [] }) {
     })();
   }, [token, myStudies]);
 
+  // 상태별 필터링 함수
+  const getFilteredStudies = () => {
+    if (statusFilter === 'all') {
+      return myStudies;
+    } else if (statusFilter === 'active') {
+      return myStudies.filter(study => study.status === 'ACTIVE' || study.status === 1);
+    } else if (statusFilter === 'inactive') {
+      return myStudies.filter(study => study.status === 'INACTIVE' || study.status === 0 || !study.status);
+    }
+    return myStudies;
+  };
+
+  const filteredStudies = getFilteredStudies();
+
   return (
     <section className="contact">
       <h1 className="heading">Groups</h1>
 
+      {/* 필터 버튼들 */}
+      <div className="groups-filter-container">
+        <div className="filter-buttons">
+          <button 
+            className={`filter-btn ${statusFilter === 'all' ? 'active' : ''}`}
+            onClick={() => setStatusFilter('all')}
+          >
+            <i className="fas fa-list"></i>
+            전체 ({myStudies.length})
+          </button>
+          <button 
+            className={`filter-btn ${statusFilter === 'active' ? 'active' : ''}`}
+            onClick={() => setStatusFilter('active')}
+          >
+            <i className="fas fa-check-circle"></i>
+            활성화 ({myStudies.filter(s => s.status === 'ACTIVE' || s.status === 1).length})
+          </button>
+          <button 
+            className={`filter-btn ${statusFilter === 'inactive' ? 'active' : ''}`}
+            onClick={() => setStatusFilter('inactive')}
+          >
+            <i className="fas fa-times-circle"></i>
+            비활성화 ({myStudies.filter(s => s.status === 'INACTIVE' || s.status === 0 || !s.status).length})
+          </button>
+        </div>
+      </div>
+
       <div className="groups-container">
-        {myStudies.length > 0 ? (
+        {filteredStudies.length > 0 ? (
           <div className="groups-grid">
-            {myStudies.map((study) => (
+            {filteredStudies.map((study) => (
               <div key={study.groupId} className="group-card">
                 <div className="group-header">
-                  <div className="group-header-left"></div>
+                  <div className="group-header-left">
+                    <span className={`group-status ${study.status?.toLowerCase() || 'inactive'}`}>
+                      {study.status === 'ACTIVE' ? '활성' : '비활성'}
+                    </span>
+                  </div>
                   <h3 className="list-group-title">{study.name}</h3>
                   <div className="group-header-right">
                     <span className="group-mentor">
@@ -178,10 +224,17 @@ export default function GroupsList({ myStudies = [] }) {
           <div className="no-groups-message">
             <div style={{ textAlign: 'center', padding: '3rem' }}>
               <i className="fas fa-users" style={{ fontSize: '4rem', color: '#ccc', marginBottom: '1rem' }} />
-              <h3 style={{ color: '#666', marginBottom: '0.5rem' }}>참여 중인 그룹이 없습니다</h3>
+              <h3 style={{ color: '#666', marginBottom: '0.5rem' }}>
+                {statusFilter === 'all' ? '참여 중인 그룹이 없습니다' : 
+                 statusFilter === 'active' ? '활성화된 그룹이 없습니다' : 
+                 '비활성화된 그룹이 없습니다'}
+              </h3>
               <p style={{ color: '#888' }}>
-                아직 참여 중인 스터디 그룹이 없습니다.<br />
-                그룹에 가입하거나 새 그룹을 생성해보세요.
+                {statusFilter === 'all' ? 
+                  '아직 참여 중인 스터디 그룹이 없습니다.\n그룹에 가입하거나 새 그룹을 생성해보세요.' :
+                  statusFilter === 'active' ?
+                  '현재 활성화된 스터디 그룹이 없습니다.\n다른 필터를 확인해보세요.' :
+                  '현재 비활성화된 스터디 그룹이 없습니다.\n다른 필터를 확인해보세요.'}
               </p>
             </div>
           </div>

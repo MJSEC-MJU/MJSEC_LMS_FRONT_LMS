@@ -1517,29 +1517,9 @@ export default function CurriculumSection({ groupId, isMentor }) {
     try {
       setLoadingPhotos(true);
 
-      const response = await fetch(`${API_BASE}/group/${groupId}/activity-list`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Accept': 'application/json',
-        },
-        credentials: 'include',
-      });
+      const result = await api('GET', `/group/${groupId}/activity-list`, null, token);
 
-      // 안전 파싱
-      let result;
-      const ct = response.headers.get('content-type') || '';
-      if (ct.includes('application/json')) {
-        result = await response.json();
-      } else {
-        const text = await response.text();
-        try { result = JSON.parse(text); } catch {
-          alert('서버에서 예상치 못한 응답을 받았습니다.');
-          return;
-        }
-      }
-
-      if (response.ok && result.code === 'SUCCESS') {
+      if (result.code === 'SUCCESS') {
         const activityList = result.data || [];
         const photoDataList = activityList.map((activityData, index) => {
           // 서버가 준 이미지 경로를 파일명으로 정규화해서 API_BASE로 프록시

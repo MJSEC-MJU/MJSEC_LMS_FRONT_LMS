@@ -24,19 +24,27 @@ export default function Group() {
 
     const fetchUserGroups = async () => {
       try {
-        const res = await api('GET', '/user/user-page', null, token);
-        const groups = res?.data?.studyGroups || [];
+        const res = await api('GET', '/group/all', null, token);
+        console.log('🔍 /group/all API 응답:', res);
+        console.log('📊 그룹 데이터 개수:', res?.data?.length || 0);
+        console.log('📋 그룹 목록:', res?.data);
+        
+        const groups = res?.data || [];
         const mapped = groups.map(g => ({
           groupId: g.studyGroupId,
-          name: g.name || g.category || '이름없음',
-          description: g.description || '',
-          GroupImage: g.image || g.groupImage,
-          category: g.category || ['일반'],
-          createdAt: g.createdAt,
-          members: g.members || []
+          name: g.name || '이름없음',
+          description: '', // 새 API에서는 description이 없으므로 빈 문자열
+          GroupImage: g.studyImage, // studyImage로 변경
+          category: g.category || '일반',
+          createdAt: '', // 새 API에서는 createdAt이 없으므로 빈 문자열
+          members: [], // 새 API에서는 members가 없으므로 빈 배열
+          status: g.status // 새로 추가된 status 필드
         }));
+        
+        console.log('🎯 매핑된 그룹 데이터:', mapped);
         setMyStudies(mapped);
       } catch (error) {
+        console.error('❌ /group/all API 오류:', error);
         // 사용자 그룹 목록 조회 오류 처리
         // 403 오류인 경우 로그인 페이지로 리다이렉트하거나 에러 메시지 표시
         if (error.message.includes('403')) {
