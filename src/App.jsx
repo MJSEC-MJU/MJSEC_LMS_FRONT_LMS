@@ -43,6 +43,11 @@ export default function App() {
             <PasswordEmailVerify />
           </PublicRoute>
         } />
+        <Route path="/password/update" element={
+          <PublicRoute>
+            <PasswordEmailVerify />
+          </PublicRoute>
+        } />
         
         {/* 보호된 페이지들 (로그인 필요) */}
         <Route path="/home" element={

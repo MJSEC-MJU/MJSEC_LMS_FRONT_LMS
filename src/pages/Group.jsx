@@ -25,9 +25,6 @@ export default function Group() {
     const fetchUserGroups = async () => {
       try {
         const res = await api('GET', '/group/all', null, token);
-        console.log('🔍 /group/all API 응답:', res);
-        console.log('📊 그룹 데이터 개수:', res?.data?.length || 0);
-        console.log('📋 그룹 목록:', res?.data);
         
         const groups = res?.data || [];
         const mapped = groups.map(g => ({
@@ -41,10 +38,8 @@ export default function Group() {
           status: g.status // 새로 추가된 status 필드
         }));
         
-        console.log('🎯 매핑된 그룹 데이터:', mapped);
         setMyStudies(mapped);
       } catch (error) {
-        console.error('❌ /group/all API 오류:', error);
         // 사용자 그룹 목록 조회 오류 처리
         // 403 오류인 경우 로그인 페이지로 리다이렉트하거나 에러 메시지 표시
         if (error.message.includes('403')) {
