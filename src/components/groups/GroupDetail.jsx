@@ -263,19 +263,7 @@ export default function GroupDetail({ groupId, myStudies }) {
     }
   }, [groupId, token, checkMentor, fetchMentees]);
 
-
-  const currentGroup = myStudies.find(study => study.groupId === parseInt(groupId));
-  
-  if (!currentGroup) {
-    return (
-      <section className="contact">
-        <h1 className="heading">그룹을 찾을 수 없습니다</h1>
-        <button onClick={() => navigate('/groups')} className="btn btn-primary">
-          목록으로 돌아가기
-        </button>
-      </section>
-    );
-  }
+  // 멘티 경고 횟수 조회 함수
   const fetchMenteeWarnings = async () => {
     try {
       const result = await api('GET', `/group/${groupId}/mentee/warn`, null, token);
@@ -289,6 +277,8 @@ export default function GroupDetail({ groupId, myStudies }) {
       return { success: false, error: '경고 횟수 조회 중 오류가 발생했습니다.' };
     }
   };
+
+  // 멘티 경고 횟수 조회
   useEffect(() => {
     const loadMenteeWarnings = async () => {
       if (isMentor && groupId && token) {
@@ -305,6 +295,19 @@ export default function GroupDetail({ groupId, myStudies }) {
     
     loadMenteeWarnings();
   }, [isMentor, groupId, token]);
+
+  const currentGroup = myStudies.find(study => study.groupId === parseInt(groupId));
+  
+  if (!currentGroup) {
+    return (
+      <section className="contact">
+        <h1 className="heading">그룹을 찾을 수 없습니다</h1>
+        <button onClick={() => navigate('/groups')} className="btn btn-primary">
+          목록으로 돌아가기
+        </button>
+      </section>
+    );
+  }
 
   return (
     <section className="contact">
