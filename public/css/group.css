@@ -26,17 +26,7 @@
   transform: translateY(-2px);
 }
 
-.btn-secondary {
-    background: var(--light-bg);
-  color: var(--black);
-  border: 2px solid var(--border);
-}
-
-.btn-secondary:hover {
-  background: var(--black);
-   color: var(--white);
-  border-color: var(--black);
-}
+/* 버튼 스타일은 base.css에서 통일 관리 */
 
 .btn-warning {
   background: #ffc107;
@@ -50,17 +40,7 @@
   transform: translateY(-2px);
 }
 
-.btn-danger {
-  background: #dc3545;
-        color: var(--white);
-  border: 2px solid #dc3545;
-}
-
-.btn-danger:hover {
-  background: #c82333;
-  border-color: #bd2130;
-        transform: translateY(-2px);
-}
+/* 버튼 스타일은 base.css에서 통일 관리 */
 
 /* 다크 모드 버튼 스타일 */
 .dark .btn-warning {
@@ -74,16 +54,7 @@
   border-color: #d39e00;
 }
 
-.dark .btn-danger {
-  background: #dc3545;
-  color: var(--white);
-  border-color: #dc3545;
-}
-
-.dark .btn-danger:hover {
-  background: #c82333;
-  border-color: #bd2130;
-}
+/* 다크모드 버튼 스타일은 base.css에서 통일 관리 */
 
 /* 멤버 경고 횟수 표시 */
 .group-mentor-member-warnings {
@@ -170,14 +141,14 @@
 }
 
 .dark .group-mentor-remove-btn {
-  background: #dc3545;
+  background: var(--black);
   color: var(--white);
-  border-color: #dc3545;
+  border-color: var(--black);
 }
 
 .dark .group-mentor-remove-btn:hover {
-  background: #c82333;
-  border-color: #bd2130;
+  background: #333;
+  border-color: #333;
 }
 
 /* 공통 모달 오버레이 */
@@ -427,16 +398,4 @@
   }
 }
 
-/* 다크모드 버튼 스타일 */
-.dark .btn-secondary {
-  background: var(--light-bg);
-  color: var(--white);
-  border-color: var(--border);
-}
-
-.dark .btn-secondary:hover {
-  background: var(--white);
-  color: var(--black);
-  border-color: var(--white);
-  transform: translateY(-2px);
-}
+/* 다크모드 버튼 스타일은 base.css에서 통일 관리 */

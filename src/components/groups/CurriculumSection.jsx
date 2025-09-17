@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { api } from "../client";
+import { useAuth } from "../../hooks/useAuth";
 import { Editor } from '@tinymce/tinymce-react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
@@ -39,7 +40,8 @@ const toImageApiUrl = (raw) => {
   const name = extractFileName(raw);
   return name ? `${API_BASE}/image/${name}` : null;
 };
-export default function CurriculumSection({ groupId, isMentor, token }) {
+export default function CurriculumSection({ groupId, isMentor }) {
+  const { user, token } = useAuth();
   // 과제/커리큘럼 관련 상태
   const [assignments, setAssignments] = useState([]);
   const [expandedWeeks, setExpandedWeeks] = useState({});
@@ -89,7 +91,8 @@ export default function CurriculumSection({ groupId, isMentor, token }) {
   const [assignmentSubmissionModal, setAssignmentSubmissionModal] = useState({
     isOpen: false,
     planId: null,
-    assignment: null
+    assignment: null,
+    mode: 'create' // 'create' | 'edit'
   });
   const [assignmentSubmissionFormData, setAssignmentSubmissionFormData] = useState({
     content: "",
@@ -97,6 +100,11 @@ export default function CurriculumSection({ groupId, isMentor, token }) {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [submittedAssignments, setSubmittedAssignments] = useState({}); // planId별 제출 정보
+  const [assignmentSubmissionList, setAssignmentSubmissionList] = useState({}); // planId별 제출 목록 (멘토용)
+  const [showSubmissionList, setShowSubmissionList] = useState({}); // 제출 목록 표시 여부
+  const [expandedSubmissions, setExpandedSubmissions] = useState({}); // 확장된 제출 상세 정보
+  const [userProfile, setUserProfile] = useState(null); // 사용자 프로필 정보
+  const [mentees, setMentees] = useState([]); // 멘티 목록 (미제출자 수 계산용)
   
   // 필터링된 커리큘럼 계산
   const filteredAssignments = React.useMemo(() => {
@@ -115,7 +123,6 @@ export default function CurriculumSection({ groupId, isMentor, token }) {
   const [attendanceData, setAttendanceData] = useState({});
   const [menteeAttendanceData, setMenteeAttendanceData] = useState({});
   const [attendanceRate, setAttendanceRate] = useState(0);
-  const [menteeWarnings, setMenteeWarnings] = useState(0);
 
   // 현재 테마 감지
   const isDarkMode = document.body.classList.contains('dark');
@@ -750,58 +757,373 @@ export default function CurriculumSection({ groupId, isMentor, token }) {
   // 과제 제출 API 함수
   const submitAssignment = async (planId, formData) => {
     try {
-      const url = `${API_BASE}/group/${groupId}/assignment/submit/${planId}`;
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        credentials: 'include',
-        body: JSON.stringify(formData)
-      });
-
-      // 응답 안전 파싱
-      let result;
-      const ct = response.headers.get('content-type') || '';
-      if (ct.includes('application/json')) {
-        result = await response.json();
-      } else {
-        const text = await response.text();
-        try { result = JSON.parse(text); }
-        catch { return { success: false, error: `예상치 못한 응답 형식 (status ${response.status})` }; }
-      }
-
-      // HTTP 에러 처리
-      if (!response.ok) {
-        if (response.status === 401) return { success: false, error: '로그인이 필요합니다.' };
-        if (response.status === 403) return { success: false, error: '권한이 없습니다.' };
-        return { success: false, error: result?.message || `요청 실패 (status ${response.status})` };
-      }
-
-      // 비즈니스 코드 처리
+      const result = await api('POST', `/group/${groupId}/assignment/submit/${planId}`, formData, token);
+      
       if (result.code === 'SUCCESS') {
         return { success: true, data: result.data };
       }
+      
+      // 중복 제출 에러 처리
+      if (result.code === 'DUPLICATE_SUBMISSION') {
+        // 제출 정보를 다시 가져와서 UI 업데이트
+        const submissionResult = await fetchAssignmentSubmission(planId);
+        if (submissionResult.success) {
+          setSubmittedAssignments(prev => ({
+            ...prev,
+            [planId]: {
+              ...submissionResult.data,
+              submissionId: submissionResult.data.submissionId || submissionResult.data.id
+            }
+          }));
+          // 중복 제출이지만 제출 정보를 찾았으므로 성공으로 처리
+          return { success: true, data: submissionResult.data, isDuplicate: true };
+        }
+        return { success: false, error: '이미 제출된 과제입니다. 제출 정보를 불러올 수 없습니다.' };
+      }
+      
+      // 다른 에러 케이스들 처리
+      if (result.code === 'UNAUTHORIZED_MENTEE_ROLE') {
+        return { success: false, error: '멘티만 과제를 제출할 수 있습니다.' };
+      }
+      if (result.code === 'UNAUTHORIZED_DOMAIN') {
+        return { success: false, error: '허용되지 않은 도메인입니다.' };
+      }
+      if (result.code === 'WARNING_CONTENT') {
+        return { success: false, error: '허용되지 않은 내용입니다. XSS나 SQL Injection을 방지하기 위해 특수문자를 제거해주세요.' };
+      }
+      if (result.code === 'PLAN_GROUP_MISMATCH') {
+        return { success: false, error: '해당 스터디 그룹의 계획이 아닙니다.' };
+      }
+      if (result.code === 'STUDY_NOT_FOUND') {
+        return { success: false, error: '스터디를 찾을 수 없습니다.' };
+      }
+      if (result.code === 'STUDY_USER_NOT_FOUND') {
+        return { success: false, error: '해당 스터디 멤버를 찾을 수 없습니다.' };
+      }
+      if (result.code === 'ASSIGNMENT_NOT_FOUND') {
+        return { success: false, error: '과제가 없습니다.' };
+      }
+      
       return { success: false, error: result.message || '과제 제출에 실패했습니다.' };
-    } catch {
+    } catch (error) {
+      console.error('과제 제출 오류:', error);
       return { success: false, error: '과제 제출 중 오류가 발생했습니다.' };
+    }
+  };
+
+  // 과제 조회 API 함수 (멘티가 제출한 과제 확인)
+  const fetchAssignmentSubmission = async (planId) => {
+    try {
+      // 사용자 프로필 정보가 없으면 먼저 가져오기
+      if (!userProfile) {
+        await fetchUserProfile();
+      }
+      
+      // 멘티는 전체 제출 리스트에서 자신의 제출을 찾아야 함
+      const result = await api('GET', `/group/${groupId}/assignment/submit/${planId}`, null, token);
+      
+      if (result.code === 'SUCCESS' && result.data && Array.isArray(result.data)) {
+        // 현재 사용자의 제출만 찾기 (프로필 정보 사용)
+        const currentUserSubmission = result.data.find(submission => {
+          const userName = userProfile?.name || user?.name;
+          const userStudentNumber = userProfile?.studentNumber || user?.studentNumber;
+          
+          return submission.creatorName === userName || 
+                 submission.studentNumber === userStudentNumber ||
+                 submission.creatorName === userStudentNumber?.toString() ||
+                 submission.studentNumber === userStudentNumber?.toString();
+        });
+        
+        if (currentUserSubmission) {
+          // 개별 제출 상세 정보를 가져와서 비밀번호 포함
+          try {
+            const detailResult = await api('GET', `/group/${groupId}/assignment/submit/${planId}/submission/${currentUserSubmission.submissionId || currentUserSubmission.id}`, null, token);
+            
+            if (detailResult.code === 'SUCCESS') {
+              return { 
+                success: true, 
+                data: {
+                  ...currentUserSubmission,
+                  ...detailResult.data, // 상세 정보로 덮어쓰기 (비밀번호 포함)
+                  password: detailResult.data.password || currentUserSubmission.password || ''
+                }
+              };
+            }
+          } catch (detailError) {
+            console.error('과제 상세 정보 조회 오류:', detailError);
+          }
+          
+          // 상세 정보 조회 실패 시 기본 정보라도 반환
+          return { 
+            success: true, 
+            data: {
+              ...currentUserSubmission,
+              password: currentUserSubmission.password || ''
+            }
+          };
+        }
+        return { success: false, error: '제출된 과제를 찾을 수 없습니다.' };
+      }
+      return { success: false, error: result.message || '과제 조회에 실패했습니다.' };
+    } catch (error) {
+      console.error('과제 조회 오류:', error);
+      return { success: false, error: '과제 조회 중 오류가 발생했습니다.' };
+    }
+  };
+
+  // 모든 과제의 제출 정보를 가져오는 함수
+  const fetchAllAssignmentSubmissions = async () => {
+    if (!isMentor && assignments.length > 0) {
+      const submissions = {};
+      
+      for (const assignment of assignments) {
+        if (assignment.hasAssignment) {
+          try {
+            const result = await fetchAssignmentSubmission(assignment.assignmentId);
+            if (result.success && result.data) {
+              submissions[assignment.assignmentId] = {
+                ...result.data,
+                submissionId: result.data.submissionId || result.data.id,
+                password: result.data.password || '' // 비밀번호 정보 보장
+              };
+            }
+          } catch (error) {
+            console.error(`과제 ${assignment.assignmentId} 조회 오류:`, error);
+          }
+        }
+      }
+      setSubmittedAssignments(submissions);
+    }
+  };
+
+  // 사용자 프로필 정보 가져오기
+  const fetchUserProfile = async () => {
+    try {
+      const result = await api('GET', '/user/user-page', null, token);
+      if (result?.data) {
+        setUserProfile(result.data);
+        return result.data;
+      }
+      return null;
+    } catch (error) {
+      console.error('사용자 프로필 조회 오류:', error);
+      return null;
+    }
+  };
+
+  // 과제 제출 목록을 가져오는 함수 (멘토용)
+  const fetchAssignmentSubmissionList = async (planId) => {
+    try {
+      const result = await api('GET', `/group/${groupId}/assignment/submit/${planId}`, null, token);
+      
+      if (result.code === 'SUCCESS') {
+        // 상태 업데이트
+        setAssignmentSubmissionList(prev => ({
+          ...prev,
+          [planId]: result.data
+        }));
+        return { success: true, data: result.data };
+      }
+      return { success: false, error: result.message || '과제 제출 목록 조회에 실패했습니다.' };
+    } catch (error) {
+      console.error('과제 제출 목록 조회 오류:', error);
+      return { success: false, error: '과제 제출 목록 조회 중 오류가 발생했습니다.' };
+    }
+  };
+
+  // 개별 제출 상세 정보를 가져오는 함수 (멘토용)
+  const fetchSubmissionDetail = async (planId, submissionId) => {
+    try {
+      const result = await api('GET', `/group/${groupId}/assignment/submit/${planId}/submission/${submissionId}`, null, token);
+      
+      if (result.code === 'SUCCESS') {
+        return { success: true, data: result.data };
+      }
+      return { success: false, error: result.message || '과제 제출 상세 정보 조회에 실패했습니다.' };
+    } catch (error) {
+      console.error('과제 제출 상세 정보 조회 오류:', error);
+      return { success: false, error: '과제 제출 상세 정보 조회 중 오류가 발생했습니다.' };
+    }
+  };
+
+  // URL을 새 탭에서 열기
+  const openUrlInNewTab = (url) => {
+    if (!url) return;
+    
+    // URL이 http:// 또는 https://로 시작하지 않으면 https://를 추가
+    const formattedUrl = url.startsWith('http://') || url.startsWith('https://') 
+      ? url 
+      : `https://${url}`;
+    
+    window.open(formattedUrl, '_blank', 'noopener,noreferrer');
+  };
+
+  // 멘티 목록 조회 (미제출자 수 계산용)
+  const fetchMentees = async () => {
+    if (!token || !groupId) return;
+    
+    try {
+      const result = await api('GET', `/group/${groupId}/mentee`, null, token);
+      if (result.code === 'SUCCESS') {
+        setMentees(result.data || []);
+      }
+    } catch (error) {
+      console.error('멘티 목록 조회 오류:', error);
+    }
+  };
+
+  // 미제출자 수 계산
+  const getUnsubmittedCount = (planId) => {
+    const totalMentees = mentees.length;
+    const submittedCount = assignmentSubmissionList[planId]?.length || 0;
+    return totalMentees - submittedCount;
+  };
+
+  // 개별 제출 상세 정보 토글 함수
+  const toggleSubmissionDetail = async (planId, submissionId) => {
+    const key = `${planId}-${submissionId}`;
+    
+    if (expandedSubmissions[key]) {
+      // 상세 정보 숨기기
+      setExpandedSubmissions(prev => ({
+        ...prev,
+        [key]: false
+      }));
+      } else {
+      // 상세 정보 보이기 - API에서 상세 정보 가져오기
+      const result = await fetchSubmissionDetail(planId, submissionId);
+      if (result.success) {
+        setExpandedSubmissions(prev => ({
+          ...prev,
+          [key]: result.data
+        }));
+      } else {
+        alert(`상세 정보 조회 실패: ${result.error}`);
+      }
+    }
+  };
+
+  // 제출 목록 토글 함수
+  const toggleSubmissionList = async (planId) => {
+    if (showSubmissionList[planId]) {
+      // 목록 숨기기
+      setShowSubmissionList(prev => ({
+        ...prev,
+        [planId]: false
+      }));
+    } else {
+      // 목록 보이기 - 데이터가 없으면 가져오기 (이미 미리 로드되어 있을 가능성 높음)
+      if (!assignmentSubmissionList[planId]) {
+        const result = await fetchAssignmentSubmissionList(planId);
+        if (!result.success) {
+          alert(`제출 목록 조회 실패: ${result.error}`);
+          return;
+        }
+      }
+      
+      setShowSubmissionList(prev => ({
+        ...prev,
+        [planId]: true
+      }));
+    }
+  };
+
+  // 과제 수정 API 함수
+  const updateAssignmentSubmission = async (planId, submitId, formData) => {
+    try {
+      const result = await api('PUT', `/group/${groupId}/assignment/submit/${planId}/submission/${submitId}`, formData, token);
+      
+      if (result.code === 'SUCCESS') {
+        return { success: true, data: result.data };
+      }
+      
+      // 에러 케이스들 처리
+      if (result.code === 'UNAUTHORIZED_ACCESS_SUBMISSION') {
+        return { success: false, error: '과제 제출 조회 권한이 없습니다.' };
+      }
+      if (result.code === 'STUDY_NOT_FOUND') {
+        return { success: false, error: '스터디를 찾을 수 없습니다.' };
+      }
+      if (result.code === 'STUDY_USER_NOT_FOUND') {
+        return { success: false, error: '해당 스터디 멤버를 찾을 수 없습니다.' };
+      }
+      if (result.code === 'ASSIGNMENT_NOT_FOUND') {
+        return { success: false, error: '과제를 찾을 수 없습니다.' };
+      }
+      if (result.code === 'SUBMISSION_NOT_FOUND') {
+        return { success: false, error: '과제 제출 내역을 찾을 수 없습니다.' };
+      }
+      if (result.code === 'WARNING_CONTENT') {
+        return { success: false, error: '허용되지 않은 내용입니다. XSS나 SQL Injection을 방지하기 위해 특수문자를 제거해주세요.' };
+      }
+      
+      return { success: false, error: result.message || '과제 수정에 실패했습니다.' };
+    } catch (error) {
+      console.error('과제 수정 오류:', error);
+      return { success: false, error: '과제 수정 중 오류가 발생했습니다.' };
+    }
+  };
+
+  // 과제 삭제 API 함수
+  const deleteAssignmentSubmission = async (planId, submitId) => {
+    try {
+      const result = await api('DELETE', `/group/${groupId}/assignment/submit/${planId}/submission/${submitId}`, null, token);
+      
+      if (result.code === 'SUCCESS') {
+        return { success: true };
+      }
+      
+      // 에러 케이스들 처리
+      if (result.code === 'UNAUTHORIZED_ACCESS_SUBMISSION') {
+        return { success: false, error: '과제 제출 조회 권한이 없습니다.' };
+      }
+      if (result.code === 'STUDY_NOT_FOUND') {
+        return { success: false, error: '스터디를 찾을 수 없습니다.' };
+      }
+      if (result.code === 'STUDY_USER_NOT_FOUND') {
+        return { success: false, error: '해당 스터디 멤버를 찾을 수 없습니다.' };
+      }
+      if (result.code === 'ASSIGNMENT_NOT_FOUND') {
+        return { success: false, error: '과제를 찾을 수 없습니다.' };
+      }
+      if (result.code === 'SUBMISSION_NOT_FOUND') {
+        return { success: false, error: '과제 제출 내역을 찾을 수 없습니다.' };
+      }
+      
+      return { success: false, error: result.message || '과제 삭제에 실패했습니다.' };
+    } catch (error) {
+      console.error('과제 삭제 오류:', error);
+      return { success: false, error: '과제 삭제 중 오류가 발생했습니다.' };
     }
   };
 
 
   // 과제 제출 모달 열기
-  const openAssignmentSubmissionModal = (assignment) => {
+  const openAssignmentSubmissionModal = (assignment, mode = 'create', submissionData = null) => {
     setAssignmentSubmissionModal({
       isOpen: true,
       planId: assignment.assignmentId,
-      assignment: assignment
+      assignment: assignment,
+      mode: mode,
+      submissionId: submissionData?.submissionId || submissionData?.id
     });
+    
+    if (mode === 'edit') {
+      // 수정 모드일 때 기존 데이터 로드
+      const data = submissionData || submittedAssignments[assignment.assignmentId];
+      setAssignmentSubmissionFormData({
+        content: data?.content || "",
+        password: data?.password || ""
+      });
+      // 수정 모드에서는 비밀번호를 보이게 설정
+      setShowPassword(true);
+    } else {
+      // 생성 모드일 때 빈 데이터
     setAssignmentSubmissionFormData({
       content: "",
       password: ""
     });
+    }
     setShowPassword(false);
   };
 
@@ -819,7 +1141,7 @@ export default function CurriculumSection({ groupId, isMentor, token }) {
     setShowPassword(false);
   };
 
-  // 과제 제출 처리
+  // 과제 제출/수정 처리
   const handleAssignmentSubmission = async () => {
     try {
       // 필수 필드 검증
@@ -832,23 +1154,90 @@ export default function CurriculumSection({ groupId, isMentor, token }) {
         return;
       }
 
-      const result = await submitAssignment(assignmentSubmissionModal.planId, assignmentSubmissionFormData);
-      
+      let result;
+      if (assignmentSubmissionModal.mode === 'edit') {
+        // 수정 모드 - submitId 필요
+        const submitId = assignmentSubmissionModal.submissionId || submittedAssignments[assignmentSubmissionModal.planId]?.submissionId;
+        if (!submitId) {
+          alert('과제 제출 정보를 찾을 수 없습니다.');
+          return;
+        }
+        result = await updateAssignmentSubmission(assignmentSubmissionModal.planId, submitId, assignmentSubmissionFormData);
       if (result.success) {
-        alert('과제가 성공적으로 제출되었습니다!');
+          alert('과제가 성공적으로 수정되었습니다!');
+          // 제출된 과제 정보 업데이트
+          setSubmittedAssignments(prev => ({
+            ...prev,
+            [assignmentSubmissionModal.planId]: {
+              ...result.data,
+              submissionId: result.data.submissionId || result.data.id
+            }
+          }));
+          closeAssignmentSubmissionModal();
+        } else {
+          alert(`과제 수정 실패: ${result.error}`);
+        }
+      } else {
+        // 생성 모드
+        result = await submitAssignment(assignmentSubmissionModal.planId, assignmentSubmissionFormData);
         
-        // 제출된 과제 정보 저장
+        if (result.success) {
+          // 제출된 과제 정보 저장 (submissionId 포함)
         setSubmittedAssignments(prev => ({
           ...prev,
-          [assignmentSubmissionModal.planId]: result.data
-        }));
+            [assignmentSubmissionModal.planId]: {
+              ...result.data,
+              submissionId: result.data.submissionId || result.data.id
+            }
+          }));
+          
+          // 중복 제출인 경우 다른 메시지 표시
+          if (result.isDuplicate) {
+            alert('이미 제출된 과제입니다. 제출 정보를 불러왔습니다.');
+          } else {
+            alert('과제가 성공적으로 제출되었습니다!');
+          }
         
         closeAssignmentSubmissionModal();
       } else {
         alert(`과제 제출 실패: ${result.error}`);
       }
-    } catch {
-      alert('과제 제출 중 오류가 발생했습니다.');
+      }
+    } catch (error) {
+      console.error('과제 처리 오류:', error);
+      alert(`과제 ${assignmentSubmissionModal.mode === 'edit' ? '수정' : '제출'} 중 오류가 발생했습니다.`);
+    }
+  };
+
+  // 과제 삭제 처리
+  const handleDeleteAssignmentSubmission = async (planId) => {
+    if (!confirm('정말로 과제 제출을 삭제하시겠습니까?')) {
+      return;
+    }
+
+    try {
+      const submitId = submittedAssignments[planId]?.submissionId;
+      if (!submitId) {
+        alert('과제 제출 정보를 찾을 수 없습니다.');
+        return;
+      }
+      const result = await deleteAssignmentSubmission(planId, submitId);
+      
+      if (result.success) {
+        alert('과제 제출이 성공적으로 삭제되었습니다!');
+        
+        // 제출된 과제 정보에서 제거
+        setSubmittedAssignments(prev => {
+          const newState = { ...prev };
+          delete newState[planId];
+          return newState;
+        });
+      } else {
+        alert(`과제 삭제 실패: ${result.error}`);
+      }
+    } catch (error) {
+      console.error('과제 삭제 오류:', error);
+      alert('과제 삭제 중 오류가 발생했습니다.');
     }
   };
 
@@ -1331,6 +1720,42 @@ export default function CurriculumSection({ groupId, isMentor, token }) {
     fetchActivityPhotos(); // 활동사진도 미리 로딩
   }, [fetchAssignments]);
 
+  // 사용자 프로필 로드
+  useEffect(() => {
+    if (token && !isMentor) {
+      fetchUserProfile();
+    }
+  }, [token, isMentor]);
+
+  // 멘티 목록 로드 (멘토만)
+  useEffect(() => {
+    if (token && isMentor) {
+      fetchMentees();
+    }
+  }, [token, isMentor]);
+
+  // 과제 제출 목록 미리 로드 (멘토만)
+  useEffect(() => {
+    const loadAllSubmissionLists = async () => {
+      if (token && isMentor && assignments.length > 0) {
+        const promises = assignments
+          .filter(assignment => assignment.hasAssignment)
+          .map(assignment => fetchAssignmentSubmissionList(assignment.assignmentId));
+        
+        await Promise.all(promises);
+      }
+    };
+    
+    loadAllSubmissionLists();
+  }, [token, isMentor, assignments]);
+
+  // 과제 제출 정보 로드 (멘티만)
+  useEffect(() => {
+    if (!isMentor && assignments.length > 0 && userProfile) {
+      fetchAllAssignmentSubmissions();
+    }
+  }, [assignments, isMentor, userProfile]);
+
   // 활동사진이 로드된 후 멘티 출석 상태 가져오기
   useEffect(() => {
     if (activityPhotos.length > 0 && !isMentor) {
@@ -1338,66 +1763,6 @@ export default function CurriculumSection({ groupId, isMentor, token }) {
     }
   }, [activityPhotos, isMentor]);
 
-  // 멘티 경고 횟수 조회
-  useEffect(() => {
-    if (!isMentor && token) {
-      fetchMenteeWarnings();
-    }
-  }, [isMentor, token]);
-
-  // localStorage 변경 감지 및 커스텀 이벤트 감지
-  useEffect(() => {
-    const handleStorageChange = (e) => {
-      if (e.key === `warnings_${groupId}` && !isMentor) {
-        fetchMenteeWarnings();
-      }
-    };
-
-    const handleWarningsUpdated = (e) => {
-      if (e.detail.groupId === groupId && !isMentor) {
-        fetchMenteeWarnings();
-      }
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    window.addEventListener('warningsUpdated', handleWarningsUpdated);
-    
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('warningsUpdated', handleWarningsUpdated);
-    };
-  }, [groupId, isMentor]);
-
-  // 멘티 경고 횟수 조회 함수 (로컬 저장소에서 관리)
-  const fetchMenteeWarnings = () => {
-    try {
-      // JWT 토큰에서 학번 추출
-      let myStudentNumber = null;
-      try {
-        const tokenPayload = JSON.parse(atob(token.split('.')[1]));
-        myStudentNumber = parseInt(tokenPayload.studentNumber || tokenPayload.sub || tokenPayload.userId || tokenPayload.id);
-      } catch {
-        setMenteeWarnings(0);
-        return;
-      }
-
-      if (myStudentNumber) {
-        // 로컬 저장소에서 경고 횟수 조회
-        const storedWarnings = localStorage.getItem(`warnings_${groupId}`);
-        if (storedWarnings) {
-          const warnings = JSON.parse(storedWarnings);
-          setMenteeWarnings(warnings[myStudentNumber] || 0);
-        } else {
-          setMenteeWarnings(0);
-        }
-      } else {
-        setMenteeWarnings(0);
-      }
-    } catch {
-      // 경고 조회 실패 시 0으로 설정
-      setMenteeWarnings(0);
-    }
-  };
 
   return (
     <div className="curriculum-section">
@@ -1460,10 +1825,6 @@ export default function CurriculumSection({ groupId, isMentor, token }) {
                 <span className={`attendance-rate-value ${attendanceRate >= 80 ? 'high' : attendanceRate >= 60 ? 'medium' : 'low'}`}>
                   {attendanceRate}%
                 </span>
-              </div>
-              <div className="warning-display">
-                <span className="warning-label">경고:</span>
-                <span className="warning-value">{menteeWarnings || 0}회</span>
               </div>
               <button 
                 className="btn activity-photos-btn mentee-photos-btn"
@@ -1542,25 +1903,20 @@ export default function CurriculumSection({ groupId, isMentor, token }) {
                             <h4>제출된 과제</h4>
                             <p><strong>주소:</strong> {submittedAssignments[assignment.assignmentId].content}</p>
                             <p><strong>제출일:</strong> {new Date(submittedAssignments[assignment.assignmentId].createdAt).toLocaleString('ko-KR')}</p>
+                            {submittedAssignments[assignment.assignmentId].creatorName && (
+                              <p><strong>제출자:</strong> {submittedAssignments[assignment.assignmentId].creatorName}</p>
+                            )}
                           </div>
                           <div className="submission-actions">
                             <button 
                               className="btn btn-small btn-secondary"
-                              onClick={() => openAssignmentSubmissionModal(assignment)}
+                              onClick={() => openAssignmentSubmissionModal(assignment, 'edit')}
                             >
                               <i className="fas fa-edit"></i> 수정
                             </button>
                             <button 
                               className="btn btn-small btn-danger"
-                              onClick={() => {
-                                if (confirm('정말로 과제 제출을 삭제하시겠습니까?')) {
-                                  setSubmittedAssignments(prev => {
-                                    const newState = { ...prev };
-                                    delete newState[assignment.assignmentId];
-                                    return newState;
-                                  });
-                                }
-                              }}
+                              onClick={() => handleDeleteAssignmentSubmission(assignment.assignmentId)}
                             >
                               <i className="fas fa-trash"></i> 삭제
                             </button>
@@ -1575,6 +1931,109 @@ export default function CurriculumSection({ groupId, isMentor, token }) {
                           >
                             <i className="fas fa-paper-plane"></i> 과제 제출하기
                           </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* 멘토용 과제 제출 목록 섹션 */}
+                  {isMentor && assignment.hasAssignment && (
+                    <div className="assignment-submission-list-section">
+                      <div className="submission-list-header">
+                        <div className="submission-list-title-section">
+                          <h4>과제 제출 현황</h4>
+                          <div className="submission-stats">
+                            <span className="submission-count">
+                              제출: {assignmentSubmissionList[assignment.assignmentId]?.length || 0}명
+                            </span>
+                            <span className="unsubmitted-count">
+                              미제출: {getUnsubmittedCount(assignment.assignmentId)}명
+                            </span>
+                          </div>
+                        </div>
+                        <button 
+                          className="btn btn-small btn-primary"
+                          onClick={() => toggleSubmissionList(assignment.assignmentId)}
+                        >
+                          <i className={`fas fa-chevron-${showSubmissionList[assignment.assignmentId] ? 'up' : 'down'}`}></i>
+                          {showSubmissionList[assignment.assignmentId] ? '숨기기' : '보기'}
+                        </button>
+                      </div>
+                      
+                      {showSubmissionList[assignment.assignmentId] && (
+                        <div className="submission-list-content">
+                          {assignmentSubmissionList[assignment.assignmentId] && assignmentSubmissionList[assignment.assignmentId].length > 0 ? (
+                            <div className="submission-list">
+                              {assignmentSubmissionList[assignment.assignmentId].map((submission, index) => (
+                                <div key={submission.submissionId || index} className="submission-item">
+                                  <div className="submission-info">
+                                    <div className="submission-header">
+                                      <h5>{submission.creatorName || '익명'}</h5>
+                                      <span className="submission-date">
+                                        {new Date(submission.createdAt).toLocaleString('ko-KR')}
+                                      </span>
+                                    </div>
+                                    <p className="submission-content">
+                                      <strong>주소:</strong> 
+                                      <span 
+                                        className="submission-url-link"
+                                        onClick={() => openUrlInNewTab(submission.content)}
+                                        title="클릭하여 링크 열기"
+                                      >
+                                        {submission.content}
+                                      </span>
+                                    </p>
+                                    
+                                    {/* 자세히보기 버튼 */}
+                                    <button 
+                                      className="btn btn-small btn-outline submission-detail-btn"
+                                      onClick={() => toggleSubmissionDetail(assignment.assignmentId, submission.submissionId || submission.id)}
+                                      title="자세히보기"
+                                    >
+                                      <i className={`fas fa-chevron-${expandedSubmissions[`${assignment.assignmentId}-${submission.submissionId || submission.id}`] ? 'up' : 'down'}`}></i>
+                                    </button>
+                                    
+                                    {/* 상세 정보 (확장 시 표시) */}
+                                    {expandedSubmissions[`${assignment.assignmentId}-${submission.submissionId || submission.id}`] && (
+                                      <div className="submission-detail">
+                                        <div className="detail-section">
+                                          <h6>상세 정보</h6>
+                                          <p><strong>제출자:</strong> {expandedSubmissions[`${assignment.assignmentId}-${submission.submissionId || submission.id}`].creatorName || '익명'}</p>
+                                          <p><strong>제출일:</strong> {new Date(expandedSubmissions[`${assignment.assignmentId}-${submission.submissionId || submission.id}`].createdAt).toLocaleString('ko-KR')}</p>
+                                          <p>
+                                            <strong>주소:</strong> 
+                                            <span 
+                                              className="submission-url-link"
+                                              onClick={() => openUrlInNewTab(expandedSubmissions[`${assignment.assignmentId}-${submission.submissionId || submission.id}`].content)}
+                                              title="클릭하여 링크 열기"
+                                            >
+                                              {expandedSubmissions[`${assignment.assignmentId}-${submission.submissionId || submission.id}`].content}
+                                            </span>
+                                          </p>
+                                          {expandedSubmissions[`${assignment.assignmentId}-${submission.submissionId || submission.id}`].password && (
+                                            <p><strong>비밀번호:</strong> {expandedSubmissions[`${assignment.assignmentId}-${submission.submissionId || submission.id}`].password}</p>
+                                          )}
+                                          <p><strong>제출 ID:</strong> {expandedSubmissions[`${assignment.assignmentId}-${submission.submissionId || submission.id}`].submissionId}</p>
+                                          {expandedSubmissions[`${assignment.assignmentId}-${submission.submissionId || submission.id}`].feedback && (
+                                            <p><strong>피드백:</strong> {expandedSubmissions[`${assignment.assignmentId}-${submission.submissionId || submission.id}`].feedback}</p>
+                                          )}
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                  <div className="submission-info-only">
+                                    <span className="submission-status">
+                                      <i className="fas fa-check-circle"></i> 제출 완료
+                                    </span>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <div className="no-submissions">
+                              <p>아직 제출된 과제가 없습니다.</p>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
@@ -1895,10 +2354,12 @@ export default function CurriculumSection({ groupId, isMentor, token }) {
 
       {/* 과제 제출 모달 */}
       {assignmentSubmissionModal.isOpen && (
-        <div className="assignment-modal-overlay" onClick={closeAssignmentSubmissionModal}>
+        <div className="assignment-modal-overlay">
           <div className="assignment-modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="assignment-modal-header">
-              <h3 className="assignment-modal-title">과제 제출</h3>
+              <h3 className="assignment-modal-title">
+                {assignmentSubmissionModal.mode === 'edit' ? '과제 수정' : '과제 제출'}
+              </h3>
               <button className="assignment-modal-close" onClick={closeAssignmentSubmissionModal}>
                 <i className="fas fa-times"></i>
               </button>
@@ -1933,7 +2394,7 @@ export default function CurriculumSection({ groupId, isMentor, token }) {
                       ...prev,
                       password: e.target.value
                     }))}
-                    placeholder="비밀번호를 입력하세요"
+                    placeholder="블로그/티스토리 비밀번호를 입력하세요"
                     required
                   />
                   <button
@@ -1952,7 +2413,7 @@ export default function CurriculumSection({ groupId, isMentor, token }) {
                 취소
               </button>
               <button className="btn btn-primary" onClick={handleAssignmentSubmission}>
-                제출
+                {assignmentSubmissionModal.mode === 'edit' ? '수정' : '제출'}
               </button>
             </div>
           </div>

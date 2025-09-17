@@ -674,28 +674,7 @@ body:not(.active) .notification-modal-overlay {
   background: var(--black);
 }
 
-.btn-secondary {
-  background: var(--light-bg);
-  color: var(--black);
-  border: 2px solid var(--border);
-  transition: all 0.3s ease;
-}
-
-.btn-secondary:hover {
-  background: var(--black);
-  color: var(--white);
-  border-color: var(--black);
-  transform: translateY(-2px);
-}
-
-.btn-danger {
-  background: #dc3545;
-  color: var(--white);
-}
-
-.btn-danger:hover {
-  background: #c82333;
-}
+/* 버튼 스타일은 base.css에서 통일 관리 */
 
 /* 페이지네이션 */
 .pagination-section {
@@ -1215,16 +1194,4 @@ body.dark .empty-message:hover i {
   color: var(--main-color);
 }
 
-/* 다크모드 버튼 스타일 */
-.dark .btn-secondary {
-  background: var(--light-bg);
-  color: var(--black);
-  border-color: var(--border);
-}
-
-.dark .btn-secondary:hover {
-  background: red;
-  color: var(--black);
-  border-color: var(--white);
-  transform: translateY(-2px);
-}
+/* 다크모드 버튼 스타일은 base.css에서 통일 관리 */
