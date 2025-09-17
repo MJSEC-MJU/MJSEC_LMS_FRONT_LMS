@@ -2,7 +2,7 @@ import { Routes, Route, Navigate } from "react-router-dom"
 import Navbar from "./components/Navbar.jsx"
 import ProtectedRoute from "./components/ProtectedRoute.jsx"
 import PublicRoute from "./components/PublicRoute.jsx"
-import Home from "./pages/Home.jsx"
+import from "./pages/Home.jsx"
 import Profile from "./pages/Profile.jsx"
 import Login from "./pages/Login.jsx"
 import Register from "./pages/Register.jsx"
@@ -12,6 +12,7 @@ import Notifications from "./pages/Notifications.jsx"
 import Admin from "./pages/Admin.jsx" // Admin 컴포넌트 임포트
 import Unauthorized from "./pages/Unauthorized.jsx";
 import PasswordEmailVerify from "./pages/PasswordEmailVerify.jsx";
+import PasswordUpdate from "./pages/PasswordUpdate.jsx";
 import { useAuth } from "./components/auth.jsx"
 
 export default function App() {
@@ -26,7 +27,7 @@ export default function App() {
             user ? <Navigate to="/home" replace /> : <Navigate to="/login" replace />
           ) : <div>Loading...</div>
           } />
-        
+  
         {/* 공개 페이지들 (로그인 없이 접근 가능) */}
         <Route path="/login" element={
           <PublicRoute>
@@ -39,6 +40,11 @@ export default function App() {
           </PublicRoute>
         } />
         <Route path="/forgot-password" element={
+          <PublicRoute>
+            <PasswordEmailVerify />
+          </PublicRoute>
+        } />
+        <Route path="/password/update" element={
           <PublicRoute>
             <PasswordEmailVerify />
           </PublicRoute>
@@ -58,11 +64,6 @@ export default function App() {
         <Route path="/update" element={
           <ProtectedRoute>
             <Update />
-          </ProtectedRoute>
-        } />
-        <Route path="/contact" element={
-          <ProtectedRoute>
-            <Group />
           </ProtectedRoute>
         } />
         <Route path="/groups" element={
