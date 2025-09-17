@@ -154,14 +154,14 @@ export default function GroupsList({ myStudies = [] }) {
             onClick={() => setStatusFilter('active')}
           >
             <i className="fas fa-check-circle"></i>
-            활성화 ({myStudies.filter(s => s.status === 'ACTIVE' || s.status === 1).length})
+            진행중 ({myStudies.filter(s => s.status === 'ACTIVE' || s.status === 1).length})
           </button>
           <button 
             className={`filter-btn ${statusFilter === 'inactive' ? 'active' : ''}`}
             onClick={() => setStatusFilter('inactive')}
           >
             <i className="fas fa-times-circle"></i>
-            비활성화 ({myStudies.filter(s => s.status === 'INACTIVE' || s.status === 0 || !s.status).length})
+            종료 ({myStudies.filter(s => s.status === 'INACTIVE' || s.status === 0 || !s.status).length})
           </button>
         </div>
       </div>
@@ -174,7 +174,7 @@ export default function GroupsList({ myStudies = [] }) {
                 <div className="group-header">
                   <div className="group-header-left">
                     <span className={`group-status ${study.status?.toLowerCase() || 'inactive'}`}>
-                      {study.status === 'ACTIVE' ? '활성' : '비활성'}
+                      {study.status === 'ACTIVE' ? '진행중' : '종료'}
                     </span>
                   </div>
                   <h3 className="list-group-title">{study.name}</h3>
