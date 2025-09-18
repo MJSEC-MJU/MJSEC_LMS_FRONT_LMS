@@ -301,20 +301,20 @@ useEffect(() => {
 const checkGroupNameDuplicate = async (groupName, token) => {
   if (!groupName) throw new Error('그룹 이름이 필요합니다');
   // 예시: /admin/group/check-name/{groupName}
-  return await api('GET', `/admin/group/name-check/${encodeURIComponent(currentGroupName)}`, null, token);
+  return await api('GET', `/admin/group/name-check/${encodeURIComponent(editGroupName)}`, null, token);
 };
 
   // 예시: 그룹 이름 입력 시 중복 체크
 const handleCheckGroupName = async () => {
   try {
     const res = await checkGroupNameDuplicate(editGroupName, token);
-    if (res?.data === true) {
+    if (res?.data === true||res?.status===200) {
       alert('사용 가능한 그룹 이름입니다.');
     } else {
       alert('이미 존재하는 그룹 이름입니다.');
     }
   } catch (e) {
-    alert('중복 확인 중 오류 발생: ' + e.message);
+    alert(e.message);
   }
 };
 
