@@ -213,7 +213,6 @@ useEffect(() => {
         formData.append('studyImage', editGroupImage);
       }
 
-      const currentGroupName = currentGroupName;
 
       const groupDto = {
         name: editGroupName,
