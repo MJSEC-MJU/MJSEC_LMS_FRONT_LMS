@@ -214,7 +214,6 @@ useEffect(() => {
       }
 
       const groupDto = {
-        id: editGroupId,
         name: editGroupName,
         content: editGroupDescription,       // ← description을 content로 보냄
         category: editGroupCategory,
@@ -225,7 +224,7 @@ useEffect(() => {
         new Blob([JSON.stringify(groupDto)], { type: 'application/json' })
       );
 
-      const res = await api('PUT', `/admin/group/${editGroupId}`, formData,  token, { 'Content-Type': 'multipart/form-data' });
+      const res = await api('PUT', `/admin/group/${editGroupName}`, formData,  token, { 'Content-Type': 'multipart/form-data' });
       if (res?.code === 'SUCCESS') {
         alert('스터디 그룹 수정 성공!');
         setEditGroupId('');
