@@ -190,7 +190,7 @@ useEffect(() => {
   const handleUpdateGroup = useCallback(async (e) => {
     e.preventDefault();
     if (updatingGroup) return;
-    if (!editGroupId || !editGroupName) {
+    if (!currentGroupName || !editGroupName) {
       alert('그룹 ID와 그룹 이름을 입력해주세요.');
       return;
     }
@@ -243,7 +243,7 @@ useEffect(() => {
     } finally {
       setUpdatingGroup(false);
     }
-  }, [token, currentGroupName, editGroupName, editGroupDescription, editGroupCategory, editGroupMentor, updatingGroup]);
+  }, [token, currentGroupName, editGroupName, editGroupDescription, editGroupCategory, editGroupMentor, editGroupImage, updatingGroup]);
 
   // 전체 사용자 목록 불러오기
   const fetchAllUsers = useCallback(async () => {
