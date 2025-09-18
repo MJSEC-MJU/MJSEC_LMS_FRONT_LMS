@@ -301,7 +301,7 @@ useEffect(() => {
 const checkGroupNameDuplicate = async (groupName, token) => {
   if (!groupName) throw new Error('그룹 이름이 필요합니다');
   // 예시: /admin/group/check-name/{groupName}
-  return await api('GET', `/admin/group/check-name/${encodeURIComponent(currentGroupName)}`, null, token);
+  return await api('GET', `/admin/group/name-check/${encodeURIComponent(currentGroupName)}`, null, token);
 };
 
   // 예시: 그룹 이름 입력 시 중복 체크
