@@ -4,6 +4,7 @@ import { useAuth } from "../../hooks/useAuth";
 import { Editor } from '@tinymce/tinymce-react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
+import confetti from 'canvas-confetti';
 const BASE_URL = (import.meta.env.BASE_URL || '/').replace(/\/+$/, '');
 const RAW_BASE   = (import.meta.env.VITE_API_BASE || "").replace(/\/+$/, "");
 const RAW_PREFIX = (import.meta.env.VITE_API_PREFIX ?? "/api/v1")
@@ -100,11 +101,42 @@ export default function CurriculumSection({ groupId, isMentor }) {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [submittedAssignments, setSubmittedAssignments] = useState({}); // planId별 제출 정보
+  const [showCelebration, setShowCelebration] = useState(false);
+
+  // 축하 애니메이션 함수
+  const triggerCelebration = () => {
+    setShowCelebration(true);
+    
+    // Confetti 효과
+    confetti({
+      particleCount: 100,
+      spread: 70,
+      origin: { y: 0.6 },
+      colors: ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#feca57', '#ff9ff3']
+    });
+
+    // 3초 후 축하 메시지 숨기기
+    setTimeout(() => {
+      setShowCelebration(false);
+    }, 3000);
+  };
   const [assignmentSubmissionList, setAssignmentSubmissionList] = useState({}); // planId별 제출 목록 (멘토용)
   const [showSubmissionList, setShowSubmissionList] = useState({}); // 제출 목록 표시 여부
   const [expandedSubmissions, setExpandedSubmissions] = useState({}); // 확장된 제출 상세 정보
   const [userProfile, setUserProfile] = useState(null); // 사용자 프로필 정보
   const [mentees, setMentees] = useState([]); // 멘티 목록 (미제출자 수 계산용)
+  
+  // 피드백 관련 상태
+  const [feedbackModal, setFeedbackModal] = useState({
+    isOpen: false,
+    mode: 'create', // 'create' 또는 'edit'
+    planId: null,
+    submitId: null,
+    currentFeedback: ''
+  });
+  const [feedbackFormData, setFeedbackFormData] = useState({
+    feedback: ''
+  });
   
   // 필터링된 커리큘럼 계산
   const filteredAssignments = React.useMemo(() => {
@@ -806,7 +838,7 @@ export default function CurriculumSection({ groupId, isMentor }) {
       
       return { success: false, error: result.message || '과제 제출에 실패했습니다.' };
     } catch (error) {
-      console.error('과제 제출 오류:', error);
+      // 과제 제출 오류
       return { success: false, error: '과제 제출 중 오류가 발생했습니다.' };
     }
   };
@@ -850,7 +882,7 @@ export default function CurriculumSection({ groupId, isMentor }) {
               };
             }
           } catch (detailError) {
-            console.error('과제 상세 정보 조회 오류:', detailError);
+            // 과제 상세 정보 조회 오류
           }
           
           // 상세 정보 조회 실패 시 기본 정보라도 반환
@@ -866,7 +898,7 @@ export default function CurriculumSection({ groupId, isMentor }) {
       }
       return { success: false, error: result.message || '과제 조회에 실패했습니다.' };
     } catch (error) {
-      console.error('과제 조회 오류:', error);
+      // 과제 조회 오류
       return { success: false, error: '과제 조회 중 오류가 발생했습니다.' };
     }
   };
@@ -888,7 +920,7 @@ export default function CurriculumSection({ groupId, isMentor }) {
               };
             }
           } catch (error) {
-            console.error(`과제 ${assignment.assignmentId} 조회 오류:`, error);
+            // 과제 조회 오류
           }
         }
       }
@@ -906,7 +938,7 @@ export default function CurriculumSection({ groupId, isMentor }) {
       }
       return null;
     } catch (error) {
-      console.error('사용자 프로필 조회 오류:', error);
+      // 사용자 프로필 조회 오류
       return null;
     }
   };
@@ -926,7 +958,7 @@ export default function CurriculumSection({ groupId, isMentor }) {
       }
       return { success: false, error: result.message || '과제 제출 목록 조회에 실패했습니다.' };
     } catch (error) {
-      console.error('과제 제출 목록 조회 오류:', error);
+      // 과제 제출 목록 조회 오류
       return { success: false, error: '과제 제출 목록 조회 중 오류가 발생했습니다.' };
     }
   };
@@ -941,7 +973,7 @@ export default function CurriculumSection({ groupId, isMentor }) {
       }
       return { success: false, error: result.message || '과제 제출 상세 정보 조회에 실패했습니다.' };
     } catch (error) {
-      console.error('과제 제출 상세 정보 조회 오류:', error);
+      // 과제 제출 상세 정보 조회 오류
       return { success: false, error: '과제 제출 상세 정보 조회 중 오류가 발생했습니다.' };
     }
   };
@@ -968,7 +1000,7 @@ export default function CurriculumSection({ groupId, isMentor }) {
         setMentees(result.data || []);
       }
     } catch (error) {
-      console.error('멘티 목록 조회 오류:', error);
+      // 멘티 목록 조회 오류
     }
   };
 
@@ -977,6 +1009,13 @@ export default function CurriculumSection({ groupId, isMentor }) {
     const totalMentees = mentees.length;
     const submittedCount = assignmentSubmissionList[planId]?.length || 0;
     return totalMentees - submittedCount;
+  };
+
+  // 멘티용 과제 현황 계산
+  const getAssignmentStats = () => {
+    const totalAssignments = assignments.filter(assignment => assignment.hasAssignment).length;
+    const submittedCount = Object.keys(submittedAssignments).length;
+    return { submitted: submittedCount, total: totalAssignments };
   };
 
   // 개별 제출 상세 정보 토글 함수
@@ -1059,7 +1098,7 @@ export default function CurriculumSection({ groupId, isMentor }) {
       
       return { success: false, error: result.message || '과제 수정에 실패했습니다.' };
     } catch (error) {
-      console.error('과제 수정 오류:', error);
+      // 과제 수정 오류
       return { success: false, error: '과제 수정 중 오류가 발생했습니다.' };
     }
   };
@@ -1092,8 +1131,193 @@ export default function CurriculumSection({ groupId, isMentor }) {
       
       return { success: false, error: result.message || '과제 삭제에 실패했습니다.' };
     } catch (error) {
-      console.error('과제 삭제 오류:', error);
+      // 과제 삭제 오류
       return { success: false, error: '과제 삭제 중 오류가 발생했습니다.' };
+    }
+  };
+
+  // 피드백 작성 API 함수
+  const createFeedback = async (planId, submitId, feedback) => {
+    try {
+      const result = await api('POST', `/group/${groupId}/assignment/submit/${planId}/submission/${submitId}/feedback`, { feedback }, token);
+      
+      if (result.code === 'SUCCESS') {
+        return { success: true, data: result.data };
+      }
+      
+      // 에러 케이스들 처리
+      if (result.code === 'FEEDBACK_ALREADY_EXISTS') {
+        return { success: false, error: '이미 피드백을 남겼습니다.' };
+      }
+      if (result.code === 'FEEDBACK_TOO_LONG') {
+        return { success: false, error: '피드백은 2000자 이하로 작성해주세요.' };
+      }
+      if (result.code === 'UNAUTHORIZED_MENTO_ROLE') {
+        return { success: false, error: '멘토만 과제를 관리할 수 있습니다.' };
+      }
+      if (result.code === 'FEEDBACK_CONTENT_REQUIRED') {
+        return { success: false, error: '과제 피드백 내용이 없습니다.' };
+      }
+      
+      return { success: false, error: result.message || '피드백 작성에 실패했습니다.' };
+    } catch (error) {
+      return { success: false, error: '피드백 작성 중 오류가 발생했습니다.' };
+    }
+  };
+
+  // 피드백 수정 API 함수
+  const updateFeedback = async (planId, submitId, feedback) => {
+    try {
+      const result = await api('PUT', `/group/${groupId}/assignment/submit/${planId}/submission/${submitId}/feedback`, { feedback }, token);
+      
+      if (result.code === 'SUCCESS') {
+        return { success: true, data: result.data };
+      }
+      
+      // 에러 케이스들 처리
+      if (result.code === 'FEEDBACK_TOO_LONG') {
+        return { success: false, error: '피드백은 2000자 이하로 작성해주세요.' };
+      }
+      if (result.code === 'UNAUTHORIZED_MENTO_ROLE') {
+        return { success: false, error: '멘토만 과제를 관리할 수 있습니다.' };
+      }
+      if (result.code === 'FEEDBACK_CONTENT_REQUIRED') {
+        return { success: false, error: '과제 피드백 내용이 없습니다.' };
+      }
+      
+      return { success: false, error: result.message || '피드백 수정에 실패했습니다.' };
+    } catch (error) {
+      return { success: false, error: '피드백 수정 중 오류가 발생했습니다.' };
+    }
+  };
+
+  // 피드백 삭제 API 함수
+  const deleteFeedback = async (planId, submitId) => {
+    try {
+      const result = await api('DELETE', `/group/${groupId}/assignment/submit/${planId}/submission/${submitId}/feedback`, null, token);
+      
+      if (result.code === 'SUCCESS') {
+        return { success: true };
+      }
+      
+      // 에러 케이스들 처리
+      if (result.code === 'UNAUTHORIZED_MENTO_ROLE') {
+        return { success: false, error: '멘토만 과제를 관리할 수 있습니다.' };
+      }
+      
+      return { success: false, error: result.message || '피드백 삭제에 실패했습니다.' };
+    } catch (error) {
+      return { success: false, error: '피드백 삭제 중 오류가 발생했습니다.' };
+    }
+  };
+
+  // 피드백 모달 열기
+  const openFeedbackModal = (planId, submitId, mode = 'create', currentFeedback = '') => {
+    setFeedbackModal({
+      isOpen: true,
+      mode,
+      planId,
+      submitId,
+      currentFeedback
+    });
+    setFeedbackFormData({
+      feedback: currentFeedback
+    });
+  };
+
+  // 피드백 모달 닫기
+  const closeFeedbackModal = () => {
+    setFeedbackModal({
+      isOpen: false,
+      mode: 'create',
+      planId: null,
+      submitId: null,
+      currentFeedback: ''
+    });
+    setFeedbackFormData({
+      feedback: ''
+    });
+  };
+
+  // 피드백 폼 데이터 변경
+  const handleFeedbackFormChange = (e) => {
+    const { name, value } = e.target;
+    setFeedbackFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  // 피드백 제출/수정 처리
+  const handleFeedbackSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!feedbackFormData.feedback.trim()) {
+      alert('피드백 내용을 입력해주세요.');
+      return;
+    }
+
+    if (feedbackFormData.feedback.length > 2000) {
+      alert('피드백은 2000자 이하로 작성해주세요.');
+      return;
+    }
+
+    try {
+      let result;
+      if (feedbackModal.mode === 'create') {
+        result = await createFeedback(feedbackModal.planId, feedbackModal.submitId, feedbackFormData.feedback);
+      } else {
+        result = await updateFeedback(feedbackModal.planId, feedbackModal.submitId, feedbackFormData.feedback);
+      }
+
+      if (result.success) {
+        alert(feedbackModal.mode === 'create' ? '피드백이 작성되었습니다.' : '피드백이 수정되었습니다.');
+        
+        // 피드백이 추가/수정되었으므로 해당 제출 상세 정보를 다시 가져오기
+        const detailResult = await fetchSubmissionDetail(feedbackModal.planId, feedbackModal.submitId);
+        if (detailResult.success) {
+          const key = `${feedbackModal.planId}-${feedbackModal.submitId}`;
+          setExpandedSubmissions(prev => ({
+            ...prev,
+            [key]: detailResult.data
+          }));
+        }
+        
+        closeFeedbackModal();
+      } else {
+        alert(result.error);
+      }
+    } catch (error) {
+      alert('피드백 처리 중 오류가 발생했습니다.');
+    }
+  };
+
+  // 피드백 삭제 처리
+  const handleFeedbackDelete = async (planId, submitId) => {
+    if (!confirm('피드백을 삭제하시겠습니까?')) {
+      return;
+    }
+
+    try {
+      const result = await deleteFeedback(planId, submitId);
+      
+      if (result.success) {
+        alert('피드백이 삭제되었습니다.');
+        
+        // 피드백이 삭제되었으므로 해당 제출 상세 정보를 다시 가져오기
+        const detailResult = await fetchSubmissionDetail(planId, submitId);
+        if (detailResult.success) {
+          const key = `${planId}-${submitId}`;
+          setExpandedSubmissions(prev => ({
+            ...prev,
+            [key]: detailResult.data
+          }));
+        }
+      } else {
+        alert(result.error);
+      }
+    } catch (error) {
+      alert('피드백 삭제 중 오류가 발생했습니다.');
     }
   };
 
@@ -1165,14 +1389,26 @@ export default function CurriculumSection({ groupId, isMentor }) {
         result = await updateAssignmentSubmission(assignmentSubmissionModal.planId, submitId, assignmentSubmissionFormData);
       if (result.success) {
           alert('과제가 성공적으로 수정되었습니다!');
-          // 제출된 과제 정보 업데이트
-          setSubmittedAssignments(prev => ({
-            ...prev,
-            [assignmentSubmissionModal.planId]: {
-              ...result.data,
-              submissionId: result.data.submissionId || result.data.id
-            }
-          }));
+          // 수정 후 완전한 데이터(비밀번호 포함)를 다시 가져오기
+          const submissionResult = await fetchAssignmentSubmission(assignmentSubmissionModal.planId);
+          if (submissionResult.success) {
+            setSubmittedAssignments(prev => ({
+              ...prev,
+              [assignmentSubmissionModal.planId]: {
+                ...submissionResult.data,
+                submissionId: submissionResult.data.submissionId || submissionResult.data.id
+              }
+            }));
+          } else {
+            // 가져오기 실패 시 기본 데이터라도 저장
+            setSubmittedAssignments(prev => ({
+              ...prev,
+              [assignmentSubmissionModal.planId]: {
+                ...result.data,
+                submissionId: result.data.submissionId || result.data.id
+              }
+            }));
+          }
           closeAssignmentSubmissionModal();
         } else {
           alert(`과제 수정 실패: ${result.error}`);
@@ -1182,20 +1418,33 @@ export default function CurriculumSection({ groupId, isMentor }) {
         result = await submitAssignment(assignmentSubmissionModal.planId, assignmentSubmissionFormData);
         
         if (result.success) {
-          // 제출된 과제 정보 저장 (submissionId 포함)
-        setSubmittedAssignments(prev => ({
-          ...prev,
-            [assignmentSubmissionModal.planId]: {
-              ...result.data,
-              submissionId: result.data.submissionId || result.data.id
-            }
-          }));
+          // 제출 후 완전한 데이터(비밀번호 포함)를 다시 가져오기
+          const submissionResult = await fetchAssignmentSubmission(assignmentSubmissionModal.planId);
+          if (submissionResult.success) {
+            setSubmittedAssignments(prev => ({
+              ...prev,
+              [assignmentSubmissionModal.planId]: {
+                ...submissionResult.data,
+                submissionId: submissionResult.data.submissionId || submissionResult.data.id
+              }
+            }));
+          } else {
+            // 가져오기 실패 시 기본 데이터라도 저장
+            setSubmittedAssignments(prev => ({
+              ...prev,
+              [assignmentSubmissionModal.planId]: {
+                ...result.data,
+                submissionId: result.data.submissionId || result.data.id
+              }
+            }));
+          }
           
           // 중복 제출인 경우 다른 메시지 표시
           if (result.isDuplicate) {
             alert('이미 제출된 과제입니다. 제출 정보를 불러왔습니다.');
           } else {
-            alert('과제가 성공적으로 제출되었습니다!');
+            // 축하 애니메이션 트리거
+            triggerCelebration();
           }
         
         closeAssignmentSubmissionModal();
@@ -1204,7 +1453,7 @@ export default function CurriculumSection({ groupId, isMentor }) {
       }
       }
     } catch (error) {
-      console.error('과제 처리 오류:', error);
+      // 과제 처리 오류
       alert(`과제 ${assignmentSubmissionModal.mode === 'edit' ? '수정' : '제출'} 중 오류가 발생했습니다.`);
     }
   };
@@ -1236,7 +1485,7 @@ export default function CurriculumSection({ groupId, isMentor }) {
         alert(`과제 삭제 실패: ${result.error}`);
       }
     } catch (error) {
-      console.error('과제 삭제 오류:', error);
+      // 과제 삭제 오류
       alert('과제 삭제 중 오류가 발생했습니다.');
     }
   };
@@ -1746,6 +1995,17 @@ export default function CurriculumSection({ groupId, isMentor }) {
 
   return (
     <div className="curriculum-section">
+      {/* 축하 애니메이션 오버레이 */}
+      {showCelebration && (
+        <div className="celebration-overlay">
+          <div className="celebration-message">
+            <div className="celebration-emoji">🎉</div>
+            <div className="celebration-text">참 잘했어요~!!</div>
+            <div className="celebration-subtext">과제 제출 완료!</div>
+          </div>
+        </div>
+      )}
+      
       {/* 주차별 과제 제출 테이블 */}
       <div className="group-assignments curriculum-list">
         <div className="group-assignments-header">
@@ -1804,6 +2064,12 @@ export default function CurriculumSection({ groupId, isMentor }) {
                 <span className="attendance-rate-label">출석률:</span>
                 <span className={`attendance-rate-value ${attendanceRate >= 80 ? 'high' : attendanceRate >= 60 ? 'medium' : 'low'}`}>
                   {attendanceRate}%
+                </span>
+              </div>
+              <div className="assignment-stats-display">
+                <span className="assignment-stats-label">과제 현황:</span>
+                <span className="assignment-stats-value">
+                  {getAssignmentStats().submitted}/{getAssignmentStats().total}
                 </span>
               </div>
               <button 
@@ -1881,10 +2147,25 @@ export default function CurriculumSection({ groupId, isMentor }) {
                         <div className="submitted-assignment">
                           <div className="submission-info">
                             <h4>제출된 과제</h4>
-                            <p><strong>주소:</strong> {submittedAssignments[assignment.assignmentId].content}</p>
-                            <p><strong>제출일:</strong> {new Date(submittedAssignments[assignment.assignmentId].createdAt).toLocaleString('ko-KR')}</p>
                             {submittedAssignments[assignment.assignmentId].creatorName && (
                               <p><strong>제출자:</strong> {submittedAssignments[assignment.assignmentId].creatorName}</p>
+                            )}
+                            <p><strong>주소:</strong> {submittedAssignments[assignment.assignmentId].content}</p>
+                            {submittedAssignments[assignment.assignmentId].password && (
+                              <p><strong>비밀번호:</strong> <span className="submission-password">{submittedAssignments[assignment.assignmentId].password}</span></p>
+                            )}
+                            <p><strong>제출일:</strong> {new Date(submittedAssignments[assignment.assignmentId].createdAt).toLocaleString('ko-KR')}</p>
+                            
+                            {/* 사용자 제출물 피드백 표시 */}
+                            {submittedAssignments[assignment.assignmentId].feedback && (
+                              <div className="feedback-section">
+                                <h6>멘토 피드백</h6>
+                                <div className="feedback-content">
+                                  <p className="feedback-text">
+                                    {submittedAssignments[assignment.assignmentId].feedback}
+                                  </p>
+                                </div>
+                              </div>
                             )}
                           </div>
                           <div className="submission-actions">
@@ -1994,9 +2275,51 @@ export default function CurriculumSection({ groupId, isMentor }) {
                                             <p><strong>비밀번호:</strong> {expandedSubmissions[`${assignment.assignmentId}-${submission.submissionId || submission.id}`].password}</p>
                                           )}
                                           <p><strong>제출 ID:</strong> {expandedSubmissions[`${assignment.assignmentId}-${submission.submissionId || submission.id}`].submissionId}</p>
-                                          {expandedSubmissions[`${assignment.assignmentId}-${submission.submissionId || submission.id}`].feedback && (
-                                            <p><strong>피드백:</strong> {expandedSubmissions[`${assignment.assignmentId}-${submission.submissionId || submission.id}`].feedback}</p>
-                                          )}
+                                          
+                                          {/* 피드백 섹션 */}
+                                          <div className="feedback-section">
+                                            <h6>피드백</h6>
+                                            {expandedSubmissions[`${assignment.assignmentId}-${submission.submissionId || submission.id}`].feedback ? (
+                                              <div className="feedback-content">
+                                                <p className="feedback-text">
+                                                  {expandedSubmissions[`${assignment.assignmentId}-${submission.submissionId || submission.id}`].feedback}
+                                                </p>
+                                                {isMentor && (
+                                                  <div className="feedback-actions">
+                                                    <button 
+                                                      className="btn btn-small btn-primary feedback-edit"
+                                                      onClick={() => openFeedbackModal(
+                                                        assignment.assignmentId, 
+                                                        submission.submissionId || submission.id, 
+                                                        'edit', 
+                                                        expandedSubmissions[`${assignment.assignmentId}-${submission.submissionId || submission.id}`].feedback
+                                                      )}
+                                                    >
+                                                      <i className="fas fa-edit"></i> 수정
+                                                    </button>
+                                                    <button 
+                                                      className="btn btn-small btn-danger feedback-delete"
+                                                      onClick={() => handleFeedbackDelete(assignment.assignmentId, submission.submissionId || submission.id)}
+                                                    >
+                                                      <i className="fas fa-trash"></i> 삭제
+                                                    </button>
+                                                  </div>
+                                                )}
+                                              </div>
+                                            ) : (
+                                              <div className="no-feedback">
+                                                <p className="no-feedback-text">아직 피드백이 없습니다.</p>
+                                                {isMentor && (
+                                                  <button 
+                                                    className="btn"
+                                                    onClick={() => openFeedbackModal(assignment.assignmentId, submission.submissionId || submission.id, 'create')}
+                                                  >
+                                                    <i className="fas fa-plus"></i> 피드백 작성
+                                                  </button>
+                                                )}
+                                              </div>
+                                            )}
+                                          </div>
                                         </div>
                                       </div>
                                     )}
@@ -2699,6 +3022,54 @@ export default function CurriculumSection({ groupId, isMentor }) {
               </button>
               <button className="btn btn-primary" onClick={handleUpdateActivity}>
                 수정
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 피드백 모달 */}
+      {feedbackModal.isOpen && (
+        <div className="modal-overlay">
+          <div className="modal-content feedback-modal">
+            <div className="modal-header">
+              <h3>{feedbackModal.mode === 'create' ? '피드백 작성' : '피드백 수정'}</h3>
+              <button className="assignment-modal-close" onClick={closeFeedbackModal}>
+                <i className="fas fa-times"></i>
+              </button>
+            </div>
+            
+            <div className="modal-body">
+              <form onSubmit={handleFeedbackSubmit}>
+                <div className="form-group">
+                  <label htmlFor="feedback">피드백 내용</label>
+                  <textarea
+                    id="feedback"
+                    name="feedback"
+                    value={feedbackFormData.feedback}
+                    onChange={handleFeedbackFormChange}
+                    placeholder="피드백을 입력해주세요. (최대 2000자)"
+                    rows={6}
+                    maxLength={2000}
+                    required
+                  />
+                  <div className="character-count">
+                    {feedbackFormData.feedback.length}/2000
+                  </div>
+                </div>
+              </form>
+            </div>
+            
+            <div className="modal-footer">
+              <button className="btn btn-secondary" onClick={closeFeedbackModal}>
+                취소
+              </button>
+              <button 
+                className="btn btn-primary" 
+                onClick={handleFeedbackSubmit}
+                disabled={!feedbackFormData.feedback.trim()}
+              >
+                {feedbackModal.mode === 'create' ? '작성' : '수정'}
               </button>
             </div>
           </div>

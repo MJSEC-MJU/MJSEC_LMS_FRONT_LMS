@@ -43,7 +43,7 @@ export default function Update() {
           })
         }
       } catch (error) {
-        console.error('프로필 로드 실패:', error)
+        // 프로필 로드 실패
         setError('프로필 정보를 불러오는데 실패했습니다.')
       }
     }
@@ -81,15 +81,16 @@ export default function Update() {
       if (result.code === 'SUCCESS') {
         setMessage('프로필이 성공적으로 업데이트되었습니다.')
         
-        // 0.5초 후 프로필 페이지로 이동
+        // 0.5초 후 프로필 페이지로 이동하고 새로고침
         setTimeout(() => {
           navigate('/profile')
+          window.location.reload() // 페이지 새로고침으로 네브바 프로필 이미지 업데이트
         }, 500)
       } else {
         setError(result.message || '프로필 업데이트에 실패했습니다.')
       }
     } catch (error) {
-      console.error('프로필 업데이트 오류:', error)
+      // 프로필 업데이트 오류
       setError('프로필 업데이트 중 오류가 발생했습니다.')
     } finally {
       setIsSubmitting(false)

@@ -100,7 +100,7 @@ useEffect(() => {
       }
     } catch (e) {
       setError(`Error fetching pending members: ${e.message}`);
-      console.error(e);
+      // 에러 발생
     } finally {
       setLoading(false);
     }
@@ -118,7 +118,7 @@ useEffect(() => {
       }
     } catch (e) {
       alert(`회원 승인 중 오류 발생: ${e.message}`);
-      console.error(e);
+      // 에러 발생
     }
   }, [token, fetchPendingMembers]);
 
@@ -134,7 +134,7 @@ useEffect(() => {
       }
     } catch (e) {
       alert(`회원 거부 중 오류 발생: ${e.message}`);
-      console.error(e);
+      // 에러 발생
     }
   }, [token, fetchPendingMembers]);
 
@@ -180,7 +180,7 @@ useEffect(() => {
       }
     } catch (e) {
       alert(`스터디 그룹 생성 중 오류 발생: ${e.message}`);
-      console.error(e);
+      // 에러 발생
     } finally {
       setCreatingGroup(false);
     }
@@ -238,7 +238,7 @@ useEffect(() => {
       }
     } catch (e) {
       alert(`스터디 그룹 수정 중 오류 발생: ${e.message}`);
-      console.error(e);
+      // 에러 발생
     } finally {
       setUpdatingGroup(false);
     }
@@ -258,7 +258,7 @@ useEffect(() => {
       }
     } catch (e) {
       setUsersError(`사용자 목록 조회 오류: ${e.message}`);
-      console.error(e);
+      // 에러 발생
     } finally {
       setUsersLoading(false);
     }
@@ -282,7 +282,7 @@ useEffect(() => {
       }
     } catch (e) {
       alert(`사용자 삭제 오류: ${e.message}`);
-      console.error(e);
+      // 에러 발생
     } finally {
       setDeletingUserId(null);
     }
