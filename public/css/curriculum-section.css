@@ -127,6 +127,30 @@
   border: 1px solid var(--border-color);
   border-radius: 0.6rem;
   transition: all 0.3s ease;
+  gap: 1rem;
+}
+
+.submission-profile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 70px;
+  height: 70px;
+  flex-shrink: 0;
+}
+
+.submission-profile-image {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--border-color);
+  transition: all 0.3s ease;
+}
+
+.submission-profile-image:hover {
+  transform: scale(1.1);
+  border-color: var(--main-color);
 }
 
 .submission-item:hover {
@@ -399,6 +423,14 @@
 
 .dark .submission-item:hover {
   box-shadow: 0 2px 8px rgba(255, 255, 255, 0.1);
+}
+
+.dark .submission-profile-image {
+  border-color: var(--dark-border-color);
+}
+
+.dark .submission-profile-image:hover {
+  border-color: var(--main-color);
 }
 
 .dark .submission-header h5 {
@@ -1847,23 +1879,18 @@ body:not(.active) .assignment-modal-overlay {
 /* 활동 사진 보기 버튼 */
 .activity-photos-btn {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  color: var(--black) !important;
+  padding: 1rem 2rem;
   border: none;
-  padding: 8px 16px;
-  border-radius: 6px;
+  border-radius: 0.8rem;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 1.4rem;
   font-weight: 600;
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 0.8rem;
   transition: all 0.3s ease;
-  box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
-  min-width: 140px;
   white-space: nowrap;
-  width: auto;
-  margin-top: 0;
-  min-height: 40px;
 }
 
 .activity-photos-btn:hover {
@@ -1883,7 +1910,7 @@ body:not(.active) .assignment-modal-overlay {
   border-radius: 8px;
   font-size: 15px;
   font-weight: 600;
-  min-width: 160px;
+  width: auto;
   min-height: 44px;
   gap: 8px;
 }
@@ -3554,8 +3581,39 @@ body:not(.active) .activity-photos-modal-overlay {
   border: 1px solid var(--border-color);
 }
 
+.feedback-header {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin-bottom: 0.8rem;
+}
+
+.feedback-mentor-profile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+}
+
+.feedback-mentor-image {
+  width: 5rem;
+  height: 5rem;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: center center;
+  border: 2px solid var(--border-color);
+  transition: all 0.3s ease;
+}
+
+.feedback-mentor-image:hover {
+  transform: scale(1.1);
+  border-color: var(--main-color);
+}
+
 .feedback-section h6 {
-  margin: 0 0 0.8rem 0;
+  margin: 0;
   color: var(--black);
   font-size: 1.6rem;
   font-weight: 600;
@@ -3619,6 +3677,14 @@ body:not(.active) .activity-photos-modal-overlay {
 
 .dark .feedback-delete {
   color: var(--black);
+}
+
+.dark .feedback-mentor-image {
+  border-color: var(--dark-border);
+}
+
+.dark .feedback-mentor-image:hover {
+  border-color: var(--main-color);
 }
 
 /* 피드백 모달 스타일 */

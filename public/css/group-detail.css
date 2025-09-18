@@ -301,6 +301,29 @@
   gap: 1rem;
 }
 
+.group-mentor-member-profile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 50px;
+  flex-shrink: 0;
+}
+
+.mentee-profile-image {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--border);
+  transition: all 0.3s ease;
+}
+
+.mentee-profile-image:hover {
+  transform: scale(1.1);
+  border-color: var(--main-color);
+}
+
 .group-mentor-member-info {
   flex: 1;
   display: flex;
@@ -440,6 +463,14 @@
   color: var(--black);
 }
 
+.dark .mentee-profile-image {
+  border-color: #555;
+}
+
+.dark .mentee-profile-image:hover {
+  border-color: var(--main-color);
+}
+
 /* 멤버 경고 횟수 표시 - 빨간색 강제 적용 */
 .group-mentor-member-warnings {
   font-size: 12px;
@@ -511,14 +542,14 @@
 }
 
 .dark .group-mentor-remove-btn {
-  background: var(--black);
+  background: #dc3545;
   color: var(--black);
   border-color: var(--black);
 }
 
 .dark .group-mentor-remove-btn:hover {
-  background: #333;
-  border-color: #333;
+  background: #c82333;
+  border-color: #c82333;
 }
 
 .dark .group-mentor-member-email {

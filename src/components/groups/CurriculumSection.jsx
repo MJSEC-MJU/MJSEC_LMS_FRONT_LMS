@@ -41,6 +41,102 @@ const toImageApiUrl = (raw) => {
   const name = extractFileName(raw);
   return name ? `${API_BASE}/image/${name}` : null;
 };
+
+// 멘티 프로필 이미지 URL 생성 함수
+const getMenteeProfileImageSrc = (mentees, creatorName, studentNumber) => {
+  const base = (import.meta.env.BASE_URL || "/");
+  const logoFallback = `${base}images/logo.png`;
+  
+  // 멘티 목록에서 해당 사용자 찾기
+  const mentee = mentees.find(m => 
+    m.name === creatorName || 
+    m.studentNumber === studentNumber ||
+    m.studentNumber?.toString() === studentNumber?.toString()
+  );
+  
+  if (!mentee?.profileImage) return logoFallback;
+  
+  if (/^(https?:)?\/\//.test(mentee.profileImage) || mentee.profileImage.startsWith("data:")) {
+    return mentee.profileImage;
+  }
+  
+  if (mentee.profileImage.startsWith("/uploads/")) {
+    return `${window.location.origin}${base}api/v1/image${mentee.profileImage.replace("/uploads", "")}`;
+  }
+  
+  return `${base}${mentee.profileImage.replace(/^\//, "")}`;
+};
+
+// 멘토 프로필 이미지 URL 생성 함수
+const getMentorProfileImageSrc = (mentorInfo) => {
+  const base = (import.meta.env.BASE_URL || "/");
+  const logoFallback = `${base}images/logo.png`;
+  
+  if (!mentorInfo?.profileImage) return logoFallback;
+  
+  if (/^(https?:)?\/\//.test(mentorInfo.profileImage) || mentorInfo.profileImage.startsWith("data:")) {
+    return mentorInfo.profileImage;
+  }
+  
+  if (mentorInfo.profileImage.startsWith("/uploads/")) {
+    return `${window.location.origin}${base}api/v1/image${mentorInfo.profileImage.replace("/uploads", "")}`;
+  }
+  
+  return `${base}${mentorInfo.profileImage.replace(/^\//, "")}`;
+};
+
+// 이미지를 정사각형으로 자르는 함수
+const cropImageToSquare = (imageSrc, callback) => {
+  const img = new Image();
+  img.crossOrigin = 'anonymous';
+  img.onload = () => {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    // 정사각형 크기 계산 (작은 쪽을 기준으로)
+    const size = Math.min(img.width, img.height);
+    canvas.width = size;
+    canvas.height = size;
+    
+    // 중앙에서 정사각형으로 자르기
+    const x = (img.width - size) / 2;
+    const y = (img.height - size) / 2;
+    
+    ctx.drawImage(img, x, y, size, size, 0, 0, size, size);
+    
+    const croppedDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+    callback(croppedDataUrl);
+  };
+  img.onerror = () => {
+    // 이미지 로드 실패 시 원본 URL 반환
+    callback(imageSrc);
+  };
+  img.src = imageSrc;
+};
+
+// 멘토 프로필 이미지 URL 생성 및 자르기 함수
+const getMentorProfileImageSrcCropped = (mentorInfo, callback) => {
+  const base = (import.meta.env.BASE_URL || "/");
+  const logoFallback = `${base}images/logo.png`;
+
+  if (!mentorInfo?.profileImage) {
+    callback(logoFallback);
+    return;
+  }
+
+  let imageUrl;
+  if (/^(https?:)?\/\//.test(mentorInfo.profileImage) || mentorInfo.profileImage.startsWith("data:")) {
+    imageUrl = mentorInfo.profileImage;
+  } else if (mentorInfo.profileImage.startsWith("/uploads/")) {
+    imageUrl = `${window.location.origin}${base}api/v1/image${mentorInfo.profileImage.replace("/uploads", "")}`;
+  } else {
+    imageUrl = `${base}${mentorInfo.profileImage.replace(/^\//, "")}`;
+  }
+
+  // 이미지를 정사각형으로 자르기
+  cropImageToSquare(imageUrl, callback);
+};
+
 export default function CurriculumSection({ groupId, isMentor }) {
   const { user, token } = useAuth();
   // 과제/커리큘럼 관련 상태
@@ -125,6 +221,8 @@ export default function CurriculumSection({ groupId, isMentor }) {
   const [expandedSubmissions, setExpandedSubmissions] = useState({}); // 확장된 제출 상세 정보
   const [userProfile, setUserProfile] = useState(null); // 사용자 프로필 정보
   const [mentees, setMentees] = useState([]); // 멘티 목록 (미제출자 수 계산용)
+  const [mentorInfo, setMentorInfo] = useState(null); // 멘토 정보
+  const [croppedMentorImage, setCroppedMentorImage] = useState(null); // 자른 멘토 이미지
   
   // 피드백 관련 상태
   const [feedbackModal, setFeedbackModal] = useState({
@@ -1001,6 +1099,29 @@ export default function CurriculumSection({ groupId, isMentor }) {
       }
     } catch {
       // 멘티 목록 조회 오류
+    }
+  };
+
+  // 멘토 정보 조회
+  const fetchMentorInfo = async () => {
+    if (!token || !groupId) return;
+    
+    try {
+      const result = await api('GET', `/group/${groupId}/member`, null, token);
+      if (result.code === 'SUCCESS') {
+        const members = result.data || [];
+        const mentor = members.find(member => member.role === 'MENTOR');
+        setMentorInfo(mentor);
+        
+        // 멘토 이미지를 정사각형으로 자르기
+        if (mentor?.profileImage) {
+          getMentorProfileImageSrcCropped(mentor, (croppedImage) => {
+            setCroppedMentorImage(croppedImage);
+          });
+        }
+      }
+    } catch {
+      // 멘토 정보 조회 오류
     }
   };
 
@@ -1963,6 +2084,13 @@ export default function CurriculumSection({ groupId, isMentor }) {
     }
   }, [token, isMentor]);
 
+  // 멘토 정보 로드
+  useEffect(() => {
+    if (token && groupId) {
+      fetchMentorInfo();
+    }
+  }, [token, groupId]);
+
   // 과제 제출 목록 미리 로드 (멘토만)
   useEffect(() => {
     const loadAllSubmissionLists = async () => {
@@ -2159,7 +2287,17 @@ export default function CurriculumSection({ groupId, isMentor }) {
                             {/* 사용자 제출물 피드백 표시 */}
                             {submittedAssignments[assignment.assignmentId].feedback && (
                               <div className="feedback-section">
-                                <h6>멘토 피드백</h6>
+                                <div className="feedback-header">
+                                  <div className="feedback-mentor-profile">
+                                    <img 
+                                      src={croppedMentorImage || getMentorProfileImageSrc(mentorInfo)} 
+                                      alt={mentorInfo?.name || '멘토'} 
+                                      className="feedback-mentor-image"
+                                      onError={(e) => { e.currentTarget.src = `${import.meta.env.BASE_URL || "/"}images/logo.png` }}
+                                    />
+                                  </div>
+                                  <h6>멘토 피드백</h6>
+                                </div>
                                 <div className="feedback-content">
                                   <p className="feedback-text">
                                     {submittedAssignments[assignment.assignmentId].feedback}
@@ -2227,6 +2365,14 @@ export default function CurriculumSection({ groupId, isMentor }) {
                             <div className="submission-list">
                               {assignmentSubmissionList[assignment.assignmentId].map((submission, index) => (
                                 <div key={submission.submissionId || index} className="submission-item">
+                                  <div className="submission-profile">
+                                    <img 
+                                      src={getMenteeProfileImageSrc(mentees, submission.creatorName, submission.studentNumber)} 
+                                      alt={submission.creatorName || '프로필'} 
+                                      className="submission-profile-image"
+                                      onError={(e) => { e.currentTarget.src = `${import.meta.env.BASE_URL || "/"}images/logo.png` }}
+                                    />
+                                  </div>
                                   <div className="submission-info">
                                     <div className="submission-header">
                                       <h5>{submission.creatorName || '익명'}</h5>
@@ -2278,7 +2424,10 @@ export default function CurriculumSection({ groupId, isMentor }) {
                                           
                                           {/* 피드백 섹션 */}
                                           <div className="feedback-section">
-                                            <h6>피드백</h6>
+                                            <div className="feedback-header">
+
+                                              <h6>피드백</h6>
+                                            </div>
                                             {expandedSubmissions[`${assignment.assignmentId}-${submission.submissionId || submission.id}`].feedback ? (
                                               <div className="feedback-content">
                                                 <p className="feedback-text">

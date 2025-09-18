@@ -89,7 +89,9 @@
    height: 10rem;
    width: 10rem;
    border-radius: 50%;
-   object-fit: contain;
+   object-fit: cover;
+   object-position: center center;
+   transform: scale(0.9);
    margin-bottom: 1rem;
 }
 
@@ -153,7 +155,9 @@
    height: 10rem;
    width: 10rem;
    border-radius: 50%;
-   object-fit: contain;
+   object-fit: cover;
+   object-position: center center;
+   transform: scale(0.9);
    margin-bottom: 1rem;
 }
 
