@@ -49,7 +49,7 @@ export default function Admin() {
   const [creatingGroup, setCreatingGroup] = useState(false);
 
   // 스터디 그룹 수정 폼 상태
-  const [editGroupId, setEditGroupId] = useState('');
+  const [currentGroupName, setCurrentGroupName] = useState('');
   const [editGroupName, setEditGroupName] = useState('');
   const [editGroupDescription, setEditGroupDescription] = useState(''); // ← content로 전송
   const [editGroupCategory, setEditGroupCategory] = useState('WEB');
@@ -213,6 +213,8 @@ useEffect(() => {
         formData.append('studyImage', editGroupImage);
       }
 
+      const currentGroupName = currentGroupName;
+
       const groupDto = {
         name: editGroupName,
         content: editGroupDescription,       // ← description을 content로 보냄
@@ -224,10 +226,10 @@ useEffect(() => {
         new Blob([JSON.stringify(groupDto)], { type: 'application/json' })
       );
 
-      const res = await api('PUT', `/admin/group/${editGroupName}`, formData,  token, { 'Content-Type': 'multipart/form-data' });
+      const res = await api('PUT', `/admin/group/${encodeURIComponent(currentGroupName)}`, formData,  token, { 'Content-Type': 'multipart/form-data' });
       if (res?.code === 'SUCCESS') {
         alert('스터디 그룹 수정 성공!');
-        setEditGroupId('');
+        setCurrentGroupName('');
         setEditGroupName('');
         setEditGroupDescription('');
         setEditGroupCategory('WEB');
@@ -241,7 +243,7 @@ useEffect(() => {
     } finally {
       setUpdatingGroup(false);
     }
-  }, [token, editGroupId, editGroupName, editGroupDescription, editGroupCategory, editGroupMentor, updatingGroup]);
+  }, [token, currentGroupName, editGroupName, editGroupDescription, editGroupCategory, editGroupMentor, updatingGroup]);
 
   // 전체 사용자 목록 불러오기
   const fetchAllUsers = useCallback(async () => {
@@ -294,6 +296,27 @@ useEffect(() => {
     }
     fetchPendingMembers();
   }, [token, user, nav, fetchPendingMembers]);
+
+  // 스터디 그룹 이름 중복 확인 함수
+const checkGroupNameDuplicate = async (groupName, token) => {
+  if (!groupName) throw new Error('그룹 이름이 필요합니다');
+  // 예시: /admin/group/check-name/{groupName}
+  return await api('GET', `/admin/group/check-name/${encodeURIComponent(currentGroupName)}`, null, token);
+};
+
+  // 예시: 그룹 이름 입력 시 중복 체크
+const handleCheckGroupName = async () => {
+  try {
+    const res = await checkGroupNameDuplicate(editGroupName, token);
+    if (res?.data === true) {
+      alert('사용 가능한 그룹 이름입니다.');
+    } else {
+      alert('이미 존재하는 그룹 이름입니다.');
+    }
+  } catch (e) {
+    alert('중복 확인 중 오류 발생: ' + e.message);
+  }
+};
 
   if (!token || !user || user.role !== 'ROLE_ADMIN') {
     return null;
@@ -517,30 +540,40 @@ useEffect(() => {
               style={{ marginBottom: '20px' }}
             />
             
-            <p style={{ marginBottom: '10px', color: '#555', fontSize: '1.1em' }}>그룹 ID <span>*</span></p>
+            <p style={{ marginBottom: '10px', color: '#555', fontSize: '1.1em' }}>현재 스터디 그룹 이름 <span>*</span></p>
             <input
               type="text"
-              placeholder="수정할 그룹 ID를 입력하세요"
+              placeholder="수정할 현재 스터디 그룹 이름 입력하세요"
               className="box"
               required
-              value={editGroupId}
-              onChange={(e) => setEditGroupId(e.target.value)}
+              value={currentGroupName}
+              onChange={(e) => setCurrentGroupName(e.target.value)}
               autoComplete="off"
               style={{ width: '100%', marginBottom: '20px', padding: '12px', border: '1px solid #ccc', borderRadius: '5px', fontSize: '1.1em', boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.1)' }}
             />
 
-            <p style={{ marginBottom: '10px', color: '#555', fontSize: '1.1em' }}>그룹 이름 <span>*</span></p>
-            <input
-              type="text"
-              placeholder="새 그룹 이름을 입력하세요"
-              className="box"
-              required
-              maxLength={100}
-              value={editGroupName}
-              onChange={(e) => setEditGroupName(e.target.value)}
-              autoComplete="off"
-              style={{ width: '100%', marginBottom: '20px', padding: '12px', border: '1px solid #ccc', borderRadius: '5px', fontSize: '1.1em', boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.1)' }}
-            />
+            <p style={{ marginBottom: '10px', color: '#555', fontSize: '1.1em' }}>변경될 스터디 그룹 이름 <span>*</span></p>
+            <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
+              <input
+                type="text"
+                placeholder="변경될 스터디 그룹 이름을 입력하세요"
+                className="box"
+                required
+                maxLength={100}
+                value={editGroupName}
+                onChange={(e) => setEditGroupName(e.target.value)}
+                autoComplete="off"
+                style={{ flex: 1, padding: '12px', border: '1px solid #ccc', borderRadius: '5px', fontSize: '1.1em', boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.1)' }}
+              />
+              <button
+                type="button"
+                className="btn"
+                onClick={handleCheckGroupName}
+                style={{ padding: '12px 18px', fontSize: '1em', background: 'linear-gradient(to right, #17a2b8, #117a8b)', color: '#fff', border: 'none', borderRadius: '5px', cursor: 'pointer' }}
+              >
+                중복 확인
+              </button>
+            </div>
 
             <p style={{ marginBottom: '10px', color: '#555', fontSize: '1.1em' }}>그룹 설명</p>
             <textarea
