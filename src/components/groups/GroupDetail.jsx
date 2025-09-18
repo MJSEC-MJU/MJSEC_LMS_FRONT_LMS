@@ -120,15 +120,11 @@ export default function GroupDetail({ groupId, myStudies }) {
     }
 
     try {
-      console.log('경고 부여 요청:', {
-        groupId,
-        studentNumber: warnModal.studentNumber,
-        token: token ? '있음' : '없음'
-      });
+      // 경고 부여 요청
       
       const response = await api('POST', `/mentor/warn/${groupId}/${warnModal.studentNumber}`, null, token);
       
-      console.log('경고 부여 응답:', response);
+      // 경고 부여 응답
 
       if (response.code === 'SUCCESS') {
         // API에서 최신 경고 데이터 다시 가져오기
@@ -272,8 +268,8 @@ export default function GroupDetail({ groupId, myStudies }) {
         return { success: true, data: result.data };
       }
       return { success: false, error: result.message || '경고 횟수 조회에 실패했습니다.' };
-    } catch (error) {
-      console.error('경고 횟수 조회 오류:', error);
+    } catch {
+      // 경고 횟수 조회 오류
       return { success: false, error: '경고 횟수 조회 중 오류가 발생했습니다.' };
     }
   };
@@ -287,7 +283,7 @@ export default function GroupDetail({ groupId, myStudies }) {
         if (result.success) {
           setMenteeWarnings(result.data);
         } else {
-          console.error('경고 횟수 조회 실패:', result.error);
+          // 경고 횟수 조회 실패
         }
         setLoadingWarnings(false);
       }

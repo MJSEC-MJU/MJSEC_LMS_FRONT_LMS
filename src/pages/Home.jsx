@@ -14,13 +14,11 @@ export default function Home() {
   const fetchNotifications = useCallback(async () => {
     try {
       if (!token) {
-        console.log('토큰이 없어서 공지사항을 가져올 수 없습니다.');
         setLoading(false);
         return;
       }
       
       const result = await api('GET', '/user/announcements', null, token);
-      console.log('Fetched notifications for home:', result);
       
       if (result.code === 'SUCCESS') {
         // announcementId 기준으로 내림차순 정렬 후 최신 4개만 가져오기
@@ -32,8 +30,7 @@ export default function Home() {
         const latestNotifications = sortedNotifications.slice(0, 4);
         setNotifications(latestNotifications);
       }
-    } catch (error) {
-      console.error('공지사항 가져오기 오류:', error);
+    } catch {
       // 에러 발생 시 빈 배열로 설정
       setNotifications([]);
     } finally {
@@ -54,9 +51,6 @@ export default function Home() {
         return;
       }
       const resp = await api('GET', '/user/user-page', null, token);
-      console.log('🏠 /user/user-page API 응답:', resp);
-      console.log('📊 홈 그룹 데이터 개수:', resp?.data?.studyGroups?.length || 0);
-      console.log('📋 홈 그룹 목록:', resp?.data?.studyGroups);
       
       const groups = resp?.data?.studyGroups || [];
       const mapped = groups.map(g => ({
@@ -64,10 +58,8 @@ export default function Home() {
         name: (g.name && g.name.trim() !== '') ? g.name : (g.category || '이름없음')
       }));
       
-      console.log('🎯 홈 매핑된 그룹 데이터:', mapped);
       setStudies(mapped);
-    } catch (e) {
-      console.error('수강중인 강좌 가져오기 오류:', e);
+    } catch {
       setStudies([]);
     } finally {
       setStudiesLoading(false);

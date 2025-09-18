@@ -19,6 +19,8 @@ export default function Navbar() {
   const profileImgSrc = profile?.profileImage
     ? (/^(https?:)?\/\//.test(profile.profileImage) || profile.profileImage.startsWith("data:")
         ? profile.profileImage
+        : profile.profileImage.startsWith("/uploads/")
+        ? `/api/v1/image${profile.profileImage.replace("/uploads", "")}`
         : `${base}${profile.profileImage.replace(/^\//, "")}`)
     : logoFallback
 
