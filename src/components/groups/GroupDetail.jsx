@@ -268,7 +268,7 @@ export default function GroupDetail({ groupId, myStudies }) {
         return { success: true, data: result.data };
       }
       return { success: false, error: result.message || '경고 횟수 조회에 실패했습니다.' };
-    } catch (error) {
+    } catch {
       // 경고 횟수 조회 오류
       return { success: false, error: '경고 횟수 조회 중 오류가 발생했습니다.' };
     }

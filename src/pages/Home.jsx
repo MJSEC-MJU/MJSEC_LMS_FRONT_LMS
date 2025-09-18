@@ -30,7 +30,7 @@ export default function Home() {
         const latestNotifications = sortedNotifications.slice(0, 4);
         setNotifications(latestNotifications);
       }
-    } catch (error) {
+    } catch {
       // 에러 발생 시 빈 배열로 설정
       setNotifications([]);
     } finally {
@@ -59,7 +59,7 @@ export default function Home() {
       }));
       
       setStudies(mapped);
-    } catch (e) {
+    } catch {
       setStudies([]);
     } finally {
       setStudiesLoading(false);

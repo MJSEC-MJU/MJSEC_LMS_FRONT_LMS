@@ -106,7 +106,7 @@ export default function Notifications() {
       }
       const result = await api('POST', '/user/create-announcement', requestBody, token)
       return { success: true, data: result.data }
-    } catch (error) {
+    } catch {
       // 공지사항 생성 에러
       return { success: false, error: { message: '공지사항 생성에 실패했습니다.' } }
     }

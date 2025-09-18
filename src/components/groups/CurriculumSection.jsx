@@ -254,8 +254,8 @@ export default function CurriculumSection({ groupId, isMentor }) {
       } else {
         throw new Error(result.message || '커리큘럼 생성에 실패했습니다.');
       }
-    } catch (error) {
-      return { success: false, error: { message: error.message || '커리큘럼 생성에 실패했습니다.' } };
+    } catch {
+      return { success: false, error: { message: '커리큘럼 생성에 실패했습니다.' } };
     }
   };
 
@@ -278,8 +278,8 @@ export default function CurriculumSection({ groupId, isMentor }) {
       } else {
         throw new Error(result.message || '커리큘럼 수정에 실패했습니다.');
       }
-    } catch (error) {
-      return { success: false, error: { message: error.message || '커리큘럼 수정에 실패했습니다.' } };
+    } catch {
+      return { success: false, error: { message: '커리큘럼 수정에 실패했습니다.' } };
     }
   };
 
@@ -293,8 +293,8 @@ export default function CurriculumSection({ groupId, isMentor }) {
       } else {
         throw new Error(result.message || '커리큘럼 삭제에 실패했습니다.');
       }
-    } catch (error) {
-      return { success: false, error: { message: error.message || '커리큘럼 삭제에 실패했습니다.' } };
+    } catch {
+      return { success: false, error: { message: '커리큘럼 삭제에 실패했습니다.' } };
     }
   };
 
@@ -837,7 +837,7 @@ export default function CurriculumSection({ groupId, isMentor }) {
       }
       
       return { success: false, error: result.message || '과제 제출에 실패했습니다.' };
-    } catch (error) {
+    } catch {
       // 과제 제출 오류
       return { success: false, error: '과제 제출 중 오류가 발생했습니다.' };
     }
@@ -881,7 +881,7 @@ export default function CurriculumSection({ groupId, isMentor }) {
                 }
               };
             }
-          } catch (detailError) {
+          } catch {
             // 과제 상세 정보 조회 오류
           }
           
@@ -897,7 +897,7 @@ export default function CurriculumSection({ groupId, isMentor }) {
         return { success: false, error: '제출된 과제를 찾을 수 없습니다.' };
       }
       return { success: false, error: result.message || '과제 조회에 실패했습니다.' };
-    } catch (error) {
+    } catch {
       // 과제 조회 오류
       return { success: false, error: '과제 조회 중 오류가 발생했습니다.' };
     }
@@ -919,7 +919,7 @@ export default function CurriculumSection({ groupId, isMentor }) {
                 password: result.data.password || '' // 비밀번호 정보 보장
               };
             }
-          } catch (error) {
+          } catch {
             // 과제 조회 오류
           }
         }
@@ -937,7 +937,7 @@ export default function CurriculumSection({ groupId, isMentor }) {
         return result.data;
       }
       return null;
-    } catch (error) {
+    } catch {
       // 사용자 프로필 조회 오류
       return null;
     }
@@ -957,7 +957,7 @@ export default function CurriculumSection({ groupId, isMentor }) {
         return { success: true, data: result.data };
       }
       return { success: false, error: result.message || '과제 제출 목록 조회에 실패했습니다.' };
-    } catch (error) {
+    } catch {
       // 과제 제출 목록 조회 오류
       return { success: false, error: '과제 제출 목록 조회 중 오류가 발생했습니다.' };
     }
@@ -972,7 +972,7 @@ export default function CurriculumSection({ groupId, isMentor }) {
         return { success: true, data: result.data };
       }
       return { success: false, error: result.message || '과제 제출 상세 정보 조회에 실패했습니다.' };
-    } catch (error) {
+    } catch {
       // 과제 제출 상세 정보 조회 오류
       return { success: false, error: '과제 제출 상세 정보 조회 중 오류가 발생했습니다.' };
     }
@@ -999,7 +999,7 @@ export default function CurriculumSection({ groupId, isMentor }) {
       if (result.code === 'SUCCESS') {
         setMentees(result.data || []);
       }
-    } catch (error) {
+    } catch {
       // 멘티 목록 조회 오류
     }
   };
@@ -1097,7 +1097,7 @@ export default function CurriculumSection({ groupId, isMentor }) {
       }
       
       return { success: false, error: result.message || '과제 수정에 실패했습니다.' };
-    } catch (error) {
+    } catch {
       // 과제 수정 오류
       return { success: false, error: '과제 수정 중 오류가 발생했습니다.' };
     }
@@ -1130,7 +1130,7 @@ export default function CurriculumSection({ groupId, isMentor }) {
       }
       
       return { success: false, error: result.message || '과제 삭제에 실패했습니다.' };
-    } catch (error) {
+    } catch {
       // 과제 삭제 오류
       return { success: false, error: '과제 삭제 중 오류가 발생했습니다.' };
     }
@@ -1160,7 +1160,7 @@ export default function CurriculumSection({ groupId, isMentor }) {
       }
       
       return { success: false, error: result.message || '피드백 작성에 실패했습니다.' };
-    } catch (error) {
+    } catch {
       return { success: false, error: '피드백 작성 중 오류가 발생했습니다.' };
     }
   };
@@ -1186,7 +1186,7 @@ export default function CurriculumSection({ groupId, isMentor }) {
       }
       
       return { success: false, error: result.message || '피드백 수정에 실패했습니다.' };
-    } catch (error) {
+    } catch {
       return { success: false, error: '피드백 수정 중 오류가 발생했습니다.' };
     }
   };
@@ -1206,7 +1206,7 @@ export default function CurriculumSection({ groupId, isMentor }) {
       }
       
       return { success: false, error: result.message || '피드백 삭제에 실패했습니다.' };
-    } catch (error) {
+    } catch {
       return { success: false, error: '피드백 삭제 중 오류가 발생했습니다.' };
     }
   };
@@ -1287,7 +1287,7 @@ export default function CurriculumSection({ groupId, isMentor }) {
       } else {
         alert(result.error);
       }
-    } catch (error) {
+    } catch {
       alert('피드백 처리 중 오류가 발생했습니다.');
     }
   };
@@ -1316,7 +1316,7 @@ export default function CurriculumSection({ groupId, isMentor }) {
       } else {
         alert(result.error);
       }
-    } catch (error) {
+    } catch {
       alert('피드백 삭제 중 오류가 발생했습니다.');
     }
   };
@@ -1452,7 +1452,7 @@ export default function CurriculumSection({ groupId, isMentor }) {
         alert(`과제 제출 실패: ${result.error}`);
       }
       }
-    } catch (error) {
+    } catch {
       // 과제 처리 오류
       alert(`과제 ${assignmentSubmissionModal.mode === 'edit' ? '수정' : '제출'} 중 오류가 발생했습니다.`);
     }
@@ -1484,7 +1484,7 @@ export default function CurriculumSection({ groupId, isMentor }) {
       } else {
         alert(`과제 삭제 실패: ${result.error}`);
       }
-    } catch (error) {
+    } catch {
       // 과제 삭제 오류
       alert('과제 삭제 중 오류가 발생했습니다.');
     }

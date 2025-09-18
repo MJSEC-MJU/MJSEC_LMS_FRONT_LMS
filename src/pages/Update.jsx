@@ -42,7 +42,7 @@ export default function Update() {
             profileImage: null
           })
         }
-      } catch (error) {
+      } catch {
         // 프로필 로드 실패
         setError('프로필 정보를 불러오는데 실패했습니다.')
       }
@@ -89,7 +89,7 @@ export default function Update() {
       } else {
         setError(result.message || '프로필 업데이트에 실패했습니다.')
       }
-    } catch (error) {
+    } catch {
       // 프로필 업데이트 오류
       setError('프로필 업데이트 중 오류가 발생했습니다.')
     } finally {
