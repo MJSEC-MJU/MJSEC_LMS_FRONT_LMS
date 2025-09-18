@@ -20,7 +20,7 @@ export default function Navbar() {
     ? (/^(https?:)?\/\//.test(profile.profileImage) || profile.profileImage.startsWith("data:")
         ? profile.profileImage
         : profile.profileImage.startsWith("/uploads/")
-        ? `/api/v1/image${profile.profileImage.replace("/uploads", "")}`
+        ? `${window.location.origin}${base}api/v1/image${profile.profileImage.replace("/uploads", "")}`
         : `${base}${profile.profileImage.replace(/^\//, "")}`)
     : logoFallback
 
