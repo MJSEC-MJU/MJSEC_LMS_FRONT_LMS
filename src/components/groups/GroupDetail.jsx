@@ -10,6 +10,25 @@ export default function GroupDetail({ groupId, myStudies }) {
   const navigate = useNavigate();
   const { user, token } = useAuth();
   
+  // BASE_URL 기반 이미지 경로 설정
+  const base = (import.meta.env.BASE_URL || "/");
+  const logoFallback = `${base}images/logo.png`;
+
+  // 프로필 이미지 URL 생성 함수
+  const getProfileImageSrc = (profileImage) => {
+    if (!profileImage) return logoFallback;
+    
+    if (/^(https?:)?\/\//.test(profileImage) || profileImage.startsWith("data:")) {
+      return profileImage;
+    }
+    
+    if (profileImage.startsWith("/uploads/")) {
+      return `${window.location.origin}${base}api/v1/image${profileImage.replace("/uploads", "")}`;
+    }
+    
+    return `${base}${profileImage.replace(/^\//, "")}`;
+  };
+  
   
   // 그룹 멘티 목록 및 제출 상태
   const [mentees, setMentees] = useState([]);
@@ -398,6 +417,14 @@ export default function GroupDetail({ groupId, myStudies }) {
                   <div className="group-mentor-member-list">
                     {mentees.map((mentee) => (
                       <div key={mentee.userId} className="group-mentor-member-item">
+                        <div className="group-mentor-member-profile">
+                          <img 
+                            src={getProfileImageSrc(mentee.profileImage)} 
+                            alt={mentee.name || '프로필'} 
+                            className="mentee-profile-image"
+                            onError={(e) => { e.currentTarget.src = logoFallback }}
+                          />
+                        </div>
                         <div className="group-mentor-member-info">
                           <div className="group-mentor-member-details">
                             <span className="group-mentor-member-name">{mentee.name}</span>

@@ -87,6 +87,25 @@
   background: var(--light-bg);
 }
 
+.group-member-profile {
+  text-align: center;
+  width: 60px;
+}
+
+.mentee-profile-image {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--border);
+  transition: all 0.3s ease;
+}
+
+.mentee-profile-image:hover {
+  transform: scale(1.1);
+  border-color: var(--main-color);
+}
+
 .group-member-name {
   font-weight: 600;
   color: var(--black);
@@ -388,6 +407,7 @@
 }
 
 .group-mentor-member-info {
+  margin-left: 1rem;
   flex: 1;
 }
 
@@ -471,6 +491,14 @@
 
 .dark .group-member-row:hover {
   background: #444;
+}
+
+.dark .mentee-profile-image {
+  border-color: #555;
+}
+
+.dark .mentee-profile-image:hover {
+  border-color: var(--main-color);
 }
 
 .dark .group-member-name {

@@ -2,6 +2,24 @@ import React, { useState } from 'react';
 import { api } from "../client";
 
 export default function MenteeManagement({ groupId, isMentor, mentees, menteesLoading, fetchMentees }) {
+  // BASE_URL 기반 이미지 경로 설정
+  const base = (import.meta.env.BASE_URL || "/");
+  const logoFallback = `${base}images/logo.png`;
+
+  // 프로필 이미지 URL 생성 함수
+  const getProfileImageSrc = (profileImage) => {
+    if (!profileImage) return logoFallback;
+    
+    if (/^(https?:)?\/\//.test(profileImage) || profileImage.startsWith("data:")) {
+      return profileImage;
+    }
+    
+    if (profileImage.startsWith("/uploads/")) {
+      return `${window.location.origin}${base}api/v1/image${profileImage.replace("/uploads", "")}`;
+    }
+    
+    return `${base}${profileImage.replace(/^\//, "")}`;
+  };
   const [mentorModal, setMentorModal] = useState({
     isOpen: false,
     activeTab: 'add'
@@ -100,6 +118,7 @@ export default function MenteeManagement({ groupId, isMentor, mentees, menteesLo
           <table className="group-members-table">
             <thead>
               <tr>
+                <th>프로필</th>
                 <th>이름</th>
                 <th>학번</th>
                 <th>이메일</th>
@@ -110,13 +129,21 @@ export default function MenteeManagement({ groupId, isMentor, mentees, menteesLo
             <tbody>
               {menteesLoading ? (
                 <tr>
-                  <td colSpan={isMentor ? 5 : 4} style={{ textAlign: 'center', padding: '2rem' }}>
+                  <td colSpan={isMentor ? 6 : 5} style={{ textAlign: 'center', padding: '2rem' }}>
                     <i className="fas fa-spinner fa-spin"></i> 멘티 목록을 불러오는 중...
                   </td>
                 </tr>
               ) : mentees.length > 0 ? (
                 mentees.map((mentee) => (
                   <tr key={mentee.userId || mentee.studentNumber} className="group-member-row">
+                    <td className="group-member-profile">
+                      <img 
+                        src={getProfileImageSrc(mentee.profileImage)} 
+                        alt={mentee.name || '프로필'} 
+                        className="mentee-profile-image"
+                        onError={(e) => { e.currentTarget.src = logoFallback }}
+                      />
+                    </td>
                     <td className="group-member-name">{mentee.name || '익명'}</td>
                     <td>{mentee.studentNumber || '-'}</td>
                     <td>{mentee.email || '-'}</td>
@@ -141,7 +168,7 @@ export default function MenteeManagement({ groupId, isMentor, mentees, menteesLo
                 ))
               ) : (
                 <tr>
-                  <td colSpan={isMentor ? 5 : 4} style={{ textAlign: 'center', padding: '2rem' }}>
+                  <td colSpan={isMentor ? 6 : 5} style={{ textAlign: 'center', padding: '2rem' }}>
                     등록된 멘티가 없습니다.
                   </td>
                 </tr>

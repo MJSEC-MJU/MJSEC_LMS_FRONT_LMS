@@ -198,7 +198,7 @@ export default function Profile() {
                 <p>수강 중</p>
               </div>
             </div>
-            <a href="#" className="inline-btn">view more</a>
+            <a href="/groups" className="inline-btn">view more</a>
           </div>
 
           <div className="box">
