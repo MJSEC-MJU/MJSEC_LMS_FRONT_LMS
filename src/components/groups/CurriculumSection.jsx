@@ -5,6 +5,10 @@ import { Editor } from '@tinymce/tinymce-react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import confetti from 'canvas-confetti';
+import { 
+  getMentorProfileImageSrcCropped,
+  getMenteeProfileImageSrcCropped
+} from '../../utils/imageUtils';
 const BASE_URL = (import.meta.env.BASE_URL || '/').replace(/\/+$/, '');
 const RAW_BASE   = (import.meta.env.VITE_API_BASE || "").replace(/\/+$/, "");
 const RAW_PREFIX = (import.meta.env.VITE_API_PREFIX ?? "/api/v1")
@@ -42,8 +46,8 @@ const toImageApiUrl = (raw) => {
   return name ? `${API_BASE}/image/${name}` : null;
 };
 
-// 멘티 프로필 이미지 URL 생성 함수
-const getMenteeProfileImageSrc = (mentees, creatorName, studentNumber) => {
+// 멘티 프로필 이미지 URL 생성 함수 (유틸리티로 이동됨)
+const getMenteeProfileImageSrcLocal = (mentees, creatorName, studentNumber, croppedImages) => {
   const base = (import.meta.env.BASE_URL || "/");
   const logoFallback = `${base}images/logo.png`;
   
@@ -55,6 +59,11 @@ const getMenteeProfileImageSrc = (mentees, creatorName, studentNumber) => {
   );
   
   if (!mentee?.profileImage) return logoFallback;
+  
+  // 크롭된 이미지가 있으면 사용
+  if (mentee.userId && croppedImages[mentee.userId]) {
+    return croppedImages[mentee.userId];
+  }
   
   if (/^(https?:)?\/\//.test(mentee.profileImage) || mentee.profileImage.startsWith("data:")) {
     return mentee.profileImage;
@@ -85,57 +94,7 @@ const getMentorProfileImageSrc = (mentorInfo) => {
   return `${base}${mentorInfo.profileImage.replace(/^\//, "")}`;
 };
 
-// 이미지를 정사각형으로 자르는 함수
-const cropImageToSquare = (imageSrc, callback) => {
-  const img = new Image();
-  img.crossOrigin = 'anonymous';
-  img.onload = () => {
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    
-    // 정사각형 크기 계산 (작은 쪽을 기준으로)
-    const size = Math.min(img.width, img.height);
-    canvas.width = size;
-    canvas.height = size;
-    
-    // 중앙에서 정사각형으로 자르기
-    const x = (img.width - size) / 2;
-    const y = (img.height - size) / 2;
-    
-    ctx.drawImage(img, x, y, size, size, 0, 0, size, size);
-    
-    const croppedDataUrl = canvas.toDataURL('image/jpeg', 0.8);
-    callback(croppedDataUrl);
-  };
-  img.onerror = () => {
-    // 이미지 로드 실패 시 원본 URL 반환
-    callback(imageSrc);
-  };
-  img.src = imageSrc;
-};
-
-// 멘토 프로필 이미지 URL 생성 및 자르기 함수
-const getMentorProfileImageSrcCropped = (mentorInfo, callback) => {
-  const base = (import.meta.env.BASE_URL || "/");
-  const logoFallback = `${base}images/logo.png`;
-
-  if (!mentorInfo?.profileImage) {
-    callback(logoFallback);
-    return;
-  }
-
-  let imageUrl;
-  if (/^(https?:)?\/\//.test(mentorInfo.profileImage) || mentorInfo.profileImage.startsWith("data:")) {
-    imageUrl = mentorInfo.profileImage;
-  } else if (mentorInfo.profileImage.startsWith("/uploads/")) {
-    imageUrl = `${window.location.origin}${base}api/v1/image${mentorInfo.profileImage.replace("/uploads", "")}`;
-  } else {
-    imageUrl = `${base}${mentorInfo.profileImage.replace(/^\//, "")}`;
-  }
-
-  // 이미지를 정사각형으로 자르기
-  cropImageToSquare(imageUrl, callback);
-};
+// 이미지 처리 함수들은 utils/imageUtils.js로 이동됨
 
 export default function CurriculumSection({ groupId, isMentor }) {
   const { user, token } = useAuth();
@@ -223,6 +182,7 @@ export default function CurriculumSection({ groupId, isMentor }) {
   const [mentees, setMentees] = useState([]); // 멘티 목록 (미제출자 수 계산용)
   const [mentorInfo, setMentorInfo] = useState(null); // 멘토 정보
   const [croppedMentorImage, setCroppedMentorImage] = useState(null); // 자른 멘토 이미지
+  const [croppedMenteeImages, setCroppedMenteeImages] = useState({}); // 자른 멘티 이미지들
   
   // 피드백 관련 상태
   const [feedbackModal, setFeedbackModal] = useState({
@@ -1096,6 +1056,20 @@ export default function CurriculumSection({ groupId, isMentor }) {
       const result = await api('GET', `/group/${groupId}/mentee`, null, token);
       if (result.code === 'SUCCESS') {
         setMentees(result.data || []);
+        
+        // 멘티 이미지들을 정사각형으로 자르기
+        if (result.data) {
+          result.data.forEach(mentee => {
+            if (mentee.profileImage && !croppedMenteeImages[mentee.userId]) {
+              getMenteeProfileImageSrcCropped(mentee.profileImage, (croppedImage) => {
+                setCroppedMenteeImages(prev => ({
+                  ...prev,
+                  [mentee.userId]: croppedImage
+                }));
+              });
+            }
+          });
+        }
       }
     } catch {
       // 멘티 목록 조회 오류
@@ -2367,7 +2341,7 @@ export default function CurriculumSection({ groupId, isMentor }) {
                                 <div key={submission.submissionId || index} className="submission-item">
                                   <div className="submission-profile">
                                     <img 
-                                      src={getMenteeProfileImageSrc(mentees, submission.creatorName, submission.studentNumber)} 
+                                      src={getMenteeProfileImageSrcLocal(mentees, submission.creatorName, submission.studentNumber, croppedMenteeImages)} 
                                       alt={submission.creatorName || '프로필'} 
                                       className="submission-profile-image"
                                       onError={(e) => { e.currentTarget.src = `${import.meta.env.BASE_URL || "/"}images/logo.png` }}

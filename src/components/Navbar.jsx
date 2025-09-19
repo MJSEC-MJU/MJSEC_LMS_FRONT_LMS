@@ -2,6 +2,7 @@
 import { Link, useLocation } from "react-router-dom"
 import { useAuth } from "./auth"
 import { api } from "./client"
+import { getProfileImageSrc } from "../utils/imageUtils"
 
 export default function Navbar() {
   const [isDarkModeEnabled, setIsDarkModeEnabled] = useState(() => localStorage.getItem("dark-mode") === "enabled")
@@ -16,13 +17,7 @@ export default function Navbar() {
   const base = (import.meta.env.BASE_URL || "/") // dev: '/', prod: '/lms/'
   const logoFallback = `${base}images/logo.png`
   const brandLogoSrc = `${base}images/mockup-logo2.png`
-  const profileImgSrc = profile?.profileImage
-    ? (/^(https?:)?\/\//.test(profile.profileImage) || profile.profileImage.startsWith("data:")
-        ? profile.profileImage
-        : profile.profileImage.startsWith("/uploads/")
-        ? `${window.location.origin}${base}api/v1/image${profile.profileImage.replace("/uploads", "")}`
-        : `${base}${profile.profileImage.replace(/^\//, "")}`)
-    : logoFallback
+  const profileImgSrc = getProfileImageSrc(profile?.profileImage, logoFallback)
 
   // Sync body class and localStorage for dark mode
   useEffect(() => {
