@@ -6,7 +6,6 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import confetti from 'canvas-confetti';
 import { 
-  getMenteeProfileImageSrc, 
   getMentorProfileImageSrcCropped,
   getMenteeProfileImageSrcCropped
 } from '../../utils/imageUtils';
