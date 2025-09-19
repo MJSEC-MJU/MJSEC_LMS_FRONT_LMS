@@ -697,3 +697,15 @@ body:not(.active) .group-mentor-modal-overlay {
   margin-right: 30rem !important;
   width: calc(100% - 30rem) !important;
 }
+
+/* 화면 너비가 1200px보다 작을 때는 항상 전체 화면에 표시 */
+@media (max-width: 1200px) {
+  .group-mentor-modal-overlay,
+  body.active .group-mentor-modal-overlay,
+  body:not(.active) .group-mentor-modal-overlay {
+    left: 0 !important;
+    margin-right: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+  }
+}

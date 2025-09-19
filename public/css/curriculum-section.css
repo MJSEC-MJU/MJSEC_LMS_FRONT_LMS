@@ -864,7 +864,7 @@
 /* 활동 기록 버튼 */
 .activity-record-btn {
   background: #28a745 !important;
-  color: var(--black) !important;
+  color: white !important;
   padding: 1rem 2rem;
   border: none;
   border-radius: 0.8rem;
@@ -1876,10 +1876,11 @@ body:not(.active) .assignment-modal-overlay {
   width: calc(100% - 30rem) !important;
 }
 
+
 /* 활동 사진 보기 버튼 */
 .activity-photos-btn {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: var(--black) !important;
+  color: white !important;
   padding: 1rem 2rem;
   border: none;
   border-radius: 0.8rem;
@@ -3761,3 +3762,20 @@ body:not(.active) .activity-photos-modal-overlay {
   box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.3);
 }
 
+/* 화면 너비가 1200px보다 작을 때는 항상 전체 화면에 표시 */
+@media (max-width: 1200px) {
+  .assignment-modal-overlay,
+  body.active .assignment-modal-overlay,
+  body:not(.active) .assignment-modal-overlay,
+  .activity-modal-overlay,
+  body.active .activity-modal-overlay,
+  body:not(.active) .activity-modal-overlay,
+  .activity-photos-modal-overlay,
+  body.active .activity-photos-modal-overlay,
+  body:not(.active) .activity-photos-modal-overlay {
+    left: 0 !important;
+    margin-right: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+  }
+}

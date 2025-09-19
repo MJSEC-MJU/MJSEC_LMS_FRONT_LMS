@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../auth";
 import { api } from "../client";
 import { Editor } from '@tinymce/tinymce-react';
+import { getMenteeProfileImageSrc, getMenteeProfileImageSrcCropped } from "../../utils/imageUtils";
 import CurriculumSection from './CurriculumSection';
 
 
@@ -14,25 +15,28 @@ export default function GroupDetail({ groupId, myStudies }) {
   const base = (import.meta.env.BASE_URL || "/");
   const logoFallback = `${base}images/logo.png`;
 
-  // 프로필 이미지 URL 생성 함수
-  const getProfileImageSrc = (profileImage) => {
-    if (!profileImage) return logoFallback;
-    
-    if (/^(https?:)?\/\//.test(profileImage) || profileImage.startsWith("data:")) {
-      return profileImage;
-    }
-    
-    if (profileImage.startsWith("/uploads/")) {
-      return `${window.location.origin}${base}api/v1/image${profileImage.replace("/uploads", "")}`;
-    }
-    
-    return `${base}${profileImage.replace(/^\//, "")}`;
-  };
-  
+  // 프로필 이미지 URL 생성 함수 (유틸리티로 이동됨)
+  const [croppedImages, setCroppedImages] = useState({});
   
   // 그룹 멘티 목록 및 제출 상태
   const [mentees, setMentees] = useState([]);
   const [isMentor, setIsMentor] = useState(null);
+  
+  // 멘티 이미지들을 정사각형으로 자르기
+  useEffect(() => {
+    if (mentees && mentees.length > 0) {
+      mentees.forEach(mentee => {
+        if (mentee.profileImage && !croppedImages[mentee.userId]) {
+          getMenteeProfileImageSrcCropped(mentee.profileImage, (croppedImage) => {
+            setCroppedImages(prev => ({
+              ...prev,
+              [mentee.userId]: croppedImage
+            }));
+          }, logoFallback);
+        }
+      });
+    }
+  }, [mentees, logoFallback, croppedImages]);
   const [mentorModal, setMentorModal] = useState({
     isOpen: false,
     activeTab: 'add'
@@ -419,7 +423,7 @@ export default function GroupDetail({ groupId, myStudies }) {
                       <div key={mentee.userId} className="group-mentor-member-item">
                         <div className="group-mentor-member-profile">
                           <img 
-                            src={getProfileImageSrc(mentee.profileImage)} 
+                            src={croppedImages[mentee.userId] || getMenteeProfileImageSrc(mentee.profileImage)} 
                             alt={mentee.name || '프로필'} 
                             className="mentee-profile-image"
                             onError={(e) => { e.currentTarget.src = logoFallback }}

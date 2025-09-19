@@ -1,25 +1,31 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { api } from "../client";
+import { getMenteeProfileImageSrcCropped, getMenteeProfileImageSrc } from "../../utils/imageUtils";
 
 export default function MenteeManagement({ groupId, isMentor, mentees, menteesLoading, fetchMentees }) {
   // BASE_URL 기반 이미지 경로 설정
   const base = (import.meta.env.BASE_URL || "/");
   const logoFallback = `${base}images/logo.png`;
 
-  // 프로필 이미지 URL 생성 함수
-  const getProfileImageSrc = (profileImage) => {
-    if (!profileImage) return logoFallback;
-    
-    if (/^(https?:)?\/\//.test(profileImage) || profileImage.startsWith("data:")) {
-      return profileImage;
+  // 프로필 이미지 URL 생성 함수 (유틸리티로 이동됨)
+  const [croppedImages, setCroppedImages] = useState({});
+  
+  // 멘티 이미지들을 정사각형으로 자르기
+  useEffect(() => {
+    if (mentees && mentees.length > 0) {
+      mentees.forEach(mentee => {
+        if (mentee.profileImage && !croppedImages[mentee.userId]) {
+          getMenteeProfileImageSrcCropped(mentee.profileImage, (croppedImage) => {
+            setCroppedImages(prev => ({
+              ...prev,
+              [mentee.userId]: croppedImage
+            }));
+          }, logoFallback);
+        }
+      });
     }
-    
-    if (profileImage.startsWith("/uploads/")) {
-      return `${window.location.origin}${base}api/v1/image${profileImage.replace("/uploads", "")}`;
-    }
-    
-    return `${base}${profileImage.replace(/^\//, "")}`;
-  };
+  }, [mentees, logoFallback, croppedImages]);
+  
   const [mentorModal, setMentorModal] = useState({
     isOpen: false,
     activeTab: 'add'
@@ -138,7 +144,7 @@ export default function MenteeManagement({ groupId, isMentor, mentees, menteesLo
                   <tr key={mentee.userId || mentee.studentNumber} className="group-member-row">
                     <td className="group-member-profile">
                       <img 
-                        src={getProfileImageSrc(mentee.profileImage)} 
+                        src={croppedImages[mentee.userId] || getMenteeProfileImageSrc(mentee.profileImage)} 
                         alt={mentee.name || '프로필'} 
                         className="mentee-profile-image"
                         onError={(e) => { e.currentTarget.src = logoFallback }}

@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react"
 import { useAuth } from "../components/auth"
 import { api } from "../components/client"
+import { getProfileImageSrc } from "../utils/imageUtils"
 
 export default function Profile() {
   const { token, user } = useAuth()
@@ -142,13 +143,7 @@ export default function Profile() {
   // 로고만 수정 (BASE_URL 적용)
   const base = (import.meta.env.BASE_URL || '/')
   const logoFallback = `${base}images/logo.png`
-  const imageSrc = profile?.profileImage
-    ? (/^(https?:)?\/\//.test(profile.profileImage) || profile.profileImage.startsWith('data:')
-        ? profile.profileImage
-        : profile.profileImage.startsWith('/uploads/')
-        ? `${window.location.origin}${base}api/v1/image${profile.profileImage.replace('/uploads', '')}`
-        : `${base}${profile.profileImage.replace(/^\//, '')}`)
-    : logoFallback
+  const imageSrc = getProfileImageSrc(profile?.profileImage, logoFallback)
 
   const studiesCount = Array.isArray(profile?.studyGroups) ? profile.studyGroups.length : 0
 
