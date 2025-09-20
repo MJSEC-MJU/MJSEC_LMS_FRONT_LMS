@@ -178,7 +178,7 @@ export default function Profile() {
               </div>
             </div>
             <a 
-              href={selectedStudyGroup ? `/groups?groupId=${selectedStudyGroup.groupId}` : "/groups"} 
+              href={selectedStudyGroup ? `/lms/groups?groupId=${selectedStudyGroup.groupId}` : "/groups"} 
               className="inline-btn"
             >
               View Study
@@ -193,7 +193,7 @@ export default function Profile() {
                 <p>수강 중</p>
               </div>
             </div>
-            <a href="/groups" className="inline-btn">view more</a>
+            <a href="/lms/groups" className="inline-btn">view more</a>
           </div>
 
           <div className="box">

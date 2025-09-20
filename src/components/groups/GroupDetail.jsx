@@ -355,6 +355,46 @@ export default function GroupDetail({ groupId, myStudies }) {
             <p><strong>설명:</strong> {currentGroup.description}</p>
             <p><strong>카테고리:</strong> {Array.isArray(currentGroup.category) ? currentGroup.category.join(', ') : currentGroup.category || '일반'}</p>
           </div>
+          
+          {/* 멘티 목록 섹션 - 멘토만 볼 수 있음 */}
+          {isMentor && (
+            <div className="mentees-section">
+              <h3>멘티 목록</h3>
+              <div className="mentees-list">
+                {_menteesLoading ? (
+                  <div className="loading-mentees">
+                    <i className="fas fa-spinner fa-spin"></i>
+                    <span>멘티 목록을 불러오는 중...</span>
+                  </div>
+                ) : mentees.length > 0 ? (
+                  <div className="mentees-grid">
+                    {mentees.map((mentee) => (
+                      <div key={mentee.userId} className="mentee-card">
+                        <div className="mentee-profile">
+                          <img 
+                            src={croppedImages[mentee.userId] || getMenteeProfileImageSrc(mentee.profileImage)} 
+                            alt={mentee.name || '프로필'} 
+                            className="mentee-profile-image"
+                            onError={(e) => { e.currentTarget.src = logoFallback }}
+                          />
+                        </div>
+                        <div className="mentee-info">
+                          <div className="mentee-name">{mentee.name || '이름 없음'}</div>
+                          <div className="mentee-email">{mentee.email || '이메일 없음'}</div>
+                          <div className="mentee-student-number">학번: {mentee.studentNumber || '정보 없음'}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="no-mentees">
+                    <i className="fas fa-users"></i>
+                    <p>현재 멘티가 없습니다.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
 

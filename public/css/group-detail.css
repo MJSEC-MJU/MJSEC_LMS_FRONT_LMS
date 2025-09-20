@@ -75,6 +75,170 @@
   font-weight: 600;
 }
 
+/* 멘티 목록 섹션 스타일 */
+.mentees-section {
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 2px solid var(--border);
+}
+
+.mentees-section h3 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--black);
+  margin-bottom: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.mentees-section h3::before {
+  content: '👥';
+  font-size: 1.8rem;
+}
+
+.mentees-list {
+  width: 100%;
+}
+
+.loading-mentees {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 3rem;
+  color: var(--black);
+  font-size: 1.6rem;
+}
+
+.loading-mentees i {
+  font-size: 2rem;
+  color: var(--main-color);
+}
+
+.mentees-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 2rem;
+  margin-top: 1rem;
+}
+
+.mentee-card {
+  background: var(--light-bg);
+  border: 2px solid var(--border);
+  border-radius: 1.5rem;
+  padding: 2rem;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.mentee-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--main-color), #ff6b7a);
+  transform: scaleX(0);
+  transition: transform 0.3s ease;
+}
+
+.mentee-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  border-color: var(--main-color);
+}
+
+.mentee-card:hover::before {
+  transform: scaleX(1);
+}
+
+.mentee-profile {
+  flex-shrink: 0;
+  position: relative;
+}
+
+.mentee-profile-image {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--border);
+  transition: all 0.3s ease;
+  position: relative;
+  z-index: 1;
+}
+
+.mentee-card:hover .mentee-profile-image {
+  transform: scale(1.1);
+  border-color: var(--main-color);
+  box-shadow: 0 0 0 4px rgba(255, 107, 122, 0.2);
+}
+
+.mentee-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.mentee-name {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--black);
+  margin: 0;
+  line-height: 1.2;
+}
+
+.mentee-email {
+  font-size: 1.4rem;
+  color: var(--black);
+  opacity: 0.8;
+  margin: 0;
+  line-height: 1.3;
+  word-break: break-all;
+}
+
+.mentee-student-number {
+  font-size: 1.3rem;
+  color: var(--black);
+  opacity: 0.7;
+  margin: 0;
+  font-weight: 500;
+  background: rgba(255, 107, 122, 0.1);
+  padding: 0.4rem 0.8rem;
+  border-radius: 0.6rem;
+  display: inline-block;
+  width: fit-content;
+}
+
+.no-mentees {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: var(--black);
+  background: var(--light-bg);
+  border-radius: 1.5rem;
+  border: 2px dashed var(--border);
+}
+
+.no-mentees i {
+  font-size: 4rem;
+  color: var(--main-color);
+  margin-bottom: 1.5rem;
+  opacity: 0.6;
+}
+
+.no-mentees p {
+  font-size: 1.6rem;
+  margin: 0;
+  opacity: 0.8;
+}
+
 
 /* 다크모드 버튼 스타일은 base.css에서 통일 관리 */
 
@@ -94,6 +258,58 @@
 
 .dark .group-info strong {
   color: var(--black);
+}
+
+/* 다크모드 멘티 목록 스타일 */
+.dark .mentees-section {
+  border-top-color: #444;
+}
+
+.dark .mentees-section h3 {
+  color: var(--black);
+}
+
+.dark .loading-mentees {
+  color: var(--black);
+}
+
+.dark .mentee-card {
+  background: #333;
+  border-color: #555;
+}
+
+.dark .mentee-card:hover {
+  border-color: var(--main-color);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+}
+
+.dark .mentee-profile-image {
+  border-color: #555;
+}
+
+.dark .mentee-card:hover .mentee-profile-image {
+  border-color: var(--main-color);
+  box-shadow: 0 0 0 4px rgba(255, 107, 122, 0.3);
+}
+
+.dark .mentee-name {
+  color: var(--black);
+}
+
+.dark .mentee-email {
+  color: var(--black);
+  opacity: 0.8;
+}
+
+.dark .mentee-student-number {
+  color: var(--black);
+  background: rgba(255, 107, 122, 0.2);
+}
+
+.dark .no-mentees {
+  background: #333;
+  color: var(--black);
+  border-color: #555;
 }
 
 .dark .group-title {
@@ -621,5 +837,33 @@ body:not(.active) .group-mentor-modal-overlay {
 
   .group-mentor-modal-tabs {
     flex-direction: column;
+  }
+
+  /* 멘티 목록 반응형 */
+  .mentees-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .mentee-card {
+    padding: 1.5rem;
+    gap: 1rem;
+  }
+
+  .mentee-profile-image {
+    width: 50px;
+    height: 50px;
+  }
+
+  .mentee-name {
+    font-size: 1.6rem;
+  }
+
+  .mentee-email {
+    font-size: 1.3rem;
+  }
+
+  .mentee-student-number {
+    font-size: 1.2rem;
   }
 }
