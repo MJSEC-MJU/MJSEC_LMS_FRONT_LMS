@@ -22,6 +22,9 @@ export default function GroupDetail({ groupId, myStudies }) {
   const [mentees, setMentees] = useState([]);
   const [isMentor, setIsMentor] = useState(null);
   
+  // 그룹 상세 정보 상태 (설명, 기수만)
+  const [groupDetail, setGroupDetail] = useState(null);
+  
   // 멘티 이미지들을 정사각형으로 자르기
   useEffect(() => {
     if (mentees && mentees.length > 0) {
@@ -208,6 +211,23 @@ export default function GroupDetail({ groupId, myStudies }) {
     }
   }, [token, groupId, user]);
 
+  // 그룹 상세 정보 조회 (설명, 기수만)
+  const fetchGroupDetail = React.useCallback(async () => {
+    if (!token || !groupId || isNaN(groupId)) return;
+    
+    try {
+      const res = await api('GET', `/group/${groupId}/info`, null, token);
+      if (res?.code === 'SUCCESS') {
+        setGroupDetail({
+          content: res.data.content,
+          generation: res.data.generation
+        });
+      }
+    } catch {
+      // 그룹 상세 정보 조회 오류 처리
+    }
+  }, [token, groupId]);
+
   // 멘티 목록 조회
   const fetchMentees = React.useCallback(async () => {
     if (!token || !groupId || isNaN(groupId)) return;
@@ -273,14 +293,15 @@ export default function GroupDetail({ groupId, myStudies }) {
     link_default_target: '_blank'
   };
 
-  // 페이지 진입 시 역할 판별 및 멘티 목록 조회
+  // 페이지 진입 시 역할 판별 및 데이터 조회
   useEffect(() => {
     if (groupId && token) {
       setIsMentor(null);
       checkMentor();
+      fetchGroupDetail(); // 그룹 상세 정보 조회
       fetchMentees(); // 멘티 목록도 함께 조회
     }
-  }, [groupId, token, checkMentor, fetchMentees]);
+  }, [groupId, token, checkMentor, fetchGroupDetail, fetchMentees]);
 
   // 멘티 경고 횟수 조회 함수
   const fetchMenteeWarnings = async () => {
@@ -352,8 +373,11 @@ export default function GroupDetail({ groupId, myStudies }) {
             {mentorInfo && (
               <p><strong>멘토:</strong> {mentorInfo.name || '정보 없음'}</p>
             )}
-            <p><strong>설명:</strong> {currentGroup.description}</p>
+            <p><strong>설명:</strong> {groupDetail?.content || currentGroup.description || '설명 없음'}</p>
             <p><strong>카테고리:</strong> {Array.isArray(currentGroup.category) ? currentGroup.category.join(', ') : currentGroup.category || '일반'}</p>
+            {groupDetail?.generation && (
+              <p><strong>기수:</strong> {groupDetail.generation}</p>
+            )}
           </div>
           
           {/* 멘티 목록 섹션 - 멘토만 볼 수 있음 */}

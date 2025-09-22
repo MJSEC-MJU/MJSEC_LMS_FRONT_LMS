@@ -45,6 +45,7 @@ export default function Admin() {
   const [newGroupName, setNewGroupName] = useState('');
   const [newGroupDescription, setNewGroupDescription] = useState(''); // ← content로 전송
   const [newGroupCategory, setNewGroupCategory] = useState('WEB');
+  const [newGroupGeneration, setNewGroupGeneration] = useState(''); // ← generation 추가
   const [newGroupMentor, setNewGroupMentor] = useState(''); // mentorStudentNumber
   const [creatingGroup, setCreatingGroup] = useState(false);
 
@@ -154,6 +155,10 @@ useEffect(() => {
       alert('카테고리를 선택해주세요.');
       return;
     }
+    if (!newGroupGeneration) {
+      alert('기수를 입력해주세요.');
+      return;
+    }
     const mentorNum = Number(newGroupMentor);
     if (!Number.isFinite(mentorNum)) {
       alert('멘토 학번은 숫자여야 합니다.');
@@ -166,6 +171,7 @@ useEffect(() => {
         name: newGroupName,
         content: newGroupDescription,        // ← description을 content로 보냄
         category: newGroupCategory,
+        generation: newGroupGeneration,      // ← generation 추가
         mentorStudentNumber: mentorNum,
       };
       const res = await api('POST', '/admin/group', payload, token);
@@ -174,6 +180,7 @@ useEffect(() => {
         setNewGroupName('');
         setNewGroupDescription('');
         setNewGroupCategory('WEB');
+        setNewGroupGeneration('');
         setNewGroupMentor('');
       } else {
         alert(res?.message || '스터디 그룹 생성 실패');
@@ -184,7 +191,7 @@ useEffect(() => {
     } finally {
       setCreatingGroup(false);
     }
-  }, [token, newGroupName, newGroupDescription, newGroupCategory, newGroupMentor, creatingGroup]);
+  }, [token, newGroupName, newGroupDescription, newGroupCategory, newGroupGeneration, newGroupMentor, creatingGroup]);
 
   // 스터디 그룹 수정 (명세 동일 가정)
   const handleUpdateGroup = useCallback(async (e) => {
@@ -486,7 +493,7 @@ const handleCheckGroupName = async () => {
 
             <p style={{ marginBottom: '10px', color: '#555', fontSize: '1.1em' }}>그룹 설명</p>
             <textarea
-              placeholder="그룹 설명을 입력하세요 (선택 사항)"
+              placeholder="그룹 설명을 입력하세요"
               className="box"
               value={newGroupDescription}
               onChange={(e) => setNewGroupDescription(e.target.value)}
@@ -495,7 +502,7 @@ const handleCheckGroupName = async () => {
               style={{ width: '100%', minHeight: '80px', marginBottom: '20px', padding: '12px', border: '1px solid #ccc', borderRadius: '5px', fontSize: '1.1em', boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.1)' }}
             ></textarea>
 
-            {/* 카테고리 + 멘토 학번 */}
+            {/* 카테고리 + 기수 + 멘토 학번 */}
             <div style={{ display: 'flex', gap: 12, marginBottom: 20 }}>
               <select
                 value={newGroupCategory}
@@ -504,6 +511,14 @@ const handleCheckGroupName = async () => {
               >
                 {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
+              <input
+                type="text"
+                placeholder="기수(예:1기)"
+                className="box"
+                value={newGroupGeneration}
+                onChange={(e)=>setNewGroupGeneration(e.target.value)}
+                style={{ width: 120, padding: '12px', border: '1px solid #ccc', borderRadius: '5px', fontSize: '1.05em' }}
+              />
               <input
                 type="number"
                 inputMode="numeric"
@@ -576,7 +591,7 @@ const handleCheckGroupName = async () => {
 
             <p style={{ marginBottom: '10px', color: '#555', fontSize: '1.1em' }}>그룹 설명</p>
             <textarea
-              placeholder="새 그룹 설명을 입력하세요 (선택 사항)"
+              placeholder="새 그룹 설명을 입력하세요"
               className="box"
               value={editGroupDescription}
               onChange={(e) => setEditGroupDescription(e.target.value)}
