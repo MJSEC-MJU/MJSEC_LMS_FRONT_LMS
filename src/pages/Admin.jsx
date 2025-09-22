@@ -54,7 +54,6 @@ export default function Admin() {
   const [editGroupName, setEditGroupName] = useState('');
   const [editGroupDescription, setEditGroupDescription] = useState(''); // ← content로 전송
   const [editGroupCategory, setEditGroupCategory] = useState('WEB');
-  const [editGroupGeneration, setEditGroupGeneration] = useState(''); // ← generation 추가
   const [editGroupMentor, setEditGroupMentor] = useState('');
   const [editGroupImage, setEditGroupImage] = useState(null); // 이미지 파일 추가
   const [updatingGroup, setUpdatingGroup] = useState(false);
@@ -206,10 +205,6 @@ useEffect(() => {
       alert('그룹 설명(내용)을 입력해주세요.');
       return;
     }
-    if (!editGroupGeneration) {
-      alert('기수를 입력해주세요.');
-      return;
-    }
     const mentorNum = Number(editGroupMentor);
     if (!Number.isFinite(mentorNum)) {
       alert('멘토 학번은 숫자여야 합니다.');
@@ -230,7 +225,6 @@ useEffect(() => {
         name: editGroupName,
         content: editGroupDescription,       // ← description을 content로 보냄
         category: editGroupCategory,
-        generation: editGroupGeneration,     // ← generation 추가
         mentorStudentNumber: mentorNum,
       };
       formData.append(
@@ -245,7 +239,6 @@ useEffect(() => {
         setEditGroupName('');
         setEditGroupDescription('');
         setEditGroupCategory('WEB');
-        setEditGroupGeneration('');
         setEditGroupMentor('');
       } else {
         alert(res?.message || '스터디 그룹 수정 실패');
@@ -256,7 +249,7 @@ useEffect(() => {
     } finally {
       setUpdatingGroup(false);
     }
-  }, [token, editGroupId, editGroupName, editGroupDescription, editGroupCategory, editGroupGeneration, editGroupMentor, updatingGroup]);
+  }, [token, editGroupId, editGroupName, editGroupDescription, editGroupCategory, editGroupMentor, updatingGroup]);
 
   // 전체 사용자 목록 불러오기
   const fetchAllUsers = useCallback(async () => {
@@ -576,7 +569,7 @@ useEffect(() => {
               style={{ width: '100%', minHeight: '80px', marginBottom: '20px', padding: '12px', border: '1px solid #ccc', borderRadius: '5px', fontSize: '1.1em', boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.1)' }}
             ></textarea>
 
-            {/* 카테고리 + 기수 + 멘토 학번 */}
+            {/* 카테고리 + 멘토 학번 */}
             <div style={{ display: 'flex', gap: 12, marginBottom: 20 }}>
               <select
                 value={editGroupCategory}
@@ -585,14 +578,6 @@ useEffect(() => {
               >
                 {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
-              <input
-                type="text"
-                placeholder="기수"
-                className="box"
-                value={editGroupGeneration}
-                onChange={(e)=>setEditGroupGeneration(e.target.value)}
-                style={{ width: 120, padding: '12px', border: '1px solid #ccc', borderRadius: '5px', fontSize: '1.05em' }}
-              />
               <input
                 type="number"
                 inputMode="numeric"
