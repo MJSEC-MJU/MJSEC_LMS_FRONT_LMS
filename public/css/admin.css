@@ -1,0 +1,957 @@
+/* Admin 페이지 스타일 */
+
+/* 그룹 관리 테이블 스타일 */
+.admin-groups-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+  min-width: 800px;
+  background: var(--white);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 123, 255, 0.1);
+}
+
+.admin-groups-table thead {
+  background: linear-gradient(135deg, var(--main-color), #0056b3);
+}
+
+.admin-groups-table th {
+  padding: 16px 12px;
+  border: none;
+  color: white;
+  text-align: center;
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.admin-groups-table tbody tr {
+  transition: all 0.3s ease;
+  border-bottom: 1px solid #f1f3f4;
+}
+
+.admin-groups-table tbody tr:hover {
+  background-color: rgba(0, 123, 255, 0.05);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.1);
+}
+
+.admin-groups-table tbody tr.active-group {
+  background-color: rgba(0, 123, 255, 0.03);
+}
+
+.admin-groups-table tbody tr.inactive-group {
+  background-color: rgba(108, 117, 125, 0.03);
+}
+
+.admin-groups-table td {
+  padding: 12px;
+  border: none;
+  text-align: center;
+  vertical-align: middle;
+}
+
+/* 어드민 카테고리 배지 스타일 */
+.admin-category-badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: linear-gradient(135deg, var(--main-color), #0056b3);
+  color: white;
+  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+  transition: all 0.3s ease;
+}
+
+.admin-category-badge:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.4);
+}
+
+/* 상태 토글 컨테이너 */
+.status-toggle-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 8px 16px;
+  border-radius: 25px;
+  background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  width: auto;
+}
+
+.status-toggle-container:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 123, 255, 0.2);
+  border-color: var(--main-color);
+}
+
+.status-toggle-container.active {
+  background: linear-gradient(135deg, var(--main-color), #0056b3);
+  color: white;
+  box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+}
+
+.status-toggle-container.inactive {
+  background: linear-gradient(135deg, #6c757d, #5a6268);
+  color: white;
+  box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);
+}
+
+/* 상태 텍스트 */
+.status-text {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+  position: relative;
+  z-index: 2;
+}
+
+/* 토글 스위치 */
+.toggle-switch {
+  position: relative;
+  width: 40px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 20px;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  cursor: pointer;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+}
+
+.toggle-switch::before {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 12px;
+  height: 12px;
+  background: white;
+  border-radius: 50%;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  z-index: 3;
+}
+
+.status-toggle-container.active .toggle-switch {
+  background: rgba(255, 255, 255, 0.4);
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
+.status-toggle-container.active .toggle-switch::before {
+  transform: translateX(20px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.status-toggle-container.inactive .toggle-switch {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+/* 클릭 애니메이션 */
+.status-toggle-container:active {
+  transform: scale(0.95);
+}
+
+.status-toggle-container:active .toggle-switch::before {
+  transform: scale(1.2);
+}
+
+.status-toggle-container.active:active .toggle-switch::before {
+  transform: translateX(20px) scale(1.2);
+}
+
+/* 상태 아이콘 */
+.status-icon {
+  font-size: 14px;
+  transition: all 0.3s ease;
+  z-index: 2;
+  position: relative;
+}
+
+.status-toggle-container.active .status-icon {
+  color: #4ade80;
+  text-shadow: 0 0 8px rgba(74, 222, 128, 0.5);
+}
+
+.status-toggle-container.inactive .status-icon {
+  color: #f87171;
+  text-shadow: 0 0 8px rgba(248, 113, 113, 0.5);
+}
+
+/* 어드민 관리 버튼 컨테이너 */
+.admin-table-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  align-items: center;
+}
+
+/* 어드민 삭제 버튼 스타일 */
+.admin-delete-btn {
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: none;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  background: linear-gradient(135deg, #dc3545, #c82333);
+  color: white;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
+  min-width: 50px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.admin-delete-btn:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 4px 15px rgba(220, 53, 69, 0.4);
+  background: linear-gradient(135deg, #c82333, #a71e2a);
+}
+
+.admin-delete-btn:active {
+  transform: translateY(0) scale(0.98);
+  box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
+}
+
+/* 어드민 그룹 이미지 스타일 */
+.admin-group-image-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.admin-group-image {
+  width: 60px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.2);
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.admin-group-image:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+  border-color: var(--main-color);
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+  .admin-groups-table {
+    min-width: 600px;
+  }
+  
+  .admin-table-actions {
+    flex-direction: column;
+    gap: 4px;
+  }
+  
+  .status-toggle-container {
+    padding: 6px 12px;
+    gap: 8px;
+  }
+  
+  .toggle-switch {
+    width: 35px;
+    height: 18px;
+  }
+  
+  .toggle-switch::before {
+    width: 10px;
+    height: 10px;
+  }
+  
+  .status-toggle-container.active .toggle-switch::before {
+    transform: translateX(17px);
+  }
+  
+  .admin-delete-btn {
+    padding: 6px 12px;
+    font-size: 11px;
+  }
+}
+
+/* 로딩 상태 */
+.admin-loading {
+  text-align: center;
+  padding: 3rem;
+  color: var(--main-color);
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+.admin-loading::before {
+  content: '';
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(0, 123, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: var(--main-color);
+  animation: spin 1s ease-in-out infinite;
+  margin-right: 10px;
+  vertical-align: middle;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* 에러 상태 */
+.admin-error {
+  text-align: center;
+  padding: 2rem;
+  color: #dc3545;
+  background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+  border-radius: 8px;
+  margin: 1rem 0;
+  border: 1px solid #f5c6cb;
+  font-weight: 500;
+}
+
+/* 빈 상태 메시지 */
+.admin-empty {
+  text-align: center;
+  padding: 3rem;
+  color: #6c757d;
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+.admin-empty i {
+  font-size: 3rem;
+  color: var(--main-color);
+  margin-bottom: 1rem;
+  display: block;
+  opacity: 0.6;
+}
+
+/* 그룹 이름 스타일 */
+.group-name {
+  font-weight: 600;
+  color: var(--black);
+  font-size: 14px;
+}
+
+.group-id {
+  font-weight: 500;
+  color: var(--main-color);
+  font-size: 13px;
+}
+
+.generation-text {
+  font-weight: 500;
+  color: var(--black);
+  font-size: 13px;
+}
+
+/* 다크모드 스타일 */
+.dark .admin-groups-table {
+  background: #2a2a2a;
+  box-shadow: 0 4px 20px rgba(0, 123, 255, 0.2);
+}
+
+.dark .admin-groups-table tbody tr {
+  border-bottom-color: #444;
+}
+
+.dark .admin-groups-table tbody tr:hover {
+  background-color: rgba(0, 123, 255, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.2);
+}
+
+.dark .admin-groups-table tbody tr.active-group {
+  background-color: rgba(0, 123, 255, 0.05);
+}
+
+.dark .admin-groups-table tbody tr.inactive-group {
+  background-color: rgba(108, 117, 125, 0.05);
+}
+
+.dark .admin-groups-table th {
+  color: var(--black);
+}
+
+.dark .admin-groups-table td {
+  color: var(--black);
+}
+
+.dark .admin-category-badge {
+  background: linear-gradient(135deg, var(--main-color), #0056b3);
+  color: var(--black);
+  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.4);
+}
+
+.dark .status-toggle-container {
+  background: linear-gradient(135deg, #444, #555);
+  border-color: #666;
+}
+
+.dark .status-toggle-container:hover {
+  background: linear-gradient(135deg, #555, #666);
+  border-color: var(--main-color);
+  box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+}
+
+.dark .status-toggle-container.active {
+  background: linear-gradient(135deg, var(--main-color), #0056b3);
+  color: var(--black);
+  box-shadow: 0 4px 15px rgba(0, 123, 255, 0.4);
+}
+
+.dark .status-toggle-container.inactive {
+  background: linear-gradient(135deg, #6c757d, #5a6268);
+  color: var(--black);
+  box-shadow: 0 4px 15px rgba(108, 117, 125, 0.4);
+}
+
+.dark .status-text {
+  color: var(--black);
+}
+
+.dark .toggle-switch {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.dark .status-toggle-container.active .toggle-switch {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.dark .status-toggle-container.inactive .toggle-switch {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.dark .admin-delete-btn {
+  background: linear-gradient(135deg, #dc3545, #c82333);
+  color: var(--black);
+  box-shadow: 0 2px 8px rgba(220, 53, 69, 0.4);
+}
+
+.dark .admin-delete-btn:hover {
+  background: linear-gradient(135deg, #c82333, #a71e2a);
+  box-shadow: 0 4px 15px rgba(220, 53, 69, 0.5);
+}
+
+.dark .admin-group-image {
+  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+  border-color: #555;
+}
+
+.dark .admin-group-image:hover {
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.4);
+  border-color: var(--main-color);
+}
+
+.dark .group-name {
+  color: var(--black);
+}
+
+.dark .group-id {
+  color: var(--main-color);
+}
+
+.dark .generation-text {
+  color: var(--black);
+}
+
+.dark .admin-loading {
+  color: var(--main-color);
+}
+
+.dark .admin-loading::before {
+  border-color: rgba(0, 123, 255, 0.3);
+  border-top-color: var(--main-color);
+}
+
+.dark .admin-error {
+  color: #dc3545;
+  background: linear-gradient(135deg, #4d1e1e, #5a2d2d);
+  border-color: #6b3a3a;
+}
+
+.dark .admin-empty {
+  color: var(--black);
+}
+
+.dark .admin-empty i {
+  color: var(--main-color);
+  opacity: 0.8;
+}
+
+/* 어드민 대시보드 컨테이너 */
+.admin-dashboard {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px 0;
+}
+
+/* 어드민 탭 네비게이션 */
+.admin-tab-navigation {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.admin-tab-button {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.admin-tab-button.active {
+  background: linear-gradient(to right, #6f42c1, #59359a);
+  box-shadow: 0 4px 15px rgba(111, 66, 193, 0.3);
+}
+
+.admin-tab-button:not(.active) {
+  background: linear-gradient(to right, #adb5bd, #868e96);
+  box-shadow: 0 2px 8px rgba(173, 181, 189, 0.2);
+}
+
+.admin-tab-button:hover:not(.active) {
+  background: linear-gradient(to right, #9ca3af, #6c757d);
+  transform: translateY(-2px);
+}
+
+/* 어드민 박스 컨테이너 */
+.admin-box-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 30px;
+  justify-content: center;
+}
+
+/* 어드민 박스 */
+.admin-box {
+  background-color: var(--white);
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+  border: 1px solid #eee;
+  transition: all 0.3s ease;
+}
+
+.admin-box:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+}
+
+/* 어드민 박스 헤더 */
+.admin-box-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.admin-box-title {
+  color: #343a40;
+  font-size: 2.0em;
+  font-weight: 600;
+  margin: 0;
+}
+
+.admin-box-title.primary {
+  color: var(--main-color);
+  font-size: 2.2em;
+}
+
+/* 어드민 테이블 */
+.admin-dashboard-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+  background: var(--white);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.admin-dashboard-table thead {
+  background: #343a40;
+}
+
+.admin-dashboard-table thead.primary {
+  background: var(--main-color);
+}
+
+.admin-dashboard-table th {
+  padding: 12px;
+  border: 1px solid #ddd;
+  text-align: left;
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 1.1em;
+}
+
+.admin-dashboard-table th.primary {
+  padding: 15px;
+  font-size: 1.1em;
+}
+
+.admin-dashboard-table tbody tr {
+  border-bottom: 1px solid #eee;
+  transition: all 0.3s ease;
+}
+
+.admin-dashboard-table tbody tr:hover {
+  background-color: rgba(0, 123, 255, 0.05);
+}
+
+.admin-dashboard-table td {
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  color: var(--black);
+}
+
+.admin-dashboard-table td.primary {
+  padding: 12px 15px;
+  font-size: 1em;
+}
+
+/* 어드민 액션 버튼 */
+.admin-action-btn {
+  background: linear-gradient(to right, #17a2b8, #117a8b);
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  padding: 8px 16px;
+  font-size: 1em;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.admin-action-btn:hover {
+  background: linear-gradient(to right, #117a8b, #0f6674);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(23, 162, 184, 0.3);
+}
+
+.admin-delete-user-btn {
+  background: linear-gradient(to right, #dc3545, #c82333);
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  padding: 6px 12px;
+  font-size: 0.95em;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.admin-delete-user-btn:hover {
+  background: linear-gradient(to right, #c82333, #a71e2a);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+}
+
+.admin-approve-btn {
+  background: linear-gradient(to right, #28a745, #218838);
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  padding: 10px 18px;
+  font-size: 1.05em;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+.admin-approve-btn:hover {
+  background: linear-gradient(to right, #218838, #1e7e34);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(40, 167, 69, 0.3);
+}
+
+.admin-reject-btn {
+  background: linear-gradient(to right, #dc3545, #c82333);
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  padding: 10px 18px;
+  font-size: 1.05em;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+.admin-reject-btn:hover {
+  background: linear-gradient(to right, #c82333, #a71e2a);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(220, 53, 69, 0.3);
+}
+
+/* 어드민 폼 스타일 */
+.admin-form-group {
+  margin-bottom: 20px;
+}
+
+.admin-form-label {
+  margin-bottom: 10px;
+  color: #555;
+  font-size: 1.1em;
+  font-weight: 500;
+}
+
+.admin-form-label span {
+  color: var(--red);
+}
+
+.admin-form-input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 1.1em;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+  background: var(--white);
+  color: var(--black);
+  transition: all 0.3s ease;
+}
+
+.admin-form-input:focus {
+  outline: none;
+  border-color: var(--main-color);
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+.admin-form-textarea {
+  width: 100%;
+  min-height: 80px;
+  margin-bottom: 20px;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 1.1em;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+  background: var(--white);
+  color: var(--black);
+  transition: all 0.3s ease;
+  resize: vertical;
+}
+
+.admin-form-textarea:focus {
+  outline: none;
+  border-color: var(--main-color);
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+.admin-form-select {
+  flex: 1;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 1.05em;
+  background: var(--white);
+  color: var(--black);
+  transition: all 0.3s ease;
+}
+
+.admin-form-select:focus {
+  outline: none;
+  border-color: var(--main-color);
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+.admin-form-input-number {
+  width: 220px;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 1.05em;
+  background: var(--white);
+  color: var(--black);
+  transition: all 0.3s ease;
+}
+
+.admin-form-input-number:focus {
+  outline: none;
+  border-color: var(--main-color);
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+.admin-form-input-generation {
+  width: 120px;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 1.05em;
+  background: var(--white);
+  color: var(--black);
+  transition: all 0.3s ease;
+}
+
+.admin-form-input-generation:focus {
+  outline: none;
+  border-color: var(--main-color);
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+/* 어드민 폼 행 */
+.admin-form-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+/* 어드민 제출 버튼 */
+.admin-submit-btn {
+  padding: 12px 18px;
+  font-size: 1em !important;
+  line-height: 1 !important;
+  background: linear-gradient(to right, var(--main-color), #0056b3);
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  min-width: 100px;
+  height: auto;
+}
+
+.admin-submit-btn:hover {
+  background: linear-gradient(to right, #0056b3, #004085);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.admin-submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* 어드민 액션 컨테이너 */
+.admin-action-container {
+  display: flex;
+  gap: 8px;
+}
+
+/* 다크모드 스타일 추가 */
+.dark .admin-dashboard {
+  background: transparent;
+}
+
+.dark .admin-box {
+  background-color: #2a2a2a;
+  border-color: #444;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+}
+
+.dark .admin-box:hover {
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
+}
+
+.dark .admin-box-title {
+  color: var(--black);
+}
+
+.dark .admin-dashboard-table {
+  background: #333;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.dark .admin-dashboard-table thead {
+  background: #444;
+}
+
+.dark .admin-dashboard-table thead.primary {
+  background: var(--main-color);
+}
+
+.dark .admin-dashboard-table th {
+  color: var(--black);
+  border-color: #555;
+}
+
+.dark .admin-dashboard-table tbody tr {
+  border-bottom-color: #555;
+}
+
+.dark .admin-dashboard-table tbody tr:hover {
+  background-color: rgba(0, 123, 255, 0.1);
+}
+
+.dark .admin-dashboard-table td {
+  color: var(--black);
+  border-color: #555;
+}
+
+.dark .admin-form-label {
+  color: var(--black);
+}
+
+.dark .admin-form-input,
+.dark .admin-form-textarea,
+.dark .admin-form-select,
+.dark .admin-form-input-number,
+.dark .admin-form-input-generation {
+  background: #444;
+  color: var(--black);
+  border-color: #555;
+}
+
+.dark .admin-form-input:focus,
+.dark .admin-form-textarea:focus,
+.dark .admin-form-select:focus,
+.dark .admin-form-input-number:focus,
+.dark .admin-form-input-generation:focus {
+  border-color: var(--main-color);
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.2);
+}
+
+/* 중복 확인 버튼 */
+.admin-check-btn {
+  padding: 12px 18px;
+  background: linear-gradient(to right, #17a2b8, #117a8b);
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  width: auto;
+  height: auto;
+}
+
+.admin-check-btn:hover {
+  background: linear-gradient(to right, #117a8b, #0f6674);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* 다크모드 중복 확인 버튼 */
+.dark .admin-check-btn {
+  background: linear-gradient(to right, #20c997, #17a2b8);
+  color: var(--black);
+}
+
+.dark .admin-check-btn:hover {
+  background: linear-gradient(to right, #17a2b8, #138496);
+}
