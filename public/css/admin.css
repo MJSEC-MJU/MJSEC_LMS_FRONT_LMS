@@ -955,3 +955,54 @@
 .dark .admin-check-btn:hover {
   background: linear-gradient(to right, #17a2b8, #138496);
 }
+
+/* 이미지 래퍼 */
+.admin-image-wrapper {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 40px;
+}
+
+.admin-image-wrapper:hover .admin-image-view-btn {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* 이미지 자세히 보기 버튼 */
+.admin-image-view-btn {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  font-size: 12px;
+  z-index: 10;
+}
+
+.admin-image-view-btn:hover {
+  background: rgba(0, 0, 0, 0.9);
+  transform: translate(-50%, -50%) scale(1.1);
+}
+
+/* 다크모드 이미지 버튼 */
+.dark .admin-image-view-btn {
+  background: rgba(255, 255, 255, 0.8);
+  color: var(--black);
+}
+
+.dark .admin-image-view-btn:hover {
+  background: rgba(255, 255, 255, 0.95);
+}

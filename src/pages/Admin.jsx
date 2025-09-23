@@ -71,6 +71,13 @@ export default function Admin() {
     groupName: '',
     groupId: null
   });
+
+  // 이미지 모달 상태
+  const [imageModal, setImageModal] = useState({
+    isOpen: false,
+    imageUrl: '',
+    groupName: ''
+  });
   
   
   const fetchGroups = useCallback(async () => {
@@ -266,8 +273,28 @@ useEffect(() => {
   // 스터디 그룹 이름 중복 확인 함수
   const checkGroupNameDuplicate = async (groupName, token) => {
     if (!groupName) throw new Error('그룹 이름이 필요합니다');
-    // 예시: /admin/group/check-name/{groupName}
+    // 예시: /admin/group/name-check/{groupName}
     return await api('GET', `/admin/group/name-check/${encodeURIComponent(groupName)}`, null, token);
+  };
+
+  // 이미지 API URL 생성 함수
+  const getImageApiUrl = (imagePath) => {
+    if (!imagePath) return null;
+    
+    // 절대 URL인 경우 그대로 반환
+    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+      return imagePath;
+    }
+    
+    // 파일명 추출
+    const fileName = imagePath.split('/').pop();
+    if (!fileName) return null;
+    
+    // API 베이스 URL 구성
+    const apiBase = import.meta.env.VITE_API_BASE || '';
+    const apiPrefix = import.meta.env.VITE_API_PREFIX || '/api/v1';
+    
+    return `${apiBase}${apiPrefix}/image/${fileName}`;
   };
 
   // 예시: 그룹 이름 입력 시 중복 체크
@@ -281,6 +308,18 @@ useEffect(() => {
       }
     } catch (e) {
       alert(e.message);
+    }
+  };
+
+  // 이미지 모달 열기
+  const handleOpenImageModal = (imagePath, groupName) => {
+    const imageUrl = getImageApiUrl(imagePath);
+    if (imageUrl) {
+      setImageModal({
+        isOpen: true,
+        imageUrl: imageUrl,
+        groupName: groupName
+      });
     }
   };
 
@@ -720,11 +759,20 @@ useEffect(() => {
                         <td>
                           <div className="admin-group-image-container">
                             {g.studyImage ? (
-                              <img 
-                                src={g.studyImage} 
-                                alt={g.name} 
-                                className="admin-group-image"
-                              />
+                              <div className="admin-image-wrapper">
+                                <img 
+                                  src={getImageApiUrl(g.studyImage)} 
+                                  alt={g.name} 
+                                  className="admin-group-image"
+                                />
+                                <button
+                                  className="admin-image-view-btn"
+                                  onClick={() => handleOpenImageModal(g.studyImage, g.name)}
+                                  title="이미지 자세히 보기"
+                                >
+                                  <i className="fas fa-search-plus"></i>
+                                </button>
+                              </div>
                             ) : (
                               <span style={{ color: '#6c757d', fontSize: '12px' }}>
                                 No Image
@@ -920,6 +968,104 @@ useEffect(() => {
               >
                 삭제
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 이미지 모달 */}
+      {imageModal.isOpen && (
+        <div 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1001
+          }}
+          onClick={() => setImageModal({ isOpen: false, imageUrl: '', groupName: '' })}
+        >
+          <div 
+            style={{
+              maxWidth: '90vw',
+              maxHeight: '90vh',
+              position: 'relative',
+              backgroundColor: 'white',
+              borderRadius: '10px',
+              overflow: 'hidden',
+              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.3)'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* 모달 헤더 */}
+            <div style={{
+              padding: '15px 20px',
+              borderBottom: '1px solid #e5e7eb',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              backgroundColor: '#f9fafb'
+            }}>
+              <h3 style={{ margin: 0, color: '#374151', fontSize: '18px' }}>
+                {imageModal.groupName} - 이미지
+              </h3>
+              <button
+                onClick={() => setImageModal({ isOpen: false, imageUrl: '', groupName: '' })}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  fontSize: '24px',
+                  cursor: 'pointer',
+                  color: '#6b7280',
+                  padding: '5px',
+                  borderRadius: '4px',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseOver={(e) => {
+                  e.target.style.backgroundColor = '#e5e7eb';
+                  e.target.style.color = '#374151';
+                }}
+                onMouseOut={(e) => {
+                  e.target.style.backgroundColor = 'transparent';
+                  e.target.style.color = '#6b7280';
+                }}
+              >
+                ×
+              </button>
+            </div>
+            
+            {/* 이미지 */}
+            <div style={{ padding: '20px', textAlign: 'center' }}>
+              <img
+                src={imageModal.imageUrl}
+                alt={imageModal.groupName}
+                style={{
+                  maxWidth: '100%',
+                  maxHeight: '70vh',
+                  objectFit: 'contain',
+                  borderRadius: '8px',
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)'
+                }}
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                  e.target.nextSibling.style.display = 'block';
+                }}
+              />
+              <div style={{ 
+                display: 'none', 
+                padding: '40px', 
+                color: '#6b7280',
+                fontSize: '16px'
+              }}>
+                <i className="fas fa-exclamation-triangle" style={{ fontSize: '24px', marginBottom: '10px' }}></i>
+                <br />
+                이미지를 불러올 수 없습니다.
+              </div>
             </div>
           </div>
         </div>
