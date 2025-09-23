@@ -230,6 +230,7 @@ useEffect(() => {
         formData.append('studyImage', editGroupImage);
       }
 
+
       const groupDto = {
         name: editGroupName,
         content: editGroupDescription,       // ← description을 content로 보냄
@@ -367,6 +368,27 @@ useEffect(() => {
     }
     fetchPendingMembers();
   }, [token, user, nav, fetchPendingMembers]);
+
+  // 스터디 그룹 이름 중복 확인 함수
+const checkGroupNameDuplicate = async (groupName, token) => {
+  if (!groupName) throw new Error('그룹 이름이 필요합니다');
+  // 예시: /admin/group/check-name/{groupName}
+  return await api('GET', `/admin/group/name-check/${encodeURIComponent(editGroupName)}`, null, token);
+};
+
+  // 예시: 그룹 이름 입력 시 중복 체크
+const handleCheckGroupName = async () => {
+  try {
+    const res = await checkGroupNameDuplicate(editGroupName, token);
+    if (res?.data === true||res?.status===200) {
+      alert('사용 가능한 그룹 이름입니다.');
+    } else {
+      alert('이미 존재하는 그룹 이름입니다.');
+    }
+  } catch (e) {
+    alert(e.message);
+  }
+};
 
   if (!token || !user || user.role !== 'ROLE_ADMIN') {
     return null;
@@ -585,6 +607,7 @@ useEffect(() => {
               style={{ marginBottom: '20px' }}
             />
             
+
             <p className="admin-form-label">현재 스터디 그룹 이름 <span>*</span></p>
             <input
               type="text"
