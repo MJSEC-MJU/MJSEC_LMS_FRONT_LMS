@@ -70,6 +70,14 @@ const toImageApiUrl = (raw) => {
   return name ? `${API_BASE}/image/${name}` : null;
 };
 
+// Authorization 헤더가 포함된 이미지 URL 생성
+const toImageApiUrlWithAuth = (raw, token) => {
+  if (!raw || !token) return null;
+  if (isAbs(raw)) return raw;
+  const name = fileName(raw);
+  return name ? `${API_BASE}/image/${name}` : null;
+};
+
 const normalizeGroupImage = (raw) => toImageApiUrl(raw) || DEFAULT_STUDY_SVG;
 
 /* =======================================================================
@@ -80,6 +88,46 @@ export default function GroupsList({ myStudies = [] }) {
   const [mentorInfo, setMentorInfo] = useState({});
   const [loadingMentors, setLoadingMentors] = useState(false);
   const [statusFilter, setStatusFilter] = useState('all'); // 'all', 'active', 'inactive'
+  const [imageUrls, setImageUrls] = useState({}); // 이미지 URL 캐시
+
+  // 이미지 로드 함수 (Authorization 헤더 포함)
+  const loadImageWithAuth = async (imagePath, groupId) => {
+    if (!imagePath || !token) return DEFAULT_STUDY_SVG;
+    
+    // 이미 캐시된 이미지가 있으면 반환
+    if (imageUrls[groupId]) return imageUrls[groupId];
+    
+    try {
+      const imageUrl = toImageApiUrlWithAuth(imagePath, token);
+      if (!imageUrl) return DEFAULT_STUDY_SVG;
+      
+      const response = await fetch(imageUrl, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (response.ok) {
+        const blob = await response.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        
+        // 캐시에 저장
+        setImageUrls(prev => ({
+          ...prev,
+          [groupId]: blobUrl
+        }));
+        
+        return blobUrl;
+      } else {
+        console.warn(`이미지 로드 실패: ${response.status}`, imageUrl);
+        return DEFAULT_STUDY_SVG;
+      }
+    } catch (error) {
+      console.warn('이미지 로드 중 오류:', error);
+      return DEFAULT_STUDY_SVG;
+    }
+  };
 
   // 멘토 정보 가져오기
   useEffect(() => {
@@ -112,6 +160,32 @@ export default function GroupsList({ myStudies = [] }) {
       }
     })();
   }, [token, myStudies]);
+
+  // 이미지 로드
+  useEffect(() => {
+    (async () => {
+      if (!token || myStudies.length === 0) return;
+
+      const imagePromises = myStudies.map(async (study) => {
+        if (study.GroupImage) {
+          await loadImageWithAuth(study.GroupImage, study.groupId);
+        }
+      });
+
+      await Promise.all(imagePromises);
+    })();
+  }, [token, myStudies]);
+
+  // 컴포넌트 언마운트 시 blob URL 정리
+  useEffect(() => {
+    return () => {
+      Object.values(imageUrls).forEach(url => {
+        if (url.startsWith('blob:')) {
+          URL.revokeObjectURL(url);
+        }
+      });
+    };
+  }, [imageUrls]);
 
   // 상태별 필터링 함수
   const getFilteredStudies = () => {
@@ -186,7 +260,7 @@ export default function GroupsList({ myStudies = [] }) {
                 <div className="group-content">
                   <div className="group-image">
                     <img
-                      src={normalizeGroupImage(study.GroupImage)}
+                      src={imageUrls[study.groupId] || normalizeGroupImage(study.GroupImage)}
                       alt={study.name}
                       onError={(e) => {
                         if (e.currentTarget.src !== DEFAULT_STUDY_SVG) {
