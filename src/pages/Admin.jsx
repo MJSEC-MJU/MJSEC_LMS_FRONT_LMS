@@ -277,24 +277,24 @@ useEffect(() => {
     return await api('GET', `/admin/group/name-check/${encodeURIComponent(groupName)}`, null, token);
   };
 
-  // 이미지 API URL 생성 함수
+  // 이미지 API URL 생성 함수 (네브바와 동일한 방식)
   const getImageApiUrl = (imagePath) => {
     if (!imagePath) return null;
     
-    // 절대 URL인 경우 그대로 반환
-    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+    // 이미 완전한 URL인 경우 (http, https, data:)
+    if (/^(https?:)?\/\//.test(imagePath) || imagePath.startsWith("data:")) {
       return imagePath;
     }
     
-    // 파일명 추출
-    const fileName = imagePath.split('/').pop();
-    if (!fileName) return null;
+    // /uploads/ 경로인 경우 API 엔드포인트로 변환 (네브바와 동일)
+    if (imagePath.startsWith("/uploads/")) {
+      const base = (import.meta.env.BASE_URL || "/");
+      return `${window.location.origin}${base}api/v1/image${imagePath.replace("/uploads", "")}`;
+    }
     
-    // API 베이스 URL 구성
-    const apiBase = import.meta.env.VITE_API_BASE || '';
-    const apiPrefix = import.meta.env.VITE_API_PREFIX || '/api/v1';
-    
-    return `${apiBase}${apiPrefix}/image/${fileName}`;
+    // 상대 경로인 경우 base URL과 결합
+    const base = (import.meta.env.BASE_URL || "/");
+    return `${base}${imagePath.replace(/^\//, "")}`;
   };
 
   // 예시: 그룹 이름 입력 시 중복 체크
