@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { api } from '../components/client'; // api 함수
+import '../../public/css/admin.css';
 
 const fetchAdminUsers = (token) => adminUsers(token).list();
 const deleteAdminUser = (userId, token) => adminUsers(token).remove(userId);
@@ -50,10 +51,11 @@ export default function Admin() {
   const [creatingGroup, setCreatingGroup] = useState(false);
 
   // 스터디 그룹 수정 폼 상태
-  const [editGroupId, setEditGroupId] = useState('');
+  const [currentGroupName, setCurrentGroupName] = useState('');
   const [editGroupName, setEditGroupName] = useState('');
   const [editGroupDescription, setEditGroupDescription] = useState(''); // ← content로 전송
   const [editGroupCategory, setEditGroupCategory] = useState('WEB');
+  const [editGroupGeneration, setEditGroupGeneration] = useState(''); // ← generation 추가
   const [editGroupMentor, setEditGroupMentor] = useState('');
   const [editGroupImage, setEditGroupImage] = useState(null); // 이미지 파일 추가
   const [updatingGroup, setUpdatingGroup] = useState(false);
@@ -62,6 +64,14 @@ export default function Admin() {
   const [groups, setGroups] = useState([]);
   const [groupsLoading, setGroupsLoading] = useState(false);
   const [groupsError, setGroupsError] = useState(null);
+  
+  // 그룹 삭제 모달 상태
+  const [deleteModal, setDeleteModal] = useState({
+    isOpen: false,
+    groupName: '',
+    groupId: null
+  });
+  
   
   const fetchGroups = useCallback(async () => {
   setGroupsLoading(true);
@@ -197,7 +207,7 @@ useEffect(() => {
   const handleUpdateGroup = useCallback(async (e) => {
     e.preventDefault();
     if (updatingGroup) return;
-    if (!editGroupId || !editGroupName) {
+    if (!currentGroupName || !editGroupName) {
       alert('그룹 ID와 그룹 이름을 입력해주세요.');
       return;
     }
@@ -221,10 +231,10 @@ useEffect(() => {
       }
 
       const groupDto = {
-        id: editGroupId,
         name: editGroupName,
         content: editGroupDescription,       // ← description을 content로 보냄
         category: editGroupCategory,
+        generation: editGroupGeneration,     // ← generation 추가
         mentorStudentNumber: mentorNum,
       };
       formData.append(
@@ -232,13 +242,14 @@ useEffect(() => {
         new Blob([JSON.stringify(groupDto)], { type: 'application/json' })
       );
 
-      const res = await api('PUT', `/admin/group/${editGroupName}`, formData,  token, { 'Content-Type': 'multipart/form-data' });
+      const res = await api('PUT', `/admin/group/${encodeURIComponent(currentGroupName)}`, formData,  token, { 'Content-Type': 'multipart/form-data' });
       if (res?.code === 'SUCCESS') {
         alert('스터디 그룹 수정 성공!');
-        setEditGroupId('');
+        setCurrentGroupName('');
         setEditGroupName('');
         setEditGroupDescription('');
         setEditGroupCategory('WEB');
+        setEditGroupGeneration('');
         setEditGroupMentor('');
       } else {
         alert(res?.message || '스터디 그룹 수정 실패');
@@ -249,7 +260,61 @@ useEffect(() => {
     } finally {
       setUpdatingGroup(false);
     }
-  }, [token, editGroupId, editGroupName, editGroupDescription, editGroupCategory, editGroupMentor, updatingGroup]);
+  }, [token, currentGroupName, editGroupName, editGroupDescription, editGroupCategory, editGroupGeneration, editGroupMentor, editGroupImage, updatingGroup]);
+
+  // 스터디 그룹 이름 중복 확인 함수
+  const checkGroupNameDuplicate = async (groupName, token) => {
+    if (!groupName) throw new Error('그룹 이름이 필요합니다');
+    // 예시: /admin/group/check-name/{groupName}
+    return await api('GET', `/admin/group/name-check/${encodeURIComponent(groupName)}`, null, token);
+  };
+
+  // 예시: 그룹 이름 입력 시 중복 체크
+  const handleCheckGroupName = async () => {
+    try {
+      const res = await checkGroupNameDuplicate(editGroupName, token);
+      if (res?.data === true||res?.status===200) {
+        alert('사용 가능한 그룹 이름입니다.');
+      } else {
+        alert('이미 존재하는 그룹 이름입니다.');
+      }
+    } catch (e) {
+      alert(e.message);
+    }
+  };
+
+  // 그룹 삭제 함수
+  const handleDeleteGroup = useCallback(async () => {
+    if (!deleteModal.groupName) return;
+    
+    try {
+      const res = await api('DELETE', `/admin/group/${deleteModal.groupName}`, null, token);
+      if (res?.code === 'SUCCESS') {
+        alert('스터디 그룹이 성공적으로 삭제되었습니다!');
+        setDeleteModal({ isOpen: false, groupName: '', groupId: null });
+        fetchGroups(); // 그룹 목록 새로고침
+      } else {
+        alert(res?.message || '스터디 그룹 삭제 실패');
+      }
+    } catch (e) {
+      alert(`스터디 그룹 삭제 중 오류 발생: ${e.message}`);
+    }
+  }, [token, deleteModal.groupName, fetchGroups]);
+
+  // 그룹 상태 변경 함수
+  const handleToggleGroupStatus = useCallback(async (groupId) => {
+    try {
+      const res = await api('PUT', `/admin/group/status/${groupId}`, null, token);
+      if (res?.code === 'SUCCESS') {
+        alert('스터디 그룹 상태가 성공적으로 변경되었습니다!');
+        fetchGroups(); // 그룹 목록 새로고침
+      } else {
+        alert(res?.message || '스터디 그룹 상태 변경 실패');
+      }
+    } catch (e) {
+      alert(`스터디 그룹 상태 변경 중 오류 발생: ${e.message}`);
+    }
+  }, [token, fetchGroups]);
 
   // 전체 사용자 목록 불러오기
   const fetchAllUsers = useCallback(async () => {
@@ -308,7 +373,7 @@ useEffect(() => {
   }
 
   return (
-    <section className="admin-dashboard" style={{ maxWidth: '1200px', margin: '0 auto', padding: '20px 0' }}>
+    <section className="admin-dashboard">
       <h1
         className="heading"
         style={{
@@ -325,7 +390,7 @@ useEffect(() => {
         관리자 대시보드
       </h1>
       {/* 탭 네비게이션 */}
-      <div style={{ display: 'flex', gap: 10, justifyContent: 'center', marginBottom: 20 }}>
+      <div className="admin-tab-navigation">
         {[
           { key: 'users', label: '전체 사용자' },
           { key: 'approvals', label: '회원가입 승인 대기' },
@@ -333,27 +398,22 @@ useEffect(() => {
         ].map(t => (
           <button
             key={t.key}
-            className="btn"
+            className={`admin-tab-button ${activeTab === t.key ? 'active' : ''}`}
             onClick={() => setActiveTab(t.key)}
-            style={{
-              background: activeTab === t.key ? 'linear-gradient(to right, #6f42c1, #59359a)' : 'linear-gradient(to right, #adb5bd, #868e96)',
-              color: '#fff', border: 'none', borderRadius: '20px', padding: '8px 18px', cursor: 'pointer'
-            }}
           >
             {t.label}
           </button>
         ))}
       </div>
 
-      <div className="box-container" style={{ display: 'flex', flexWrap: 'wrap', gap: '30px', justifyContent: 'center' }}>
+      <div className="admin-box-container">
         {activeTab === 'users' && (
-        <div className="box" style={{ flex: '1 1 600px', backgroundColor: '#ffffff', padding: '30px', borderRadius: '15px', boxShadow: '0 10px 20px rgba(0,0,0,0.15)', border: '1px solid #eee' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-            <h3 style={{ color: '#343a40', fontSize: '2.0em', fontWeight: '600', margin: 0 }}>전체 사용자 목록</h3>
+        <div className="admin-box" style={{ flex: '1 1 600px' }}>
+          <div className="admin-box-header">
+            <h3 className="admin-box-title">전체 사용자 목록</h3>
             <button
-              className="btn"
+              className="admin-action-btn"
               onClick={fetchAllUsers}
-              style={{ background: 'linear-gradient(to right, #17a2b8, #117a8b)', color: '#fff', border: 'none', borderRadius: '5px', padding: '8px 16px', fontSize: '1em', cursor: 'pointer' }}
             >
               새로고침
             </button>
@@ -364,29 +424,28 @@ useEffect(() => {
             users.length === 0 ? (
               <p>사용자가 없습니다.</p>
             ) : (
-              <table className="dashboard-table" style={{ width: '100%', borderCollapse: 'collapse', marginTop: '15px' }}>
+              <table className="admin-dashboard-table">
                 <thead>
                   <tr>
-                    <th style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'left', backgroundColor: '#343a40', color: '#ffffff' }}>ID</th>
-                    <th style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'left', backgroundColor: '#343a40', color: '#ffffff' }}>학번</th>
-                    <th style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'left', backgroundColor: '#343a40', color: '#ffffff' }}>이름</th>
-                    <th style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'left', backgroundColor: '#343a40', color: '#ffffff' }}>이메일</th>
-                    <th style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'left', backgroundColor: '#343a40', color: '#ffffff' }}>액션</th>
+                    <th>ID</th>
+                    <th>학번</th>
+                    <th>이름</th>
+                    <th>이메일</th>
+                    <th>액션</th>
                   </tr>
                 </thead>
                 <tbody>
                   {users.map(u => (
-                    <tr key={`${u.userId}-${u.studentNumber}`} style={{ borderBottom: '1px solid #eee' }}>
-                      <td style={{ padding: '10px 12px', border: '1px solid #ddd' }}>{u.userId}</td>
-                      <td style={{ padding: '10px 12px', border: '1px solid #ddd' }}>{u.studentNumber}</td>
-                      <td style={{ padding: '10px 12px', border: '1px solid #ddd' }}>{u.name}</td>
-                      <td style={{ padding: '10px 12px', border: '1px solid #ddd' }}>{u.email}</td>
-                      <td style={{ padding: '10px 12px', border: '1px solid #ddd' }}>
+                    <tr key={`${u.userId}-${u.studentNumber}`}>
+                      <td>{u.userId}</td>
+                      <td>{u.studentNumber}</td>
+                      <td>{u.name}</td>
+                      <td>{u.email}</td>
+                      <td>
                         <button
-                          className="btn"
+                          className="admin-delete-user-btn"
                           onClick={() => handleDeleteUser(u.userId)}
                           disabled={deletingUserId === u.userId}
-                          style={{ background: 'linear-gradient(to right, #dc3545, #c82333)', color: '#fff', border: 'none', borderRadius: '5px', padding: '6px 12px', fontSize: '0.95em', cursor: 'pointer' }}
                         >
                           {deletingUserId === u.userId ? '삭제 중...' : '삭제'}
                         </button>
@@ -400,44 +459,42 @@ useEffect(() => {
         </div>
         )}
         {activeTab === 'approvals' && (
-        <div className="box" style={{ flex: '1 1 800px', backgroundColor: '#ffffff', padding: '30px', borderRadius: '15px', boxShadow: '0 10px 20px rgba(0,0,0,0.15)', border: '1px solid #eee' }}>
-          <h3 style={{ color: '#007bff', marginBottom: '20px', fontSize: '2.2em', fontWeight: '600' }}>회원가입 승인 대기 명단</h3>
+        <div className="admin-box" style={{ flex: '1 1 800px' }}>
+          <h3 className="admin-box-title primary">회원가입 승인 대기 명단</h3>
           {loading && <p>회원가입 대기 명단을 불러오는 중...</p>}
           {error && <p className="error-message">{error}</p>}
           {!loading && !error && (pendingMembers.length === 0 ? (
             <p>승인 대기 중인 회원이 없습니다.</p>
           ) : (
-            <table className="dashboard-table" style={{ width: '100%', borderCollapse: 'collapse', marginTop: '15px' }}>
-              <thead>
+            <table className="admin-dashboard-table">
+              <thead className="primary">
                 <tr>
-                  <th style={{ padding: '15px', border: '1px solid #ddd', textAlign: 'left', backgroundColor: '#007bff', color: '#ffffff', fontWeight: '600', fontSize: '1.1em' }}>학번</th>
-                  <th style={{ padding: '15px', border: '1px solid #ddd', textAlign: 'left', backgroundColor: '#007bff', color: '#ffffff', fontWeight: '600', fontSize: '1.1em' }}>이름</th>
-                  <th style={{ padding: '15px', border: '1px solid #ddd', textAlign: 'left', backgroundColor: '#007bff', color: '#ffffff', fontWeight: '600', fontSize: '1.1em' }}>이메일</th>
-                  <th style={{ padding: '15px', border: '1px solid #ddd', textAlign: 'left', backgroundColor: '#007bff', color: '#ffffff', fontWeight: '600', fontSize: '1.1em' }}>전화번호</th>
-                  <th style={{ padding: '15px', border: '1px solid #ddd', textAlign: 'left', backgroundColor: '#007bff', color: '#ffffff', fontWeight: '600', fontSize: '1.1em' }}>가입일</th>
-                  <th style={{ padding: '15px', border: '1px solid #ddd', textAlign: 'left', backgroundColor: '#007bff', color: '#ffffff', fontWeight: '600', fontSize: '1.1em' }}>액션</th>
+                  <th className="primary">학번</th>
+                  <th className="primary">이름</th>
+                  <th className="primary">이메일</th>
+                  <th className="primary">전화번호</th>
+                  <th className="primary">가입일</th>
+                  <th className="primary">액션</th>
                 </tr>
               </thead>
               <tbody>
                 {pendingMembers.map(member => (
-                  <tr key={member.studentNumber} style={{ borderBottom: '1px solid #eee' }}>
-                    <td style={{ padding: '12px 15px', border: '1px solid #ddd', fontSize: '1em' }}>{member.studentNumber}</td>
-                    <td style={{ padding: '12px 15px', border: '1px solid #ddd', fontSize: '1em' }}>{member.name}</td>
-                    <td style={{ padding: '12px 15px', border: '1px solid #ddd', fontSize: '1em' }}>{member.email}</td>
-                    <td style={{ padding: '12px 15px', border: '1px solid #ddd', fontSize: '1em' }}>{member.phoneNumber}</td>
-                    <td style={{ padding: '12px 15px', border: '1px solid #ddd', fontSize: '1em' }}>{new Date(member.createdAt).toLocaleDateString()}</td>
-                    <td style={{ padding: '12px 15px', border: '1px solid #ddd' }}>
-                      <div style={{ display: 'flex', gap: '8px' }}>
+                  <tr key={member.studentNumber}>
+                    <td className="primary">{member.studentNumber}</td>
+                    <td className="primary">{member.name}</td>
+                    <td className="primary">{member.email}</td>
+                    <td className="primary">{member.phoneNumber}</td>
+                    <td className="primary">{new Date(member.createdAt).toLocaleDateString()}</td>
+                    <td className="primary">
+                      <div className="admin-action-container">
                         <button
-                          className="btn"
-                          style={{ background: 'linear-gradient(to right, #28a745, #218838)', color: '#fff', border: 'none', borderRadius: '5px', padding: '10px 18px', fontSize: '1.05em', cursor: 'pointer', boxShadow: '0 2px 5px rgba(0,0,0,0.2)' }}
+                          className="admin-approve-btn"
                           onClick={() => handleApproveMember(member.studentNumber)}
                         >
                           승인
                         </button>
                         <button
-                          className="btn"
-                          style={{ background: 'linear-gradient(to right, #dc3545, #c82333)', color: '#fff', border: 'none', borderRadius: '5px', padding: '10px 18px', fontSize: '1.05em', cursor: 'pointer', boxShadow: '0 2px 5px rgba(0,0,0,0.2)' }}
+                          className="admin-reject-btn"
                           onClick={() => handleRejectMember(member.studentNumber)}
                         >
                           거절
@@ -454,66 +511,61 @@ useEffect(() => {
 
         {activeTab === 'groups' && (
           <>
-        <div className="box" style={{ flex: '1 1 400px', backgroundColor: '#ffffff', padding: '30px', borderRadius: '15px', boxShadow: '0 10px 20px rgba(0,0,0,0.15)', border: '1px solid #eee' }}>
-          <h3 style={{ color: '#007bff', marginBottom: '20px', fontSize: '2.2em', fontWeight: '600' }}>스터디 그룹 생성</h3>
-          <form onSubmit={handleCreateGroup} className="form-group-create">
-            <p style={{ marginBottom: '10px', color: '#555', fontSize: '1.1em' }}>그룹 이름 <span>*</span></p>
+        <div className="admin-box" style={{ flex: '1 1 400px' }}>
+          <h3 className="admin-box-title primary">스터디 그룹 생성</h3>
+          <form onSubmit={handleCreateGroup} className="admin-form-group">
+            <p className="admin-form-label">그룹 이름 <span>*</span></p>
             <input
               type="text"
               placeholder="그룹 이름을 입력하세요"
-              className="box"
+              className="admin-form-input"
               required
               maxLength={100}
               value={newGroupName}
               onChange={(e) => setNewGroupName(e.target.value)}
               autoComplete="off"
-              style={{ width: '100%', marginBottom: '20px', padding: '12px', border: '1px solid #ccc', borderRadius: '5px', fontSize: '1.1em', boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.1)' }}
             />
 
-            <p style={{ marginBottom: '10px', color: '#555', fontSize: '1.1em' }}>그룹 설명</p>
+            <p className="admin-form-label">그룹 설명</p>
             <textarea
               placeholder="그룹 설명을 입력하세요"
-              className="box"
+              className="admin-form-textarea"
               value={newGroupDescription}
               onChange={(e) => setNewGroupDescription(e.target.value)}
               maxLength={1000}
               autoComplete="off"
-              style={{ width: '100%', minHeight: '80px', marginBottom: '20px', padding: '12px', border: '1px solid #ccc', borderRadius: '5px', fontSize: '1.1em', boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.1)' }}
             ></textarea>
 
             {/* 카테고리 + 기수 + 멘토 학번 */}
-            <div style={{ display: 'flex', gap: 12, marginBottom: 20 }}>
+            <div className="admin-form-row">
               <select
                 value={newGroupCategory}
                 onChange={(e)=>setNewGroupCategory(e.target.value)}
-                style={{ flex: 1, padding: '12px', border: '1px solid #ccc', borderRadius: '5px', fontSize: '1.05em' }}
+                className="admin-form-select"
               >
                 {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
               <input
                 type="text"
                 placeholder="기수(예:1기)"
-                className="box"
+                className="admin-form-input-generation"
                 value={newGroupGeneration}
                 onChange={(e)=>setNewGroupGeneration(e.target.value)}
-                style={{ width: 120, padding: '12px', border: '1px solid #ccc', borderRadius: '5px', fontSize: '1.05em' }}
               />
               <input
                 type="number"
                 inputMode="numeric"
                 placeholder="멘토 학번"
-                className="box"
+                className="admin-form-input-number"
                 value={newGroupMentor}
                 onChange={(e)=>setNewGroupMentor(e.target.value)}
-                style={{ width: 220, padding: '12px', border: '1px solid #ccc', borderRadius: '5px', fontSize: '1.05em' }}
               />
             </div>
 
             <button
               type="submit"
-              className="btn"
+              className="admin-submit-btn"
               disabled={creatingGroup}
-              style={{ background: 'linear-gradient(to right, #007bff, #0056b3)', color: '#fff', border: 'none', borderRadius: '5px', padding: '12px 25px', fontSize: '1.2em', cursor: 'pointer', boxShadow: '0 4px 8px rgba(0,0,0,0.2)' }}
             >
               {creatingGroup ? '생성 중...' : '그룹 생성'}
             </button>
@@ -521,11 +573,11 @@ useEffect(() => {
         </div>
 
         {/* 스터디 그룹 수정 */}
-        <div className="box" style={{ flex: '1 1 400px', backgroundColor: '#ffffff', padding: '30px', borderRadius: '15px', boxShadow: '0 10px 20px rgba(0,0,0,0.15)', border: '1px solid #eee' }}>
-          <h3 style={{ color: '#007bff', marginBottom: '20px', fontSize: '2.2em', fontWeight: '600' }}>스터디 그룹 수정</h3>
-          <form onSubmit={handleUpdateGroup} className="form-group-update">
+        <div className="admin-box" style={{ flex: '1 1 400px' }}>
+          <h3 className="admin-box-title primary">스터디 그룹 수정</h3>
+          <form onSubmit={handleUpdateGroup} className="admin-form-group">
             
-            <p style={{ marginBottom: '10px', color: '#555', fontSize: '1.1em' }}>그룹 대표 이미지</p>
+            <p className="admin-form-label">그룹 대표 이미지</p>
             <input
               type="file"
               accept="image/*"
@@ -533,109 +585,342 @@ useEffect(() => {
               style={{ marginBottom: '20px' }}
             />
             
-            <p style={{ marginBottom: '10px', color: '#555', fontSize: '1.1em' }}>그룹 ID <span>*</span></p>
+            <p className="admin-form-label">현재 스터디 그룹 이름 <span>*</span></p>
             <input
               type="text"
-              placeholder="수정할 그룹 ID를 입력하세요"
-              className="box"
+              placeholder="수정할 현재 스터디 그룹 이름 입력하세요"
+              className="admin-form-input"
               required
-              value={editGroupId}
-              onChange={(e) => setEditGroupId(e.target.value)}
+              value={currentGroupName}
+              onChange={(e) => setCurrentGroupName(e.target.value)}
               autoComplete="off"
-              style={{ width: '100%', marginBottom: '20px', padding: '12px', border: '1px solid #ccc', borderRadius: '5px', fontSize: '1.1em', boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.1)' }}
             />
 
-            <p style={{ marginBottom: '10px', color: '#555', fontSize: '1.1em' }}>그룹 이름 <span>*</span></p>
-            <input
-              type="text"
-              placeholder="새 그룹 이름을 입력하세요"
-              className="box"
-              required
-              maxLength={100}
-              value={editGroupName}
-              onChange={(e) => setEditGroupName(e.target.value)}
-              autoComplete="off"
-              style={{ width: '100%', marginBottom: '20px', padding: '12px', border: '1px solid #ccc', borderRadius: '5px', fontSize: '1.1em', boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.1)' }}
-            />
+            <p className="admin-form-label">변경될 스터디 그룹 이름 <span>*</span></p>
+            <div className="admin-form-row">
+              <input
+                type="text"
+                placeholder="변경될 스터디 그룹 이름을 입력하세요"
+                className="admin-form-input"
+                required
+                maxLength={100}
+                value={editGroupName}
+                onChange={(e) => setEditGroupName(e.target.value)}
+                autoComplete="off"
+              />
+              <button
+                type="button"
+                className="admin-check-btn"
+                onClick={handleCheckGroupName}
+              >
+                중복 확인
+              </button>
+            </div>
 
-            <p style={{ marginBottom: '10px', color: '#555', fontSize: '1.1em' }}>그룹 설명</p>
+            <p className="admin-form-label">그룹 설명</p>
             <textarea
               placeholder="새 그룹 설명을 입력하세요"
-              className="box"
+              className="admin-form-textarea"
               value={editGroupDescription}
               onChange={(e) => setEditGroupDescription(e.target.value)}
               maxLength={1000}
               autoComplete="off"
-              style={{ width: '100%', minHeight: '80px', marginBottom: '20px', padding: '12px', border: '1px solid #ccc', borderRadius: '5px', fontSize: '1.1em', boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.1)' }}
             ></textarea>
 
-            {/* 카테고리 + 멘토 학번 */}
-            <div style={{ display: 'flex', gap: 12, marginBottom: 20 }}>
+            {/* 카테고리 + 기수 + 멘토 학번 */}
+            <div className="admin-form-row">
               <select
                 value={editGroupCategory}
                 onChange={(e)=>setEditGroupCategory(e.target.value)}
-                style={{ flex: 1, padding: '12px', border: '1px solid #ccc', borderRadius: '5px', fontSize: '1.05em' }}
+                className="admin-form-select"
               >
                 {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
               <input
+                type="text"
+                placeholder="기수(예:1기)"
+                className="admin-form-input-generation"
+                value={editGroupGeneration}
+                onChange={(e)=>setEditGroupGeneration(e.target.value)}
+              />
+              <input
                 type="number"
                 inputMode="numeric"
                 placeholder="멘토 학번"
-                className="box"
+                className="admin-form-input-number"
                 value={editGroupMentor}
                 onChange={(e)=>setEditGroupMentor(e.target.value)}
-                style={{ width: 220, padding: '12px', border: '1px solid #ccc', borderRadius: '5px', fontSize: '1.05em' }}
               />
             </div>
 
             <button
               type="submit"
-              className="btn"
+              className="admin-submit-btn"
               disabled={updatingGroup}
-              style={{ background: 'linear-gradient(to right, #007bff, #0056b3)', color: '#fff', border: 'none', borderRadius: '5px', padding: '12px 25px', fontSize: '1.2em', cursor: 'pointer', boxShadow: '0 4px 8px rgba(0,0,0,0.2)' }}
             >
               {updatingGroup ? '수정 중...' : '그룹 수정'}
             </button>
           </form>
         </div>
                 {/* 스터디 그룹 조회 테이블 추가 */}
-        <div className="box" style={{ flex: '1 1 800px', backgroundColor: '#fff', padding: '30px', borderRadius: '15px', boxShadow: '0 10px 20px rgba(0,0,0,0.15)', border: '1px solid #eee' }}>
-          <h3 style={{ color: '#007bff', marginBottom: '20px', fontSize: '2.2em', fontWeight: '600' }}>전체 스터디 그룹 목록</h3>
-          {groupsLoading && <p>스터디 그룹 목록을 불러오는 중...</p>}
-          {groupsError && <p className="error-message">{groupsError}</p>}
+        <div className="admin-box" style={{ flex: '1 1 800px' }}>
+          <h3 className="admin-box-title primary">전체 스터디 그룹 목록</h3>
+          {groupsLoading && <div className="admin-loading">스터디 그룹 목록을 불러오는 중...</div>}
+          {groupsError && <div className="admin-error">{groupsError}</div>}
           {!groupsLoading && !groupsError && (
             groups.length === 0 ? (
-              <p>스터디 그룹이 없습니다.</p>
+              <div className="admin-empty">
+                <i className="fas fa-users"></i>
+                스터디 그룹이 없습니다.
+              </div>
             ) : (
-              <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '15px' }}>
-                <thead>
-                  <tr>
-                    <th style={{ padding: '12px', border: '1px solid #ddd', backgroundColor: '#343a40', color: '#fff' }}>ID</th>
-                    <th style={{ padding: '12px', border: '1px solid #ddd', backgroundColor: '#343a40', color: '#fff' }}>이름</th>
-                    <th style={{ padding: '12px', border: '1px solid #ddd', backgroundColor: '#343a40', color: '#fff' }}>카테고리</th>
-                    <th style={{ padding: '12px', border: '1px solid #ddd', backgroundColor: '#343a40', color: '#fff' }}>이미지</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {groups.map(g => (
-                    <tr key={g.studyGroupId}>
-                      <td style={{ padding: '10px 12px', border: '1px solid #ddd' }}>{g.studyGroupId}</td>
-                      <td style={{ padding: '10px 12px', border: '1px solid #ddd' }}>{g.name}</td>
-                      <td style={{ padding: '10px 12px', border: '1px solid #ddd' }}>{g.category}</td>
-                      <td style={{ padding: '10px 12px', border: '1px solid #ddd' }}>
-                        {g.studyImage && <img src={g.studyImage} alt={g.name} style={{ width: 60, height: 40, objectFit: 'cover', borderRadius: 5 }} />}
-                      </td>
+              <div style={{ overflowX: 'auto' }}>
+                <table className="admin-groups-table">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>이름</th>
+                      <th>카테고리</th>
+                      <th>기수</th>
+                      <th>상태</th>
+                      <th>이미지</th>
+                      <th>관리</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {groups.map(g => (
+                      <tr key={g.studyGroupId} className={g.status === 'ACTIVE' ? 'active-group' : 'inactive-group'}>
+                        <td><span className="group-id">#{g.studyGroupId}</span></td>
+                        <td><span className="group-name">{g.name}</span></td>
+                        <td>
+                          <span className="admin-category-badge">
+                            {g.category}
+                          </span>
+                        </td>
+                        <td>
+                          <span className="generation-text">
+                            {g.generation || '미설정'}
+                          </span>
+                        </td>
+                        <td>
+                          <div 
+                            className={`status-toggle-container ${g.status === 'ACTIVE' ? 'active' : 'inactive'}`}
+                            onClick={() => handleToggleGroupStatus(g.studyGroupId)}
+                          >
+                            <i className={`fas ${g.status === 'ACTIVE' ? 'fa-play-circle' : 'fa-pause-circle'} status-icon`}></i>
+                            <span className="status-text">
+                              {g.status === 'ACTIVE' ? '진행중' : g.status === 'INACTIVE' ? '종료' : g.status || '알 수 없음'}
+                            </span>
+                            <div className="toggle-switch"></div>
+                          </div>
+                        </td>
+                        <td>
+                          <div className="admin-group-image-container">
+                            {g.studyImage ? (
+                              <img 
+                                src={g.studyImage} 
+                                alt={g.name} 
+                                className="admin-group-image"
+                              />
+                            ) : (
+                              <span style={{ color: '#6c757d', fontSize: '12px' }}>
+                                No Image
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                        <td>
+                          <div className="admin-table-actions">
+                            {/* 삭제 버튼 */}
+                            <button
+                              className="admin-delete-btn"
+                              onClick={() => setDeleteModal({ 
+                                isOpen: true, 
+                                groupName: g.name, 
+                                groupId: g.studyGroupId 
+                              })}
+                            >
+                              <i className="fas fa-trash-alt"></i>
+                              삭제
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )
           )}
         </div>
           </>
         )}
       </div>
+
+      {/* 그룹 삭제 확인 모달 */}
+      {deleteModal.isOpen && (
+        <div 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000
+          }}
+          onClick={() => setDeleteModal({ isOpen: false, groupName: '', groupId: null })}
+        >
+          <div 
+            style={{
+              backgroundColor: 'white',
+              borderRadius: '15px',
+              padding: '30px',
+              maxWidth: '400px',
+              width: '90%',
+              boxShadow: '0 10px 30px rgba(0, 0, 0, 0.3)',
+              position: 'relative'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              alignItems: 'center', 
+              marginBottom: '20px' 
+            }}>
+              <h3 style={{ 
+                margin: 0, 
+                color: '#dc3545', 
+                fontSize: '1.5rem',
+                fontWeight: '600'
+              }}>
+                그룹 삭제 확인
+              </h3>
+              <button
+                onClick={() => setDeleteModal({ isOpen: false, groupName: '', groupId: null })}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  fontSize: '1.5rem',
+                  cursor: 'pointer',
+                  color: '#6c757d',
+                  padding: '0',
+                  width: '30px',
+                  height: '30px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderRadius: '50%',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseOver={(e) => {
+                  e.target.style.backgroundColor = '#f8f9fa';
+                  e.target.style.color = '#dc3545';
+                }}
+                onMouseOut={(e) => {
+                  e.target.style.backgroundColor = 'transparent';
+                  e.target.style.color = '#6c757d';
+                }}
+              >
+                <i className="fas fa-times"></i>
+              </button>
+            </div>
+            
+            <div style={{ marginBottom: '30px' }}>
+              <div style={{ 
+                textAlign: 'center', 
+                marginBottom: '20px',
+                padding: '20px',
+                backgroundColor: '#fff5f5',
+                borderRadius: '10px',
+                border: '1px solid #fed7d7'
+              }}>
+                <i className="fas fa-exclamation-triangle" style={{ 
+                  fontSize: '3rem', 
+                  color: '#dc3545', 
+                  marginBottom: '15px' 
+                }}></i>
+                <p style={{ 
+                  margin: 0, 
+                  fontSize: '1.1rem', 
+                  color: '#2d3748',
+                  lineHeight: '1.5'
+                }}>
+                  <strong>"{deleteModal.groupName}"</strong> 그룹을 정말로 삭제하시겠습니까?
+                </p>
+                <p style={{ 
+                  margin: '10px 0 0 0', 
+                  fontSize: '0.9rem', 
+                  color: '#718096'
+                }}>
+                  이 작업은 되돌릴 수 없습니다.
+                </p>
+              </div>
+            </div>
+            
+            <div style={{ 
+              display: 'flex', 
+              gap: '12px', 
+              justifyContent: 'flex-end' 
+            }}>
+              <button 
+                onClick={() => setDeleteModal({ isOpen: false, groupName: '', groupId: null })}
+                style={{
+                  padding: '10px 20px',
+                  borderRadius: '8px',
+                  border: '1px solid #d1d5db',
+                  backgroundColor: '#f9fafb',
+                  color: '#374151',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseOver={(e) => {
+                  e.target.style.backgroundColor = '#f3f4f6';
+                  e.target.style.borderColor = '#9ca3af';
+                }}
+                onMouseOut={(e) => {
+                  e.target.style.backgroundColor = '#f9fafb';
+                  e.target.style.borderColor = '#d1d5db';
+                }}
+              >
+                취소
+              </button>
+              <button 
+                onClick={handleDeleteGroup}
+                style={{
+                  padding: '10px 20px',
+                  borderRadius: '8px',
+                  border: 'none',
+                  backgroundColor: '#dc3545',
+                  color: 'white',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseOver={(e) => {
+                  e.target.style.backgroundColor = '#c82333';
+                  e.target.style.transform = 'translateY(-1px)';
+                  e.target.style.boxShadow = '0 4px 12px rgba(220, 53, 69, 0.3)';
+                }}
+                onMouseOut={(e) => {
+                  e.target.style.backgroundColor = '#dc3545';
+                  e.target.style.transform = 'translateY(0)';
+                  e.target.style.boxShadow = 'none';
+                }}
+              >
+                삭제
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
     
   );
