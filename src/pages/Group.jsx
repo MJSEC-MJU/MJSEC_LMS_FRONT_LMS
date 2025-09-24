@@ -55,7 +55,8 @@ export default function Group() {
           category: g.category || '일반',
           createdAt: '', // 새 API에서는 createdAt이 없으므로 빈 문자열
           members: [], // 새 API에서는 members가 없으므로 빈 배열
-          status: g.status // 새로 추가된 status 필드
+          status: g.status, // 새로 추가된 status 필드
+          generation: g.generation // 새로 추가된 generation 필드
         }));
         
         setMyStudies(mapped);
