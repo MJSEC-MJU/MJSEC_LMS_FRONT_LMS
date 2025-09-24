@@ -16,7 +16,54 @@
   display: flex;
   gap: 1rem;
   justify-content: center;
+  align-items: center;
   flex-wrap: wrap;
+  position: relative;
+}
+
+.filter-buttons-left {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.filter-buttons-right {
+  position: absolute;
+  right: 0;
+  display: flex;
+  align-items: center;
+}
+
+.generation-search-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.generation-search-input {
+  padding: 0.8rem 1.2rem 0.8rem 2.5rem;
+  border: 2px solid var(--main-color);
+  border-radius: 2rem;
+  font-size: 1.2rem;
+  background: var(--white);
+  color: var(--black);
+  outline: none;
+  transition: all 0.3s ease;
+  min-width: 200px;
+}
+
+.generation-search-input:focus {
+  border-color: var(--main-color);
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+.generation-search-icon {
+  position: absolute;
+  left: 0.8rem;
+  color: var(--main-color);
+  font-size: 1.2rem;
+  pointer-events: none;
 }
 
 .filter-btn {
@@ -99,12 +146,25 @@
 @media (max-width: 768px) {
   .filter-buttons {
     flex-direction: column;
-    align-items: center;
+    gap: 1.5rem;
+  }
+  
+  .filter-buttons-left {
+    justify-content: center;
+  }
+  
+  .filter-buttons-right {
+    position: static;
+    justify-content: center;
   }
   
   .filter-btn {
     min-width: 20rem;
     justify-content: center;
+  }
+  
+  .generation-search-input {
+    min-width: 18rem;
   }
 }
 
@@ -153,9 +213,6 @@
   gap: 1rem;
 }
 
-.group-header-left {
-  /* Left spacer for grid layout */
-}
 
 .group-status {
   display: inline-block;
@@ -276,6 +333,17 @@
   font-weight: 500;
 }
 
+.group-generation-tag {
+  background: var(--light-bg);
+  color: var(--black);
+  padding: 0.6rem 1.2rem;
+  border-radius: 1.5rem;
+  font-size: 1.2rem;
+  font-weight: 500;
+  margin-left: 0.8rem;
+  border: 1px solid var(--main-color);
+}
+
 .group-footer {
   margin-top: auto;
   padding-top: 2rem;
@@ -367,6 +435,23 @@
 
 .dark .no-groups-message p {
   color: var(--black);
+}
+
+.dark .group-generation-tag {
+  background: var(--light-bg);
+  color: var(--black);
+  border: 1px solid var(--main-color);
+}
+
+.dark .generation-search-input {
+  background: var(--light-bg);
+  color: var(--black);
+  border-color: var(--main-color);
+}
+
+.dark .generation-search-input:focus {
+  border-color: var(--main-color);
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.2);
 }
 
 /* 반응형 디자인 */
