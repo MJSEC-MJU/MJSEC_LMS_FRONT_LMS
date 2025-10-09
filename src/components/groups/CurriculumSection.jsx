@@ -481,8 +481,13 @@ export default function CurriculumSection({ groupId, isMentor }) {
         'studyActivityDto',
         new Blob([JSON.stringify(studyActivityDto)], { type: 'application/json' })
       );
+      // activityFormData.image 가 배열 또는 단일일 수 있음
       if (activityFormData.image) {
-        formData.append('image', activityFormData.image);
+        const files = Array.isArray(activityFormData.image)
+          ? activityFormData.image
+          : (activityFormData.image instanceof FileList ? Array.from(activityFormData.image) : [activityFormData.image]);
+
+        files.forEach(file => formData.append('images', file)); // key: images (서버 스펙)
       }
 
       // API_BASE 사용 + Accept 헤더 추가 + 안전 파싱
@@ -579,13 +584,11 @@ export default function CurriculumSection({ groupId, isMentor }) {
 
   // 활동 기록 이미지 선택 함수
   const handleActivityImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setActivityFormData(prev => ({
-        ...prev,
-        image: file
-      }));
-    }
+    const files = e.target.files ? Array.from(e.target.files) : [];
+    setActivityFormData(prev => ({
+      ...prev,
+      image: files.length > 0 ? files : null
+    }));
   };
 
   // 출석체크 변경 함수
@@ -632,10 +635,26 @@ export default function CurriculumSection({ groupId, isMentor }) {
         return { success: false, error: result?.message || `요청 실패 (status ${response.status})` };
       }
 
-      if (result.code === 'SUCCESS') {
-        return { success: true, data: result.data };
-      }
-      return { success: false, error: result.message || '활동 상세조회에 실패했습니다.' };
+      // 응답 매핑 + 이미지 경로 정규화 (응답이 없으면 목록에서 넘어온 값 사용)
+      const rawFromResult = Array.isArray(result.data.imageUrls)
+        ? result.data.imageUrls
+        : (result.data.imageUrl ? [result.data.imageUrl] : (activity.imageUrl ? [activity.imageUrl] : []));
+
+      const normalizedImageUrls = rawFromResult.map(u => toImageApiUrl(u)).filter(Boolean);
+
+      const activityData = {
+        ...result.data,
+        id: result.data.activityId,
+        uploadedAt: result.data.createdAt,
+        attendanceList: result.data.studyAttendanceDtoList || [],
+        imageUrls: normalizedImageUrls,
+        imageUrl: normalizedImageUrls[0] || null
+      };
+
+      setActivityDetailModal((prev) => ({
+        ...prev,
+        activity: activityData,
+      }));
     } catch {
       return { success: false, error: '활동 상세조회 중 오류가 발생했습니다.' };
     }
@@ -649,7 +668,9 @@ export default function CurriculumSection({ groupId, isMentor }) {
       isOpen: true,
       activity: {
         ...activity,
-        imageUrl: toImageApiUrl(activity.imageUrl),
+        imageUrls: Array.isArray(activity.imageUrls)
+          ? activity.imageUrls.map(u => toImageApiUrl(u)).filter(Boolean)
+          : (activity.imageUrl ? [toImageApiUrl(activity.imageUrl)] : [])
       },
     });
 
@@ -666,13 +687,20 @@ export default function CurriculumSection({ groupId, isMentor }) {
       return;
     }
 
-    // 응답 매핑 + 이미지 경로 정규화 (응답이 없으면 기존 값 유지)
+    // 응답 매핑 + 이미지 경로 정규화 (응답이 없으면 목록에서 넘어온 값 사용)
+    const rawFromResult = Array.isArray(result.data.imageUrls)
+      ? result.data.imageUrls
+      : (result.data.imageUrl ? [result.data.imageUrl] : (activity.imageUrl ? [activity.imageUrl] : []));
+
+    const normalizedImageUrls = rawFromResult.map(u => toImageApiUrl(u)).filter(Boolean);
+
     const activityData = {
       ...result.data,
       id: result.data.activityId,
       uploadedAt: result.data.createdAt,
       attendanceList: result.data.studyAttendanceDtoList || [],
-      imageUrl: toImageApiUrl(result.data.imageUrl ?? activity.imageUrl),
+      imageUrls: normalizedImageUrls,
+      imageUrl: normalizedImageUrls[0] || null
     };
 
     setActivityDetailModal((prev) => ({
@@ -762,7 +790,10 @@ export default function CurriculumSection({ groupId, isMentor }) {
         new Blob([JSON.stringify(studyActivityDto)], { type: 'application/json' })
       );
       if (formData.image) {
-        formDataToSend.append('image', formData.image);
+        const files = Array.isArray(formData.image)
+          ? formData.image
+          : (formData.image instanceof FileList ? Array.from(formData.image) : [formData.image]);
+        files.forEach(f => formDataToSend.append('images', f));
       }
 
       const url = `${API_BASE}/group/${groupId}/activity/${activityId}`;
@@ -1193,7 +1224,6 @@ export default function CurriculumSection({ groupId, isMentor }) {
       
       return { success: false, error: result.message || '과제 수정에 실패했습니다.' };
     } catch {
-      // 과제 수정 오류
       return { success: false, error: '과제 수정 중 오류가 발생했습니다.' };
     }
   };
@@ -1474,6 +1504,7 @@ export default function CurriculumSection({ groupId, isMentor }) {
       }
 
       let result;
+
       if (assignmentSubmissionModal.mode === 'edit') {
         // 수정 모드 - submitId 필요
         const submitId = assignmentSubmissionModal.submissionId || submittedAssignments[assignmentSubmissionModal.planId]?.submissionId;
@@ -1481,9 +1512,12 @@ export default function CurriculumSection({ groupId, isMentor }) {
           alert('과제 제출 정보를 찾을 수 없습니다.');
           return;
         }
+
         result = await updateAssignmentSubmission(assignmentSubmissionModal.planId, submitId, assignmentSubmissionFormData);
-      if (result.success) {
+
+        if (result.success) {
           alert('과제가 성공적으로 수정되었습니다!');
+
           // 수정 후 완전한 데이터(비밀번호 포함)를 다시 가져오기
           const submissionResult = await fetchAssignmentSubmission(assignmentSubmissionModal.planId);
           if (submissionResult.success) {
@@ -1495,18 +1529,19 @@ export default function CurriculumSection({ groupId, isMentor }) {
               }
             }));
           } else {
-            // 가져오기 실패 시 기본 데이터라도 저장
+            // 가져오기 실패 시 가능한 데이터라도 저장
             setSubmittedAssignments(prev => ({
               ...prev,
               [assignmentSubmissionModal.planId]: {
                 ...result.data,
-                submissionId: result.data.submissionId || result.data.id
+                submissionId: result.data?.submissionId || result.data?.id
               }
             }));
           }
+
           closeAssignmentSubmissionModal();
         } else {
-          alert(`과제 수정 실패: ${result.error}`);
+          alert(`과제 수정 실패: ${result.error || result.message || '알 수 없는 오류'}`);
         }
       } else {
         // 생성 모드
@@ -1608,8 +1643,6 @@ export default function CurriculumSection({ groupId, isMentor }) {
         alert('주차는 1부터 20 사이의 숫자로 입력해주세요.');
         return;
       }
-
-      // 출석체크 데이터 생성 (사용되지 않음 - 제거)
 
       // 수정할 데이터 준비
       const formData = {
@@ -1866,8 +1899,14 @@ export default function CurriculumSection({ groupId, isMentor }) {
       if (result.code === 'SUCCESS') {
         const activityList = result.data || [];
         const photoDataList = activityList.map((activityData, index) => {
-          // 서버가 준 이미지 경로를 파일명으로 정규화해서 API_BASE로 프록시
-          const normalizedImage = toImageApiUrl(activityData.imageUrl);
+          // 서버가 imageUrls 배열을 반환하면 그걸 사용, 없으면 기존 imageUrl을 단일 배열로 취급
+          const rawImageUrls = Array.isArray(activityData.imageUrls)
+            ? activityData.imageUrls
+            : (activityData.imageUrl ? [activityData.imageUrl] : []);
+
+          const normalizedImageUrls = rawImageUrls
+            .map(u => toImageApiUrl(u))
+            .filter(Boolean);
 
           return {
             id:
@@ -1882,7 +1921,8 @@ export default function CurriculumSection({ groupId, isMentor }) {
             title: activityData.title,
             week: activityData.week,
             content: activityData.content,
-            imageUrl: normalizedImage,
+            imageUrls: normalizedImageUrls,         // 배열로 저장
+            imageUrl: normalizedImageUrls[0] || null, // 기존 호환용(첫 이미지)
             uploadedAt: activityData.createdAt,
             attendanceList:
               activityData.studyAttendanceDtoList ||
@@ -2012,6 +2052,7 @@ export default function CurriculumSection({ groupId, isMentor }) {
     
     if (activityId && activityPhotos.length > 0) {
       const activity = activityPhotos.find(photo => photo.id === parseInt(activityId));
+
       if (activity) {
         openActivityDetailModal(activity);
       }
@@ -2686,10 +2727,17 @@ export default function CurriculumSection({ groupId, isMentor }) {
                   type="file"
                   accept="image/*"
                   onChange={handleActivityImageChange}
+                  multiple
                 />
                 {activityFormData.image && (
                   <div className="image-preview">
-                    <p>선택된 파일: {activityFormData.image.name}</p>
+                        {Array.isArray(activityFormData.image) ? (
+                      <ul className="selected-files-list">
+                        {activityFormData.image.map((f, i) => <li key={i}>{f.name}</li>)}
+                      </ul>
+                    ) : (
+                      <p>선택된 파일: {activityFormData.image.name}</p>
+                    )}
                   </div>
                 )}
               </div>
@@ -2943,14 +2991,19 @@ export default function CurriculumSection({ groupId, isMentor }) {
                     </div>
                   </div>
 
-                  {activityDetailModal.activity.imageUrl && (
+                  {activityDetailModal.activity.imageUrls && activityDetailModal.activity.imageUrls.length > 0 && (
                     <div className="activity-detail-image-section">
                       <h5>활동 사진</h5>
-                      <img 
-                        src={activityDetailModal.activity.imageUrl} 
-                        alt={activityDetailModal.activity.title} 
-                        className="activity-detail-image"
-                      />
+                      <div className="activity-detail-images">
+                        {activityDetailModal.activity.imageUrls.map((imgSrc, idx) => (
+                          <img
+                            key={idx}
+                            src={imgSrc}
+                            alt={`${activityDetailModal.activity.title} - ${idx + 1}`}
+                            className="activity-detail-image"
+                          />
+                        ))}
+                      </div>
                     </div>
                   )}
 
@@ -3047,18 +3100,19 @@ export default function CurriculumSection({ groupId, isMentor }) {
                 <input
                   type="file"
                   accept="image/*"
-                  onChange={(e) => setActivityEditFormData(prev => ({ ...prev, image: e.target.files[0] }))}
+                  onChange={(e) => setActivityEditFormData(prev => ({ ...prev, image: Array.from(e.target.files) })) }
+                  multiple
                 />
-                {activityEditFormData.image && (
+                {activityFormData.image && (
                   <div className="image-preview">
-                    <p>선택된 파일: {activityEditFormData.image.name}</p>
+                    <p>선택된 파일: {activityFormData.image.name}</p>
                   </div>
                 )}
-                {activityEditModal.activity?.imageUrl && !activityEditFormData.image && (
+                {activityEditModal.activity?.imageUrls && activityEditModal.activity.imageUrls.length > 0 && !activityEditFormData.image && (
                   <div className="current-image-preview">
-                    <p>현재 이미지: {activityEditModal.activity.imageUrl.split('/').pop()}</p>
+                    <p>현재 이미지: {activityEditModal.activity.imageUrls[0].split('/').pop()}</p>
                     <img 
-                      src={activityEditModal.activity.imageUrl} 
+                      src={activityEditModal.activity.imageUrls[0]} 
                       alt="현재 이미지" 
                       style={{ maxWidth: '200px', maxHeight: '150px', marginTop: '0.5rem' }}
                     />
