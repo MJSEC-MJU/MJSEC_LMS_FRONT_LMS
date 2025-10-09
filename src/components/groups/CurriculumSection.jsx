@@ -602,84 +602,62 @@ export default function CurriculumSection({ groupId, isMentor }) {
   // 활동 상세조회 API 함수
   const fetchActivityDetail = async (activityId) => {
     try {
-      const url = `${API_BASE}/group/${groupId}/activity/${activityId}`;
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Accept': 'application/json'
-        },
-        credentials: 'include',
-      });
+      const result = await api('GET', `/group/${groupId}/activity/${activityId}`, null, token);
+      if (result?.code === 'SUCCESS' && result.data) {
+        // result.data 기반으로만 이미지 배열 정규화 (외부 activity 변수 참조 제거)
+        const rawFromResult = Array.isArray(result.data.imageUrls)
+          ? result.data.imageUrls
+          : (result.data.imageUrl ? [result.data.imageUrl] : []);
 
-      let result;
-      const ct = response.headers.get('content-type') || '';
-      if (ct.includes('application/json')) {
-        try {
-          result = await response.json();
-        } catch {
-          return { success: false, error: `서버 응답(JSON) 파싱 실패 (status ${response.status})` };
-        }
+        const normalizedImageUrls = rawFromResult.map(u => toImageApiUrl(u)).filter(Boolean);
+
+        const activityData = {
+          ...result.data,
+          id: result.data.activityId || result.data.id,
+          uploadedAt: result.data.createdAt || result.data.createdAt,
+          attendanceList: result.data.studyAttendanceDtoList || result.data.attendanceList || [],
+          imageUrls: normalizedImageUrls,
+          imageUrl: normalizedImageUrls[0] || null
+        };
+        setActivityDetailModal((prev) => ({
+          ...prev,
+          isOpen: true,
+          activity: activityData
+        }));
       } else {
-        const text = await response.text();
-        try {
-          result = JSON.parse(text);
-        } catch {
-          return { success: false, error: `예상치 못한 응답 형식 (status ${response.status})` };
-        }
+        alert(result?.message || '활동 상세를 불러오는데 실패했습니다.');
       }
-
-      if (!response.ok) {
-        if (response.status === 401) return { success: false, error: '로그인이 필요합니다.' };
-        if (response.status === 403) return { success: false, error: '권한이 없습니다.' };
-        return { success: false, error: result?.message || `요청 실패 (status ${response.status})` };
-      }
-
-      // 응답 매핑 + 이미지 경로 정규화 (응답이 없으면 목록에서 넘어온 값 사용)
-      const rawFromResult = Array.isArray(result.data.imageUrls)
-        ? result.data.imageUrls
-        : (result.data.imageUrl ? [result.data.imageUrl] : (activity.imageUrl ? [activity.imageUrl] : []));
-
-      const normalizedImageUrls = rawFromResult.map(u => toImageApiUrl(u)).filter(Boolean);
-
-      const activityData = {
-        ...result.data,
-        id: result.data.activityId,
-        uploadedAt: result.data.createdAt,
-        attendanceList: result.data.studyAttendanceDtoList || [],
-        imageUrls: normalizedImageUrls,
-        imageUrl: normalizedImageUrls[0] || null
-      };
-
-      setActivityDetailModal((prev) => ({
-        ...prev,
-        activity: activityData,
-      }));
-    } catch {
-      return { success: false, error: '활동 상세조회 중 오류가 발생했습니다.' };
+    } catch (err) {
+      console.error(err);
+      alert('활동 상세를 불러오는데 실패했습니다.');
     }
   };
 
 
   // 활동 상세보기 모달 열기
   const openActivityDetailModal = async (activity) => {
-    // 우선 목록에서 넘어온 데이터로 모달 열기 (이미지 경로 정규화)
-    setActivityDetailModal({
-      isOpen: true,
-      activity: {
-        ...activity,
-        imageUrls: Array.isArray(activity.imageUrls)
-          ? activity.imageUrls.map(u => toImageApiUrl(u)).filter(Boolean)
-          : (activity.imageUrl ? [toImageApiUrl(activity.imageUrl)] : [])
-      },
-    });
+    // activity가 전달된 경우, 전달값 기반으로 바로 열기 (이미지 정규화)
+    if (activity) {
+      const rawImageUrls = Array.isArray(activity.imageUrls)
+        ? activity.imageUrls
+        : (activity.imageUrl ? [activity.imageUrl] : []);
+      const normalized = rawImageUrls.map(u => toImageApiUrl(u)).filter(Boolean);
 
-    // URL에 activityId 파라미터 추가
-    const url = new URL(window.location);
-    url.searchParams.set('activityId', activity.id);
-    window.history.pushState({}, '', url);
+      setActivityDetailModal({
+        isOpen: true,
+        activity: {
+          ...activity,
+          id: activity.activityId || activity.id,
+          uploadedAt: activity.createdAt || activity.uploadedAt,
+          attendanceList: activity.studyAttendanceDtoList || activity.attendanceList || [],
+          imageUrls: normalized,
+          imageUrl: normalized[0] || null
+        }
+      });
+      return;
+    }
 
-    // API에서 상세 데이터 가져오기
+    // 전달값 없으면 id로 fetch
     const result = await fetchActivityDetail(activity.id);
 
     if (!result.success) {
@@ -2054,6 +2032,7 @@ export default function CurriculumSection({ groupId, isMentor }) {
       const activity = activityPhotos.find(photo => photo.id === parseInt(activityId));
 
       if (activity) {
+
         openActivityDetailModal(activity);
       }
     }
