@@ -635,57 +635,50 @@ export default function CurriculumSection({ groupId, isMentor }) {
 
 
   // 활동 상세보기 모달 열기
-  const openActivityDetailModal = async (activity) => {
-    // activity가 전달된 경우, 전달값 기반으로 바로 열기 (이미지 정규화)
-    if (activity) {
-      const rawImageUrls = Array.isArray(activity.imageUrls)
-        ? activity.imageUrls
-        : (activity.imageUrl ? [activity.imageUrl] : []);
-      const normalized = rawImageUrls.map(u => toImageApiUrl(u)).filter(Boolean);
+      const openActivityDetailModal = async (activity) => {
+        // activity 객체나 id가 없으면 실행 중단
+        if (!activity?.id) return;
 
-      setActivityDetailModal({
-        isOpen: true,
-        activity: {
-          ...activity,
-          id: activity.activityId || activity.id,
-          uploadedAt: activity.createdAt || activity.uploadedAt,
-          attendanceList: activity.studyAttendanceDtoList || activity.attendanceList || [],
-          imageUrls: normalized,
-          imageUrl: normalized[0] || null
+        // 먼저 모달을 기본 정보로 열어 사용자에게 빠른 피드백을 줌
+        setActivityDetailModal({
+          isOpen: true,
+          activity: {
+              ...activity,
+              content: activity.content || "상세 내용을 불러오는 중...", // 로딩 표시
+          }
+        });
+
+        // 만약 전달받은 activity 객체에 content가 없다면,
+        // 서버에서 전체 상세 정보를 다시 가져와 모달 내용을 업데이트함
+        if (typeof activity.content === 'undefined') {
+          try {
+              const result = await api('GET', `/group/${groupId}/activity/${activity.id}`, null, token);
+              if (result?.code === 'SUCCESS' && result.data) {
+                  const fullActivityData = result.data;
+                  const normalizedImageUrls = (fullActivityData.imageUrls || [])
+                      .map(u => toImageApiUrl(u))
+                      .filter(Boolean);
+
+                  // 받아온 완전한 정보로 모달 상태를 다시 업데이트
+                  setActivityDetailModal({
+                      isOpen: true,
+                      activity: {
+                          ...activity, // 기존 id 등 정보 유지
+                          ...fullActivityData, // 서버에서 받은 정보로 덮어쓰기
+                          attendanceList: fullActivityData.studyAttendanceDtoList || [],
+                          imageUrls: normalizedImageUrls,
+                      },
+                  });
+              } else {
+                  // 에러 처리
+                  setActivityDetailModal(prev => ({...prev, activity: {...prev.activity, content: "내용을 불러오는데 실패했습니다."}}))
+              }
+          } catch {
+              // 예외 처리
+              setActivityDetailModal(prev => ({...prev, activity: {...prev.activity, content: "내용을 불러오는데 실패했습니다."}}))
+          }
         }
-      });
-      return;
-    }
-
-    // 전달값 없으면 id로 fetch
-    const result = await fetchActivityDetail(activity.id);
-
-    if (!result.success) {
-      alert(`활동 상세조회 실패: ${result.error}`);
-      return;
-    }
-
-    // 응답 매핑 + 이미지 경로 정규화 (응답이 없으면 목록에서 넘어온 값 사용)
-    const rawFromResult = Array.isArray(result.data.imageUrls)
-      ? result.data.imageUrls
-      : (result.data.imageUrl ? [result.data.imageUrl] : (activity.imageUrl ? [activity.imageUrl] : []));
-
-    const normalizedImageUrls = rawFromResult.map(u => toImageApiUrl(u)).filter(Boolean);
-
-    const activityData = {
-      ...result.data,
-      id: result.data.activityId,
-      uploadedAt: result.data.createdAt,
-      attendanceList: result.data.studyAttendanceDtoList || [],
-      imageUrls: normalizedImageUrls,
-      imageUrl: normalizedImageUrls[0] || null
-    };
-
-    setActivityDetailModal((prev) => ({
-      ...prev,
-      activity: activityData,
-    }));
-  };
+      };
 
   // 활동 상세보기 모달 닫기
   const closeActivityDetailModal = () => {
@@ -1600,67 +1593,101 @@ export default function CurriculumSection({ groupId, isMentor }) {
 
   // 활동 수정 제출
   const handleUpdateActivity = async () => {
-    try {
-      // 필수 필드 검증
-      if (!activityEditFormData.title.trim()) {
-        alert('활동 제목을 입력해주세요.');
-        return;
-      }
-      if (!activityEditFormData.week.trim()) {
-        alert('주차를 입력해주세요.');
-        return;
-      }
-      if (!activityEditFormData.content.trim()) {
-        alert('활동 내용을 입력해주세요.');
-        return;
-      }
-
-      // 주차 검증 (숫자만)
-      const weekNumber = parseInt(activityEditFormData.week);
-      if (!weekNumber || weekNumber < 1 || weekNumber > 20) {
-        alert('주차는 1부터 20 사이의 숫자로 입력해주세요.');
-        return;
-      }
-
-      // 수정할 데이터 준비
-      const formData = {
-        title: activityEditFormData.title.trim(),
-        content: activityEditFormData.content.trim(),
-        week: `${weekNumber}주차`,
-        image: activityEditFormData.image,
-        attendance: Object.fromEntries(
-          menteeList.map(mentee => [
-            mentee.studentNumber,
-            {
-              studentNumber: mentee.studentNumber,
-              name: mentee.name,
-              type: activityEditFormData.attendance[mentee.studentNumber]?.type || 'ATTEND'
-            }
-          ])
-        )
-      };
-
-      // API 호출
-      const activityId = activityEditModal.activity.studyActivityId || activityEditModal.activity.id;
-      
-      if (!activityId || activityId === 'undefined' || activityId.toString().startsWith('temp-') || isNaN(Number(activityId))) {
-        alert('활동 ID가 유효하지 않습니다. 페이지를 새로고침 후 다시 시도해주세요.');
-        return;
-      }
-
-      const result = await updateActivity(activityId, formData);
-      
-      if (result.success) {
-        alert('활동이 성공적으로 수정되었습니다!');
-        closeActivityEditModal();
-        await fetchActivityPhotos(); // 목록 새로고침
-      } else {
-        alert(result.error);
-      }
-    } catch {
-      alert('활동 수정에 실패했습니다.');
+  // 1. try { ... } 로 전체를 감싸서 예상치 못한 에러를 잡습니다.
+  try {
+    // 필수 필드 검증
+    if (!activityEditFormData.title.trim()) {
+      alert('활동 제목을 입력해주세요.');
+      return;
     }
-  };
+    if (!activityEditFormData.week.trim()) {
+      alert('주차를 입력해주세요.');
+      return;
+    }
+    if (!activityEditFormData.content.trim()) {
+      alert('활동 내용을 입력해주세요.');
+      return;
+    }
+
+    const weekNumber = parseInt(activityEditFormData.week);
+    if (!weekNumber || weekNumber < 1 || weekNumber > 20) {
+      alert('주차는 1부터 20 사이의 숫자로 입력해주세요.');
+      return;
+    }
+
+    const formData = {
+      title: activityEditFormData.title.trim(),
+      content: activityEditFormData.content.trim(),
+      week: `${weekNumber}주차`,
+      image: activityEditFormData.image,
+      attendance: Object.fromEntries(
+        menteeList.map(mentee => [
+          mentee.studentNumber,
+          {
+            studentNumber: mentee.studentNumber,
+            name: mentee.name,
+            type: activityEditFormData.attendance[mentee.studentNumber]?.type || 'ATTEND'
+          }
+        ])
+      )
+    };
+
+    const activityId = activityEditModal.activity.studyActivityId || activityEditModal.activity.id;
+    
+    if (!activityId || activityId === 'undefined' || activityId.toString().startsWith('temp-') || isNaN(Number(activityId))) {
+      alert('활동 ID가 유효하지 않습니다. 페이지를 새로고침 후 다시 시도해주세요.');
+      return;
+    }
+
+    const result = await updateActivity(activityId, formData);
+
+    // 2. if (result.success) { ... } else { ... } 로 API 성공/실패를 처리합니다.
+    if (result.success) {
+      alert('활동이 성공적으로 수정되었습니다!');
+
+      setActivityPhotos(prevPhotos => {
+        return prevPhotos.map(photo => {
+          if (photo.id === activityId) {
+            const updatedData = result.data;
+            return {
+              ...photo,
+              title: updatedData.title,
+              content: updatedData.content,
+              week: updatedData.week,
+              imageUrls: (updatedData.imageUrls || []).map(u => toImageApiUrl(u)).filter(Boolean),
+              attendanceList: updatedData.studyAttendanceDtoList || [],
+              uploadedAt: updatedData.updatedAt || updatedData.createdAt,
+            };
+          }
+          return photo;
+        });
+      });
+
+      if (activityDetailModal.isOpen && activityDetailModal.activity?.id === activityId) {
+        setActivityDetailModal(prev => ({
+            ...prev,
+            activity: {
+                ...prev.activity,
+                title: result.data.title,
+                content: result.data.content,
+                week: result.data.week,
+                imageUrls: (result.data.imageUrls || []).map(u => toImageApiUrl(u)).filter(Boolean),
+                attendanceList: result.data.studyAttendanceDtoList || [],
+            }
+        }));
+      }
+
+      closeActivityEditModal();
+
+    } else {
+      alert(result.error);
+    }
+  // 3. catch (error) { ... } 로 코드 실행 중 발생하는 예외를 처리합니다.
+  } catch (error) {
+    console.error("활동 수정 중 에러 발생:", error);
+    alert('활동 수정 중 예상치 못한 오류가 발생했습니다.');
+  }
+};
 
   // 활동 삭제 처리
   const handleDeleteActivity = async (activity) => {
