@@ -599,39 +599,39 @@ export default function CurriculumSection({ groupId, isMentor }) {
     }));
   };
 
-  // 활동 상세조회 API 함수
-  const fetchActivityDetail = async (activityId) => {
-    try {
-      const result = await api('GET', `/group/${groupId}/activity/${activityId}`, null, token);
-      if (result?.code === 'SUCCESS' && result.data) {
-        // result.data 기반으로만 이미지 배열 정규화 (외부 activity 변수 참조 제거)
-        const rawFromResult = Array.isArray(result.data.imageUrls)
-          ? result.data.imageUrls
-          : (result.data.imageUrl ? [result.data.imageUrl] : []);
+  // // 활동 상세조회 API 함수
+  // const fetchActivityDetail = async (activityId) => {
+  //   try {
+  //     const result = await api('GET', `/group/${groupId}/activity/${activityId}`, null, token);
+  //     if (result?.code === 'SUCCESS' && result.data) {
+  //       // result.data 기반으로만 이미지 배열 정규화 (외부 activity 변수 참조 제거)
+  //       const rawFromResult = Array.isArray(result.data.imageUrls)
+  //         ? result.data.imageUrls
+  //         : (result.data.imageUrl ? [result.data.imageUrl] : []);
 
-        const normalizedImageUrls = rawFromResult.map(u => toImageApiUrl(u)).filter(Boolean);
+  //       const normalizedImageUrls = rawFromResult.map(u => toImageApiUrl(u)).filter(Boolean);
 
-        const activityData = {
-          ...result.data,
-          id: result.data.activityId || result.data.id,
-          uploadedAt: result.data.createdAt || result.data.createdAt,
-          attendanceList: result.data.studyAttendanceDtoList || result.data.attendanceList || [],
-          imageUrls: normalizedImageUrls,
-          imageUrl: normalizedImageUrls[0] || null
-        };
-        setActivityDetailModal((prev) => ({
-          ...prev,
-          isOpen: true,
-          activity: activityData
-        }));
-      } else {
-        alert(result?.message || '활동 상세를 불러오는데 실패했습니다.');
-      }
-    } catch (err) {
-      console.error(err);
-      alert('활동 상세를 불러오는데 실패했습니다.');
-    }
-  };
+  //       const activityData = {
+  //         ...result.data,
+  //         id: result.data.activityId || result.data.id,
+  //         uploadedAt: result.data.createdAt || result.data.createdAt,
+  //         attendanceList: result.data.studyAttendanceDtoList || result.data.attendanceList || [],
+  //         imageUrls: normalizedImageUrls,
+  //         imageUrl: normalizedImageUrls[0] || null
+  //       };
+  //       setActivityDetailModal((prev) => ({
+  //         ...prev,
+  //         isOpen: true,
+  //         activity: activityData
+  //       }));
+  //     } else {
+  //       alert(result?.message || '활동 상세를 불러오는데 실패했습니다.');
+  //     }
+  //   } catch (err) {
+  //     console.error(err);
+  //     alert('활동 상세를 불러오는데 실패했습니다.');
+  //   }
+  // };
 
 
   // 활동 상세보기 모달 열기
