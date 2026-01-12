@@ -9,7 +9,6 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [studies, setStudies] = useState([]);
   const [studiesLoading, setStudiesLoading] = useState(true);
-  const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);
 
   // 공지사항 가져오기
   const fetchNotifications = useCallback(async () => {
