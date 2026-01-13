@@ -294,3 +294,80 @@
   padding: 2rem;
   width: 90%;
 }
+.cve-container-wide {
+  margin-top: 2rem;
+  width: 100%;
+}
+
+/* 5개 카드 가로 배치 그리드 */
+.cve-card-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr); /* 5개 고정 */
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+/* 개별 CVE 카드 스타일 */
+.cve-card {
+  background-color: var(--white);
+  border: 1px solid var(--border);
+  border-radius: .5rem;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  text-decoration: none;
+  transition: .2s linear;
+}
+
+.cve-card:hover {
+  border-color: var(--main-color);
+  transform: translateY(-5px);
+}
+
+.cve-id-text {
+  font-size: 1.4rem;
+  color: var(--main-color);
+  font-weight: bold;
+}
+
+.cvss-score {
+  font-size: 1.2rem;
+  background: var(--light-bg);
+  padding: .2rem .5rem;
+  border-radius: .3rem;
+}
+
+.cvss-score.critical {
+  background: #ffebee;
+  color: #d32f2f;
+}
+
+.cve-summary-text {
+  font-size: 1.2rem;
+  color: var(--black);
+  margin: 1rem 0;
+  line-height: 1.5;
+  word-break: break-all;
+}
+
+.cve-more {
+  font-size: 1.1rem;
+  color: var(--light-color);
+  text-align: right;
+}
+.cve-container-wide h3{
+   font-size: 2rem;
+   color: var(--black);
+}
+
+/* 반응형 처리 */
+@media (max-width: 1200px) {
+  .cve-card-grid { grid-template-columns: repeat(3, 1fr); }
+  .home-grid .top-row { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 768px) {
+  .cve-card-grid { grid-template-columns: 1fr; }
+  .home-grid .top-row { grid-template-columns: 1fr; }
+}

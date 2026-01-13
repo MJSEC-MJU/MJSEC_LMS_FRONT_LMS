@@ -9,6 +9,11 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [studies, setStudies] = useState([]);
   const [studiesLoading, setStudiesLoading] = useState(true);
+  const [cveList, setCveList] = useState([]);
+  const [cveLoading, setCveLoading] = useState(true);
+  // 보안 뉴스 카테고리: all | web | sw | hw
+  const [category, setCategory] = useState('all');
+ 
 
   // 공지사항 가져오기
   const fetchNotifications = useCallback(async () => {
@@ -38,10 +43,6 @@ export default function Home() {
     }
   }, [token]);
 
-  useEffect(() => {
-    fetchNotifications();
-  }, [fetchNotifications]);
-
   // 현재 수강중인 강좌(스터디) 가져오기
   const fetchStudies = useCallback(async () => {
     try {
@@ -67,10 +68,66 @@ export default function Home() {
       setStudiesLoading(false);
     }
   }, [token]);
+  
+  // 최신 보안 뉴스 (RSS → JSON) 5개 가져오기 (카테고리별 필터, 최신 정렬)
+  const fetchSecurityRSS = useCallback(async () => {
+    setCveLoading(true);
+    try {
+      // 한국어 보안 뉴스 RSS (보안뉴스)
+      const rssUrl = "https://www.boannews.com/media/news_rss.xml";
+      const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`;
+      
+      const response = await fetch(apiUrl);
+      const data = await response.json();
+  
+      if (data.status !== 'ok') {
+        setCveList([]);
+        return;
+      }
+  
+      // 카테고리별 키워드 매핑 (3개로 압축)
+      const keywordMap = {
+        web: ['웹', 'XSS', '취약점', '브라우저', '인증', '클라우드'],
+        system: ['OS', '서버', '리눅스', '윈도우', '랜섬웨어', '해킹', '공격'],
+      };
+  
+      const applyFilter = (list) => {
+        if (category === 'all') return list;
+        const keywords = keywordMap[category] || [];
+        return list.filter((item) => {
+          const text = `${item.title || ''} ${item.description || ''}`;
+          return keywords.some((k) => text.includes(k));
+        });
+      };
+  
+      const filtered = applyFilter(data.items || []).slice(0, 5);
+  
+      const mappedNews = filtered.map((item, index) => ({
+        // 중복 키 방지: link를 쓰되 없으면 index를 조합
+        id: item.guid || item.link || `news-${index}`,
+        title: item.title ? item.title.substring(0, 40) + '...' : '제목 없음',
+        summary: item.description ? item.description.replace(/<[^>]*>/g, '').substring(0, 60) + '...' : '내용 요약이 없습니다.',
+        link: item.link || '#',
+        date: item.pubDate ? item.pubDate.split(' ')[0] : ''
+      }));
+  
+      setCveList(mappedNews);
+    } catch (error) {
+      console.error("뉴스 피드 로딩 실패", error);
+      setCveList([]);
+    } finally {
+      setCveLoading(false);
+    }
+  }, [category]);
 
+  // 홈 진입/카테고리 변경 시 데이터 로드
   useEffect(() => {
+    fetchNotifications();
     fetchStudies();
-  }, [fetchStudies]);
+    fetchSecurityRSS();
+  }, [fetchNotifications, fetchStudies, fetchSecurityRSS]);
+  
+
   return (
     <>
       <section className="home-grid">
@@ -122,7 +179,32 @@ export default function Home() {
               <Link to="/profile" className="quick-profile"><i className="fa-solid fa-user"></i><span>프로필</span></Link>
             </div>
           </div>
-
+          
+        </div>
+        {/* 최신 보안 뉴스 (CVE) 섹션 */}
+        <div className="cve-container-wide">
+          <div className="box">
+            <h3 className="title">실시간 보안 소식 (BoanNews)</h3>
+            
+            <div className="cve-card-grid">
+              {cveLoading ? (
+                <div className="loading-notice">최신 소식을 가져오는 중...</div>
+              ) : cveList.length > 0 ? (
+                cveList.map((news) => (
+                  <a href={news.link} target="_blank" rel="noopener noreferrer" key={news.id} className="cve-card">
+                    <div className="cve-card-header">
+                      <span className="cve-id-text" style={{ fontSize: '1.2rem' }}>{news.date}</span>
+                    </div>
+                    <h4 style={{ fontSize: '1.4rem', margin: '1rem 0', color: 'var(--black)' }}>{news.title}</h4>
+                    <p className="cve-summary-text">{news.summary}</p>
+                    <span className="cve-more">기사 보기 <i className="fas fa-external-link-alt"></i></span>
+                  </a>
+                ))
+              ) : (
+                <div className="no-notice">해당 카테고리의 최신 뉴스가 없습니다.</div>
+              )}
+            </div>
+          </div>
         </div>
       </section>
 
