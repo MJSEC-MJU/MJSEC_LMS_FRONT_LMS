@@ -11,8 +11,6 @@ export default function Home() {
   const [studiesLoading, setStudiesLoading] = useState(true);
   const [cveList, setCveList] = useState([]);
   const [cveLoading, setCveLoading] = useState(true);
-  // 보안 뉴스 카테고리: all | web | sw | hw
-  const [category, setCategory] = useState('all');
  
 
   // 공지사항 가져오기
@@ -69,11 +67,9 @@ export default function Home() {
     }
   }, [token]);
   
-  // 최신 보안 뉴스 (RSS → JSON) 5개 가져오기 (카테고리별 필터, 최신 정렬)
   const fetchSecurityRSS = useCallback(async () => {
     setCveLoading(true);
     try {
-      // 한국어 보안 뉴스 RSS (보안뉴스)
       const rssUrl = "https://www.boannews.com/media/news_rss.xml";
       const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`;
       
@@ -84,12 +80,7 @@ export default function Home() {
         setCveList([]);
         return;
       }
-  
-      // 카테고리별 키워드 매핑 (3개로 압축)
-      const keywordMap = {
-        web: ['웹', 'XSS', '취약점', '브라우저', '인증', '클라우드'],
-        system: ['OS', '서버', '리눅스', '윈도우', '랜섬웨어', '해킹', '공격'],
-      };
+
   
       const applyFilter = (list) => {
         if (category === 'all') return list;
