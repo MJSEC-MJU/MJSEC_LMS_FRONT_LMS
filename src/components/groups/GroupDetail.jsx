@@ -348,6 +348,11 @@ export default function GroupDetail({ groupId, myStudies }) {
 
   const currentGroup = myStudies.find(study => study.groupId === parseInt(groupId));
   
+
+  useEffect(() => {
+    setDisplayName(currentGroup?.name || '');
+  }, [currentGroup?.name]);
+  
   if (!currentGroup) {
     return (
       <section className="contact">
@@ -359,10 +364,6 @@ export default function GroupDetail({ groupId, myStudies }) {
     );
   }
 
-  // 초기 표시 그룹명 세팅 (prop 변경/이동 대응)
-  useEffect(() => {
-    setDisplayName(currentGroup?.name || '');
-  }, [currentGroup?.name]);
 
   const openEditModal = () => {
     setEditGroupModal({
