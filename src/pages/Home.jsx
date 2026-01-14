@@ -81,17 +81,9 @@ export default function Home() {
         return;
       }
 
+
   
-      const applyFilter = (list) => {
-        if (category === 'all') return list;
-        const keywords = keywordMap[category] || [];
-        return list.filter((item) => {
-          const text = `${item.title || ''} ${item.description || ''}`;
-          return keywords.some((k) => text.includes(k));
-        });
-      };
-  
-      const filtered = applyFilter(data.items || []).slice(0, 5);
+      const filtered = (data.items || []).slice(0, 5);
   
       const mappedNews = filtered.map((item, index) => ({
         // 중복 키 방지: link를 쓰되 없으면 index를 조합
@@ -109,7 +101,7 @@ export default function Home() {
     } finally {
       setCveLoading(false);
     }
-  }, [category]);
+  }, []);
 
   // 홈 진입/카테고리 변경 시 데이터 로드
   useEffect(() => {
