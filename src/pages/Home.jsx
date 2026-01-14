@@ -3,6 +3,11 @@ import { useState, useEffect, useCallback } from "react"
 import { useAuth } from "../components/auth"
 import { api } from "../components/client"
 
+const NEWS_CATEGORY = "all"
+const NEWS_KEYWORD_MAP = {
+  all: [],
+}
+
 export default function Home() {
   const { token } = useAuth();
   const [notifications, setNotifications] = useState([]);
@@ -83,8 +88,8 @@ export default function Home() {
 
   
       const applyFilter = (list) => {
-        if (category === 'all') return list;
-        const keywords = keywordMap[category] || [];
+        if (NEWS_CATEGORY === 'all') return list;
+        const keywords = NEWS_KEYWORD_MAP[NEWS_CATEGORY] || [];
         return list.filter((item) => {
           const text = `${item.title || ''} ${item.description || ''}`;
           return keywords.some((k) => text.includes(k));
@@ -109,7 +114,7 @@ export default function Home() {
     } finally {
       setCveLoading(false);
     }
-  }, [category]);
+  }, []);
 
   // 홈 진입/카테고리 변경 시 데이터 로드
   useEffect(() => {
