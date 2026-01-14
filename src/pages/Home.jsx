@@ -3,6 +3,11 @@ import { useState, useEffect, useCallback } from "react"
 import { useAuth } from "../components/auth"
 import { api } from "../components/client"
 
+const NEWS_CATEGORY = "all"
+const NEWS_KEYWORD_MAP = {
+  all: [],
+}
+
 export default function Home() {
   const { token } = useAuth();
   const [notifications, setNotifications] = useState([]);
