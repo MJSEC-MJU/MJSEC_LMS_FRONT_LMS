@@ -24,6 +24,16 @@ export default function GroupDetail({ groupId, myStudies }) {
   
   // 그룹 상세 정보 상태 (설명, 기수만)
   const [groupDetail, setGroupDetail] = useState(null);
+  // 화면 표시용 그룹명(수정 반영)
+  const [displayName, setDisplayName] = useState('');
+  // 그룹 수정 모달
+  const [editGroupModal, setEditGroupModal] = useState({
+    isOpen: false,
+    name: '',
+    content: '',
+    imageFile: null,
+    submitting: false,
+  });
   
   // 멘티 이미지들을 정사각형으로 자르기
   useEffect(() => {
@@ -349,13 +359,85 @@ export default function GroupDetail({ groupId, myStudies }) {
     );
   }
 
+  // 초기 표시 그룹명 세팅 (prop 변경/이동 대응)
+  useEffect(() => {
+    setDisplayName(currentGroup?.name || '');
+  }, [currentGroup?.name]);
+
+  const openEditModal = () => {
+    setEditGroupModal({
+      isOpen: true,
+      name: (displayName || currentGroup?.name || '').toString(),
+      content: (groupDetail?.content || currentGroup?.description || '').toString(),
+      imageFile: null,
+      submitting: false,
+    });
+  };
+
+  const closeEditModal = () => {
+    setEditGroupModal((prev) => ({ ...prev, isOpen: false, imageFile: null, submitting: false }));
+  };
+
+  const handleSaveGroup = async () => {
+    if (!token) return;
+    if (!groupId || isNaN(groupId)) return;
+    if (!isMentor) return;
+
+    setEditGroupModal((prev) => ({ ...prev, submitting: true }));
+    try {
+      const dto = {
+        name: editGroupModal.name?.trim() || '',
+        content: editGroupModal.content?.trim() || '',
+      };
+
+      const formData = new FormData();
+      // JSON 파트를 application/json으로 전송
+      if (dto.name || dto.content) {
+        formData.append(
+          'StudyGroupPutDto',
+          new Blob([JSON.stringify(dto)], { type: 'application/json' })
+        );
+      }
+      if (editGroupModal.imageFile) {
+        formData.append('image', editGroupModal.imageFile);
+      }
+
+      const res = await api('PUT', `/mentor/group/${groupId}`, formData, token);
+      if (res?.code === 'SUCCESS') {
+        // 화면 갱신
+        if (res?.data?.name) setDisplayName(res.data.name);
+        if (res?.data?.content) setGroupDetail((prev) => ({ ...(prev || {}), content: res.data.content }));
+        alert('스터디 그룹이 수정되었습니다.');
+        closeEditModal();
+      } else {
+        alert(res?.message || '스터디 그룹 수정에 실패했습니다.');
+      }
+    } catch (e) {
+      alert(e?.message || '스터디 그룹 수정 중 오류가 발생했습니다.');
+    } finally {
+      setEditGroupModal((prev) => ({ ...prev, submitting: false }));
+    }
+  };
+
   return (
     <section className="contact">
       <div className="group-detail-header">
         <button onClick={() => navigate('/groups')} className="btn btn-secondary">
           ← 목록으로 돌아가기
         </button>
-        <h1 className="group-title">{currentGroup.name}</h1>
+        <h1 className="group-title">
+          {displayName || currentGroup.name}
+          {isMentor && (
+            <button
+              type="button"
+              className="group-inline-edit-btn"
+              onClick={openEditModal}
+              title="그룹 정보 수정"
+            >
+              <i className="fas fa-pen"></i>
+            </button>
+          )}
+        </h1>
         {isMentor && (
           <button 
             className="btn btn-primary"
@@ -373,7 +455,19 @@ export default function GroupDetail({ groupId, myStudies }) {
             {mentorInfo && (
               <p><strong>멘토:</strong> {mentorInfo.name || '정보 없음'}</p>
             )}
-            <p><strong>설명:</strong> {groupDetail?.content || currentGroup.description || '설명 없음'}</p>
+            <p className="group-info-row">
+              <strong>설명:</strong> {groupDetail?.content || currentGroup.description || '설명 없음'}
+              {isMentor && (
+                <button
+                  type="button"
+                  className="group-inline-edit-btn"
+                  onClick={openEditModal}
+                  title="그룹 정보 수정"
+                >
+                  <i className="fas fa-pen"></i>
+                </button>
+              )}
+            </p>
             <p><strong>카테고리:</strong> {Array.isArray(currentGroup.category) ? currentGroup.category.join(', ') : currentGroup.category || '일반'}</p>
             {groupDetail?.generation && (
               <p><strong>기수:</strong> {groupDetail.generation}</p>
@@ -430,6 +524,67 @@ export default function GroupDetail({ groupId, myStudies }) {
           token={token}
         />
       </div>
+
+      {/* 그룹 정보 수정 모달 (멘토 전용) */}
+      {editGroupModal.isOpen && (
+        <div className="modal-overlay" onClick={closeEditModal}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3 className="modal-title">그룹 정보 수정</h3>
+              <button className="modal-close" onClick={closeEditModal} aria-label="close">
+                <i className="fas fa-times"></i>
+              </button>
+            </div>
+
+            <div className="modal-body">
+              <div className="form-group">
+                <label>그룹명</label>
+                <input
+                  type="text"
+                  value={editGroupModal.name}
+                  onChange={(e) => setEditGroupModal((prev) => ({ ...prev, name: e.target.value }))}
+                  placeholder="그룹명을 입력하세요"
+                />
+              </div>
+
+              <div className="form-group">
+                <label>설명</label>
+                <textarea
+                  value={editGroupModal.content}
+                  onChange={(e) => setEditGroupModal((prev) => ({ ...prev, content: e.target.value }))}
+                  placeholder="설명을 입력하세요"
+                />
+              </div>
+
+              <div className="form-group">
+                <label>이미지</label>
+                <div className="group-image-upload-row">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const f = e.target.files && e.target.files[0];
+                      setEditGroupModal((prev) => ({ ...prev, imageFile: f || null }));
+                    }}
+                  />
+                  {editGroupModal.imageFile && (
+                    <span className="group-image-file-name">{editGroupModal.imageFile.name}</span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="modal-footer">
+              <button className="btn btn-secondary" onClick={closeEditModal} disabled={editGroupModal.submitting}>
+                취소
+              </button>
+              <button className="btn btn-primary" onClick={handleSaveGroup} disabled={editGroupModal.submitting}>
+                {editGroupModal.submitting ? '저장 중...' : '저장'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 멘토 관리 모달 */}
       {mentorModal.isOpen && (

@@ -303,7 +303,7 @@
 }
 
 .dark .modal-title {
-  color: var(--white);
+  color: var(--black);
 }
 
 .dark .modal-header {
