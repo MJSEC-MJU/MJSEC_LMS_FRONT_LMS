@@ -26,6 +26,12 @@ const API_BASE = (() => {
 
 const API_URL = new URL(API_BASE, window.location.origin);
 const ORIGIN = API_URL.origin;
+const FEEDBACK_STATUS_OPTIONS = [
+  { value: 'COMPLETED', label: '완료' },
+  { value: 'REVISION_REQUIRED', label: '수정 필요' }
+];
+const normalizeFeedbackStatus = (status) =>
+  status === 'COMPLETED' || status === 'REVISION_REQUIRED' ? status : 'COMPLETED';
 
 // 원본 경로/URL에서 파일명만 추출
 const extractFileName = (raw) => {
@@ -193,7 +199,8 @@ export default function CurriculumSection({ groupId, isMentor }) {
     currentFeedback: ''
   });
   const [feedbackFormData, setFeedbackFormData] = useState({
-    feedback: ''
+    feedback: '',
+    status: 'COMPLETED'
   });
   
   // 필터링된 커리큘럼 계산
@@ -1233,9 +1240,9 @@ export default function CurriculumSection({ groupId, isMentor }) {
   };
 
   // 피드백 작성 API 함수
-  const createFeedback = async (planId, submitId, feedback) => {
+  const createFeedback = async (planId, submitId, feedback, status) => {
     try {
-      const result = await api('POST', `/group/${groupId}/assignment/submit/${planId}/submission/${submitId}/feedback`, { feedback }, token);
+      const result = await api('POST', `/group/${groupId}/assignment/submit/${planId}/submission/${submitId}/feedback`, { feedback, status }, token);
       
       if (result.code === 'SUCCESS') {
         return { success: true, data: result.data };
@@ -1262,9 +1269,9 @@ export default function CurriculumSection({ groupId, isMentor }) {
   };
 
   // 피드백 수정 API 함수
-  const updateFeedback = async (planId, submitId, feedback) => {
+  const updateFeedback = async (planId, submitId, feedback, status) => {
     try {
-      const result = await api('PUT', `/group/${groupId}/assignment/submit/${planId}/submission/${submitId}/feedback`, { feedback }, token);
+      const result = await api('PUT', `/group/${groupId}/assignment/submit/${planId}/submission/${submitId}/feedback`, { feedback, status }, token);
       
       if (result.code === 'SUCCESS') {
         return { success: true, data: result.data };
@@ -1308,7 +1315,8 @@ export default function CurriculumSection({ groupId, isMentor }) {
   };
 
   // 피드백 모달 열기
-  const openFeedbackModal = (planId, submitId, mode = 'create', currentFeedback = '') => {
+  const openFeedbackModal = (planId, submitId, mode = 'create', currentFeedback = '', currentStatus = '') => {
+    const nextStatus = normalizeFeedbackStatus(currentStatus);
     setFeedbackModal({
       isOpen: true,
       mode,
@@ -1317,7 +1325,8 @@ export default function CurriculumSection({ groupId, isMentor }) {
       currentFeedback
     });
     setFeedbackFormData({
-      feedback: currentFeedback
+      feedback: currentFeedback,
+      status: nextStatus
     });
   };
 
@@ -1331,7 +1340,8 @@ export default function CurriculumSection({ groupId, isMentor }) {
       currentFeedback: ''
     });
     setFeedbackFormData({
-      feedback: ''
+      feedback: '',
+      status: 'COMPLETED'
     });
   };
 
@@ -1359,11 +1369,17 @@ export default function CurriculumSection({ groupId, isMentor }) {
     }
 
     try {
+      if (!feedbackFormData.status) {
+        alert('과제 상태를 선택해주세요.');
+        return;
+      }
+
+      const status = normalizeFeedbackStatus(feedbackFormData.status);
       let result;
       if (feedbackModal.mode === 'create') {
-        result = await createFeedback(feedbackModal.planId, feedbackModal.submitId, feedbackFormData.feedback);
+        result = await createFeedback(feedbackModal.planId, feedbackModal.submitId, feedbackFormData.feedback, status);
       } else {
-        result = await updateFeedback(feedbackModal.planId, feedbackModal.submitId, feedbackFormData.feedback);
+        result = await updateFeedback(feedbackModal.planId, feedbackModal.submitId, feedbackFormData.feedback, status);
       }
 
       if (result.success) {
@@ -2462,7 +2478,8 @@ export default function CurriculumSection({ groupId, isMentor }) {
                                                         assignment.assignmentId, 
                                                         submission.submissionId || submission.id, 
                                                         'edit', 
-                                                        expandedSubmissions[`${assignment.assignmentId}-${submission.submissionId || submission.id}`].feedback
+                                                        expandedSubmissions[`${assignment.assignmentId}-${submission.submissionId || submission.id}`].feedback,
+                                                        expandedSubmissions[`${assignment.assignmentId}-${submission.submissionId || submission.id}`].status
                                                       )}
                                                     >
                                                       <i className="fas fa-edit"></i> 수정
@@ -2482,7 +2499,13 @@ export default function CurriculumSection({ groupId, isMentor }) {
                                                 {isMentor && (
                                                   <button 
                                                     className="btn"
-                                                    onClick={() => openFeedbackModal(assignment.assignmentId, submission.submissionId || submission.id, 'create')}
+                                                    onClick={() => openFeedbackModal(
+                                                      assignment.assignmentId,
+                                                      submission.submissionId || submission.id,
+                                                      'create',
+                                                      '',
+                                                      expandedSubmissions[`${assignment.assignmentId}-${submission.submissionId || submission.id}`].status
+                                                    )}
                                                   >
                                                     <i className="fas fa-plus"></i> 피드백 작성
                                                   </button>
@@ -3224,6 +3247,22 @@ export default function CurriculumSection({ groupId, isMentor }) {
             
             <div className="modal-body">
               <form onSubmit={handleFeedbackSubmit}>
+                <div className="form-group">
+                  <label htmlFor="feedback-status">과제 상태</label>
+                  <select
+                    id="feedback-status"
+                    name="status"
+                    value={feedbackFormData.status}
+                    onChange={handleFeedbackFormChange}
+                    required
+                  >
+                    {FEEDBACK_STATUS_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
                 <div className="form-group">
                   <label htmlFor="feedback">피드백 내용</label>
                   <textarea
