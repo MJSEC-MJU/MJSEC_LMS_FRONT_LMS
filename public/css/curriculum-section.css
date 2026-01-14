@@ -1037,6 +1037,8 @@
   padding: 1.5rem;
   background: var(--light-bg);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  word-break: break-all;
+  overflow-wrap: break-word;
 }
 
 .curriculum-content h1,

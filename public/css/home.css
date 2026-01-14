@@ -141,6 +141,135 @@
    color: var(--main-color);
  }
  
+/* ===== 최신 보안 뉴스 (CVE) 섹션 ===== */
+.cve-container-wide{
+   margin-top: 2.5rem;
+}
+
+.cve-container-wide .box{
+   background-color: var(--white);
+   border-radius: .5rem;
+   padding:2rem;
+}
+
+.cve-card-grid{
+   display: grid;
+   grid-template-columns: repeat(auto-fit, minmax(28rem, 1fr));
+   gap:1.5rem;
+   margin-top: 1rem;
+   width: 100%;
+}
+
+.cve-card{
+   display: flex;
+   flex-direction: column;
+   justify-content: space-between;
+   padding:1.2rem 1.5rem;
+   border-radius:.6rem;
+   background: var(--light-bg);
+   border: var(--border);
+   text-decoration: none;
+}
+
+.cve-card-header{
+   display:flex;
+   justify-content: space-between;
+   align-items:center;
+   margin-bottom:.8rem;
+}
+
+.cve-id-text{
+   font-size:1.4rem;
+   font-weight:600;
+   color:var(--black);
+}
+
+.cvss-score{
+   font-size:1.3rem;
+   padding:0.2rem 0.8rem;
+   border-radius:9999px;
+   background:#e2e8f0;
+   color:#1a202c;
+}
+
+.cvss-score.critical{
+   background:#fee2e2;
+   color:#b91c1c;
+}
+
+.cve-summary-text{
+   font-size:1.3rem;
+   color:var(--light-color);
+   margin-bottom:.8rem;
+   min-height: 5.5rem;
+}
+
+.cve-more{
+   margin-top:auto;
+   font-size:1.2rem;
+   color:var(--main-color);
+   font-weight:600;
+}
+
+.cve-more i{
+   margin-left:.4rem;
+}
+
+/* CVE 카테고리 필터 버튼 (기존 curriculum 필터 스타일 재사용 가정) */
+.btn-filter{
+   padding:.6rem 1.2rem;
+   border-radius:9999px;
+   border:1px solid var(--border);
+   background:var(--white);
+   color:var(--light-color);
+   font-size:1.3rem;
+   cursor:pointer;
+   margin-right:.6rem;
+}
+
+.btn-filter.active{
+   background:var(--main-color);
+   color:var(--white);
+   border-color:var(--main-color);
+}
+
+/* 다크모드 대응 */
+.dark .cve-container-wide .box{
+   background-color: var(--white);
+}
+
+.dark .cve-card{
+   background: var(--dark-bg);
+   border-color: var(--dark-border);
+}
+
+
+.dark .cve-summary-text{
+   color: var(--light-color);
+}
+
+.dark .cvss-score{
+   background:#1f2937;
+   color: var(--white);
+}
+
+.dark .cvss-score.critical{
+   background:#7f1d1d;
+   color: var(--white);
+}
+
+.dark .btn-filter{
+   background: var(--dark-bg);
+   color: var(--light-color);
+   border-color: var(--dark-border);
+}
+
+.dark .btn-filter.active{
+   background: var(--main-color);
+   color: var(--white);
+   border-color: var(--main-color);
+}
+
 /* 개인정보 처리방침 메인 섹션 */
 .privacy-policy-main {
   margin-top: 4rem;
