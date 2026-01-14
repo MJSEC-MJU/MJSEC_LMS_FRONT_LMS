@@ -32,6 +32,25 @@ const FEEDBACK_STATUS_OPTIONS = [
 ];
 const normalizeFeedbackStatus = (status) =>
   status === 'COMPLETED' || status === 'REVISION_REQUIRED' ? status : 'COMPLETED';
+const getSubmissionStatusMeta = (status) => {
+  switch (status) {
+    case 'COMPLETED':
+      return { label: '완료', icon: 'fa-check-circle', className: 'completed' };
+    case 'REVISION_REQUIRED':
+      return { label: '수정 필요', icon: 'fa-exclamation-circle', className: 'revision-required' };
+    case 'SUBMITTED':
+    default:
+      return { label: '제출 완료', icon: 'fa-paper-plane', className: 'submitted' };
+  }
+};
+const renderSubmissionStatus = (status) => {
+  const statusMeta = getSubmissionStatusMeta(status);
+  return (
+    <span className={`submission-status ${statusMeta.className}`}>
+      <i className={`fas ${statusMeta.icon}`}></i> {statusMeta.label}
+    </span>
+  );
+};
 
 // 원본 경로/URL에서 파일명만 추출
 const extractFileName = (raw) => {
@@ -2320,6 +2339,9 @@ export default function CurriculumSection({ groupId, isMentor }) {
                               <p><strong>비밀번호:</strong> <span className="submission-password">{submittedAssignments[assignment.assignmentId].password}</span></p>
                             )}
                             <p><strong>제출일:</strong> {new Date(submittedAssignments[assignment.assignmentId].createdAt).toLocaleString('ko-KR')}</p>
+                            <div className="submission-status-row">
+                              {renderSubmissionStatus(submittedAssignments[assignment.assignmentId].status)}
+                            </div>
                             
                             {/* 사용자 제출물 피드백 표시 */}
                             {submittedAssignments[assignment.assignmentId].feedback && (
@@ -2518,9 +2540,7 @@ export default function CurriculumSection({ groupId, isMentor }) {
                                     )}
                                   </div>
                                   <div className="submission-info-only">
-                                    <span className="submission-status">
-                                      <i className="fas fa-check-circle"></i> 제출 완료
-                                    </span>
+                                    {renderSubmissionStatus(submission.status)}
                                   </div>
                                 </div>
                               ))}

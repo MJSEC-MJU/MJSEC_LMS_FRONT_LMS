@@ -259,6 +259,18 @@
   font-weight: 600;
 }
 
+.submission-status.completed {
+  background: #2e7d32;
+}
+
+.submission-status.revision-required {
+  background: var(--orange);
+}
+
+.submission-status-row {
+  margin-top: 0.6rem;
+}
+
 .submission-status i {
   font-size: 1.3rem;
 }
@@ -479,6 +491,11 @@
 .dark .submission-status {
   background: rgba(40, 167, 69, 0.2);
   color: #4ade80;
+}
+
+.dark .submission-status.revision-required {
+  background: rgba(243, 156, 18, 0.2);
+  color: #fbbf24;
 }
 
 .dark .btn-outline {
