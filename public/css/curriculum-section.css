@@ -3798,3 +3798,92 @@ body:not(.active) .activity-photos-modal-overlay {
     height: 100vh !important;
   }
 }
+/* curriculum-section.css 모바일 최적화 수정본 */
+@media (max-width: 768px) {
+  /* 1. 전체 컨테이너 패딩 조절 */
+  .assignment-submission-list-section {
+    padding: 1rem;
+    width: 100%; /* 너비 강제 확장 */
+  }
+
+  /* 2. 개별 제출 아이템 카드 (관리자 화면 등) */
+  .submission-item {
+    flex-direction: column; /* 가로 배치를 세로로 변경 */
+    align-items: stretch; /* 자식 요소들이 너비를 꽉 채우도록 */
+    padding: 1.5rem;
+    gap: 1.5rem;
+    width: 100%;
+  }
+
+  /* 3. 프로필 이미지와 정보 섹션 정렬 */
+  .submission-profile {
+    width: 60px;
+    height: 60px;
+    margin: 0 auto; /* 이미지 중앙 정렬 */
+  }
+
+  .submission-info {
+    margin-right: 0 !important; /* PC 버전의 오른쪽 여백 제거 */
+    width: 100%;
+    flex: none;
+  }
+
+  /* 4. 제출 헤더 (이름, 날짜) */
+  .submission-header {
+    flex-direction: column;
+    align-items: center; /* 이름과 날짜 중앙 정렬 */
+    text-align: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  /* 5. 회색 상세 정보 박스 (문제의 절반 크기 해결) */
+  .submission-detail {
+    width: 100% !important; /* 강제로 100% 부여 */
+    max-width: none !important;
+    padding: 1.5rem;
+    margin-left: 0;
+    margin-right: 0;
+    box-sizing: border-box; /* 패딩이 너비에 포함되도록 */
+  }
+
+  /* 6. 피드백 섹션 */
+  .feedback-section {
+    width: 100%;
+    margin-top: 1.5rem;
+    padding: 1.2rem;
+  }
+
+  /* 7. 텍스트 크기 최적화 (너무 크면 깨짐) */
+  .submission-content {
+    font-size: 1.4rem !important; /* 기존 2rem에서 축소하여 가독성 향상 */
+    text-align: center;
+  }
+
+  .submission-header h5 {
+    font-size: 1.8rem;
+  }
+
+  /* 8. 버튼 섹션 정렬 */
+  .submission-info-only {
+    width: 100%;
+    justify-content: center; /* 버튼들 중앙 정렬 */
+    margin-top: 1rem;
+  }
+
+  .submission-status {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .submission-actions {
+    width: 100%;
+    display: flex;
+    justify-content: space-between; /* 버튼들을 양옆으로 배치 */
+    gap: 1rem;
+  }
+
+  .submission-actions .btn {
+    flex: 1; /* 버튼 너비를 동일하게 */
+  }
+}

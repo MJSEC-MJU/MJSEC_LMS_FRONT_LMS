@@ -327,8 +327,8 @@ export default function CurriculumSection({ groupId, isMentor }) {
         title: assignmentData.title,
         content: assignmentData.description, // description -> content
         hasAssignment: assignmentData.hasAssignment,
-        startDate: assignmentData.startDate ? new Date(assignmentData.startDate).toISOString() : null,
-        endDate: assignmentData.endDate ? new Date(assignmentData.endDate).toISOString() : null
+        startDate: assignmentData.startDate || null,
+        endDate: assignmentData.endDate || null
       };
       
       const result = await api('POST', `/mentor/group/${groupId}/create-plan`, apiData, token);
@@ -351,8 +351,8 @@ export default function CurriculumSection({ groupId, isMentor }) {
         title: assignmentData.title,
         content: assignmentData.description, // description -> content
         hasAssignment: assignmentData.hasAssignment,
-        startDate: assignmentData.startDate ? new Date(assignmentData.startDate).toISOString() : null,
-        endDate: assignmentData.endDate ? new Date(assignmentData.endDate).toISOString() : null
+        startDate: assignmentData.startDate || null,
+        endDate: assignmentData.endDate || null
       };
       
       const result = await api('PUT', `/mentor/group/${groupId}/plan/${assignmentId}`, apiData, token);
@@ -2558,13 +2558,25 @@ export default function CurriculumSection({ groupId, isMentor }) {
                     {assignment.startDate && (
                       <span className="curriculum-date">
                         <i className="fas fa-play"></i>
-                        시작: {new Date(assignment.startDate).toLocaleDateString('ko-KR')}
+                        시작: {new Date(assignment.startDate).toLocaleString('ko-KR', {
+                          year: 'numeric',
+                          month: '2-digit',
+                          day: '2-digit',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
                       </span>
                     )}
                     {assignment.endDate && (
                       <span className="curriculum-date">
                         <i className="fas fa-stop"></i>
-                        마감: {new Date(assignment.endDate).toLocaleDateString('ko-KR')}
+                        마감: {new Date(assignment.endDate).toLocaleString('ko-KR', {
+                          year: 'numeric',
+                          month: '2-digit',
+                          day: '2-digit',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
                       </span>
                     )}
                   </div>
@@ -2668,7 +2680,6 @@ export default function CurriculumSection({ groupId, isMentor }) {
                     placeholderText="시작일을 선택하세요"
                     className="date-picker-input"
                     locale="ko"
-                    utcOffset={0}
                   />
                 </div>
                 
@@ -2698,7 +2709,6 @@ export default function CurriculumSection({ groupId, isMentor }) {
                     className="date-picker-input"
                     locale="ko"
                     minDate={assignmentFormData.startDate ? new Date(assignmentFormData.startDate) : null}
-                    utcOffset={0}
                   />
                 </div>
               </div>
