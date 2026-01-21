@@ -3886,4 +3886,26 @@ body:not(.active) .activity-photos-modal-overlay {
   .submission-actions .btn {
     flex: 1; /* 버튼 너비를 동일하게 */
   }
+  .submission-list-content {
+    max-height: 40rem; /* 상자의 최대 세로 길이를 제한 (적절히 조절 가능) */
+    overflow-y: auto;  /* 세로 내용이 넘치면 내부 스크롤 생성 */
+    padding-right: 0.5rem; /* 스크롤바와 내용 사이의 간격 */
+    
+    /* 모바일에서 부드러운 스크롤 적용 */
+    -webkit-overflow-scrolling: touch; 
+  }
+
+  /* 스크롤바 스타일링 (선택 사항: 더 깔끔하게 보이게 함) */
+  .submission-list-content::-webkit-scrollbar {
+    width: 4px;
+  }
+  
+  .submission-list-content::-webkit-scrollbar-thumb {
+    background-color: var(--main-color);
+    border-radius: 10px;
+  }
+
+  .submission-list-content::-webkit-scrollbar-track {
+    background-color: var(--light-bg);
+  }
 }
