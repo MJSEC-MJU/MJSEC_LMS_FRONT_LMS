@@ -44,7 +44,8 @@ export default function Group() {
 
     const fetchUserGroups = async () => {
       try {
-        const res = await api('GET', '/group/all', null, token);
+        const endpoint = user?.role === 'ROLE_ADMIN' ? '/admin/group/all' : '/group/all';
+        const res = await api('GET', endpoint, null, token);
         
         const groups = res?.data || [];
         const mapped = groups.map(g => ({

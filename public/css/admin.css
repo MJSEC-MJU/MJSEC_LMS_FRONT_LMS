@@ -199,6 +199,34 @@
   align-items: center;
 }
 
+/* 어드민 상세 보기 버튼 스타일 */
+.admin-view-btn {
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: none;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  background: linear-gradient(135deg, #28a745, #218838);
+  color: white;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+  min-width: 70px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.admin-view-btn:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
+  background: linear-gradient(135deg, #218838, #1e7e34);
+}
+
+.admin-view-btn:active {
+  transform: translateY(0) scale(0.98);
+  box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+}
+
 /* 어드민 삭제 버튼 스타일 */
 .admin-delete-btn {
   padding: 8px 16px;
@@ -437,6 +465,17 @@
 .dark .status-toggle-container.inactive .toggle-switch {
   background: rgba(255, 255, 255, 0.15);
   border-color: rgba(255, 255, 255, 0.3);
+}
+
+.dark .admin-view-btn {
+  background: linear-gradient(135deg, #28a745, #218838);
+  color: var(--black);
+  box-shadow: 0 2px 8px rgba(40, 167, 69, 0.4);
+}
+
+.dark .admin-view-btn:hover {
+  background: linear-gradient(135deg, #218838, #1e7e34);
+  box-shadow: 0 4px 15px rgba(40, 167, 69, 0.5);
 }
 
 .dark .admin-delete-btn {
