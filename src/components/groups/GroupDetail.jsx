@@ -186,33 +186,34 @@ export default function GroupDetail({ groupId, myStudies }) {
       setIsMentor(false);
       return;
     }
-    
+
     try {
-      // /group/{groupId}/member API를 사용해서 멤버 목록과 역할 확인
       const res = await api('GET', `/group/${groupId}/member`, null, token);
       const members = res?.data || [];
-      
+
+      // 멘토 정보 추출
+      const mentor = members.find(member => member.role === 'MENTOR');
+      setMentorInfo(mentor);
+
+      // 어드민은 모든 그룹에 대해 멘토 권한으로 표시
+      if (user?.role === 'ROLE_ADMIN') {
+        setIsMentor(true);
+        return;
+      }
+
       // 현재 사용자가 멘토인지 확인
       const myStudentNo = (user?.studentNumber ?? '').toString();
       const myEmail = (user?.email ?? '').toLowerCase();
-      
+
       const myMemberInfo = members.find(member => {
         const memberStudent = (member?.studentNumber ?? '').toString();
         const memberEmail = (member?.email ?? '').toLowerCase();
         return (!!myStudentNo && myStudentNo === memberStudent) || (!!myEmail && !!memberEmail && myEmail === memberEmail);
       });
-      
-      // 멤버 정보에서 role이 MENTOR인지 확인
-      const isMentor = myMemberInfo?.role === 'MENTOR';
-      setIsMentor(isMentor);
-      
-      // 멘토 정보 추출
-      const mentor = members.find(member => member.role === 'MENTOR');
-      setMentorInfo(mentor);
-      
+
+      setIsMentor(myMemberInfo?.role === 'MENTOR');
+
     } catch {
-      // 멘토 권한 확인 오류 처리
-      // 에러 발생 시 사용자 role로 판단
       if (user?.role === 'ROLE_ADMIN' || user?.role === 'ROLE_MENTOR') {
         setIsMentor(true);
       } else {

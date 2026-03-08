@@ -782,13 +782,21 @@ useEffect(() => {
                         </td>
                         <td>
                           <div className="admin-table-actions">
+                            {/* 상세 보기 버튼 */}
+                            <button
+                              className="admin-view-btn"
+                              onClick={() => nav(`/groups?groupId=${g.studyGroupId}`)}
+                            >
+                              <i className="fas fa-eye"></i>
+                              상세 보기
+                            </button>
                             {/* 삭제 버튼 */}
                             <button
                               className="admin-delete-btn"
-                              onClick={() => setDeleteModal({ 
-                                isOpen: true, 
-                                groupName: g.name, 
-                                groupId: g.studyGroupId 
+                              onClick={() => setDeleteModal({
+                                isOpen: true,
+                                groupName: g.name,
+                                groupId: g.studyGroupId
                               })}
                             >
                               <i className="fas fa-trash-alt"></i>
