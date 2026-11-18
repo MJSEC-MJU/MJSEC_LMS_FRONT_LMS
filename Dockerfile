@@ -25,7 +25,7 @@ COPY . .
 RUN npm run build   # vite.config에서 base:'/lms/' 라고 가정 → dist/
 
 # ---------- 2) Runtime stage ----------
-FROM nginx:1.27-alpine AS runtime
+FROM nginx:stable-alpine AS runtime
 
 # 기본 툴(헬스체크용)
 RUN apk add --no-cache curl
